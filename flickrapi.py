@@ -1,33 +1,8 @@
-#!/usr/bin/python
-#
-# Flickr API implementation
-#
-# Inspired largely by Michele Campeotto's flickrclient and Aaron Swartz'
-# xmltramp... but I wanted to get a better idea of how python worked in
-# those regards, so I mostly worked those components out for myself.
-#
-# http://micampe.it/things/flickrclient
-# http://www.aaronsw.com/2002/xmltramp/
-#
-# Release 1: initial release
-# Release 2: added upload functionality
-# Release 3: code cleanup, convert to doc strings
-# Release 4: better permission support
-# Release 5: converted into fuller-featured "flickrapi"
-# Release 6: fix upload sig bug (thanks Deepak Jois), encode test output
-# Release 7: fix path construction, Manish Rai Jain's improvements, exceptions
-# Release 8: change API endpoint to "api.flickr.com"
-# Release 9: change to MIT license
-# Release 10: fix horrid \r\n bug on final boundary
-# Release 11: break out validateFrob() for subclassing
-#
-# Work by (or inspired by) Manish Rai Jain <manishrjain@gmail.com>:
-#
-#    improved error reporting, proper multipart MIME boundary creation,
-#    use of urllib2 to allow uploads through a proxy, upload accepts
-#    raw data as well as a filename
-#
-# Copyright (c) 2007 Brian "Beej Jorgensen" Hall
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright (c) 2007 by the respective coders, see
+# http://flickrapi.sf.net/
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -47,13 +22,6 @@
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-# Certain previous versions of this API were granted to the public
-# domain.  You're free to use those as you please.
-#
-# Beej Jorgensen, Maintainer, 19-Jan-2007
-# beej@beej.us
-#
 
 import sys
 import md5
@@ -182,6 +150,7 @@ class FlickrAPI:
 	flickrRESTForm = "/services/rest/"
 	flickrAuthForm = "/services/auth/"
 	flickrUploadForm = "/services/upload/"
+	flickrReplaceForm = "/services/replace/"
 
 	#-------------------------------------------------------------------
 	def __init__(self, apiKey, secret):
@@ -202,7 +171,7 @@ class FlickrAPI:
 		dataName = self.secret
 		keys = data.keys()
 		keys.sort()
-		for a in keys: dataName += (a + data[a])
+		for a in keys: dataName += (a + str(data[a]))
 		#print dataName
 		hash = md5.new()
 		hash.update(dataName)
@@ -358,6 +327,74 @@ class FlickrAPI:
 
 		return XMLNode.parseXML(rspXML)
 
+	#-------------------------------------------------------------------
+	def replace(self, filename=None, jpegData=None, **arg):
+		"""Replace an existing photo.
+
+		Supported parameters:
+
+		One of filename or jpegData must be specified by name when 
+		calling this method:
+
+		filename -- name of a file to upload
+		jpegData -- array of jpeg data to upload
+		photo_id -- the ID of the photo to replace
+
+		api_key
+		auth_token
+		"""
+		
+		if (not filename and not jpegData) or (filename and jpegData):
+			raise UploadException("filename OR jpegData must be specified")
+
+		# verify key names
+		known_keys = ('api_key', 'auth_token', 'filename', 'jpegData',
+				'photo_id')
+		for a in arg.keys():
+			if a not in known_keys:
+				sys.stderr.write("FlickrAPI: warning: unknown parameter " \
+					"\"%s\" sent to FlickrAPI.replace\n" % (a))
+		
+		arg["api_sig"] = self.__sign(arg)
+		url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrReplaceForm
+
+		# construct POST data
+		boundary = mimetools.choose_boundary()
+		body = ""
+
+		# required params
+		for a in ('api_key', 'auth_token', 'api_sig', 'photo_id'):
+			if a not in arg:
+				raise UploadException('Missing required argument %s' %
+						a)
+			body += "--%s\r\n" % (boundary)
+			body += "Content-Disposition: form-data; name=\""+a+"\"\r\n\r\n"
+			body += "%s\r\n" % (arg[a])
+
+		body += "--%s\r\n" % (boundary)
+		body += "Content-Disposition: form-data; name=\"photo\";"
+		body += " filename=\"%s\"\r\n" % filename
+		body += "Content-Type: image/jpeg\r\n\r\n"
+
+		if filename:
+			fp = file(filename, "rb")
+			data = fp.read()
+			fp.close()
+		else:
+			data = jpegData
+
+		postData = body.encode("utf_8") + data + \
+			("\r\n--%s--" % (boundary)).encode("utf_8")
+
+		request = urllib2.Request(url)
+		request.add_data(postData)
+		request.add_header("Content-Type", \
+			"multipart/form-data; boundary=%s" % boundary)
+		response = urllib2.urlopen(request)
+		rspXML = response.read()
+
+		return XMLNode.parseXML(rspXML)
+
 
 	#-----------------------------------------------------------------------
 	@classmethod
@@ -395,13 +432,12 @@ class FlickrAPI:
 	#-----------------------------------------------------------------------
 	def __getCachedTokenPath(self):
 		"""Return the directory holding the app data."""
-		return os.path.expanduser(os.path.sep.join(["~", ".flickr", \
-			self.apiKey]))
+		return os.path.expanduser(os.path.join("~", ".flickr", self.apiKey))
 
 	#-----------------------------------------------------------------------
 	def __getCachedTokenFilename(self):
 		"""Return the full pathname of the cached token file."""
-		return os.path.sep.join([self.__getCachedTokenPath(), "auth.xml"])
+		return os.path.join(self.__getCachedTokenPath(), "auth.xml")
 
 	#-----------------------------------------------------------------------
 	def __getCachedToken(self):
@@ -443,31 +479,60 @@ class FlickrAPI:
 
 
 	#-----------------------------------------------------------------------
-	def validateFrob(self, frob, perms, browser):
-		os.system("%s '%s'" % (browser, self.__getAuthURL(perms, frob)))
+	def validateFrob(self, frob, perms, browser, fork):
+		auth_url = self.__getAuthURL(perms, frob)
+		
+		if fork:
+			if os.fork():
+				return
+		
+			os.execlp(browser, browser, auth_url)
+			raise SystemExit("Error starting browser, sorry")
+		
+		os.system("%s '%s'" % (browser, auth_url))
 
 	#-----------------------------------------------------------------------
-	def getToken(self, perms="read", browser="lynx"):
+	def getTokenPartOne(self, perms="read", browser="firefox", fork=True):
 		"""Get a token either from the cache, or make a new one from the
 		frob.
-
+		
 		This first attempts to find a token in the user's token cache on
-		disk.
+		disk. If that token is present and valid, it is returned by the
+		method.
 		
 		If that fails (or if the token is no longer valid based on
 		flickr.auth.checkToken) a new frob is acquired.  The frob is
-		validated by having the user log into flickr (with lynx), and
-		subsequently a valid token is retrieved.
+		validated by having the user log into flickr (with a browser).
+		
+		If the browser needs to take over the terminal, use fork=False,
+		otherwise use fork=True.
+		
+		To get a proper token, follow these steps:
+			- Store the result value of this method call
+			- Give the user a way to signal the program that he/she has
+			  authorized it, for example show a button that can be
+			  pressed.
+			- Wait for the user to signal the program that the
+			  authorization was performed, but only if there was no
+			  cached token.
+			- Call flickrapi.getTokenPartTwo(...) and pass it the result
+			  value you stored.
 
 		The newly minted token is then cached locally for the next run.
 
 		perms--"read", "write", or "delete"
-		browser--whatever browser should be used in the system() call
-
+		browser--whatever browser should be used in the system() call			  
+	
+		An example:
+		
+		(token, frob) = flickr.getTokenPartOne(perms='write')
+		if not token: raw_input("Press ENTER after you authorized this program")
+    	token = flickr.getTokenPartTwo((token, frob))
 		"""
 		
 		# see if we have a saved token
 		token = self.__getCachedToken()
+		frob = None
 
 		# see if it's valid
 		if token != None:
@@ -489,18 +554,54 @@ class FlickrAPI:
 			frob = rsp.frob[0].elementText
 
 			# validate online
-			self.validateFrob(frob, perms, browser)
+			self.validateFrob(frob, perms, browser, fork)
 
-			# get a token
-			rsp = self.auth_getToken(api_key=self.apiKey, frob=frob)
-			self.testFailure(rsp)
+		return (token, frob)
+		
+	def getTokenPartTwo(self, (token, frob)):
+		"""Part two of getting a token, see getTokenPartOne(...) for details."""
 
-			token = rsp.auth[0].token[0].elementText
+		# If a valid token was obtained, we're done
+		if token:
+			return token
+		
+		# get a token
+		rsp = self.auth_getToken(api_key=self.apiKey, frob=frob)
+		self.testFailure(rsp)
 
-			# store the auth info for next time
-			self.__setCachedToken(rsp.xml)
+		token = rsp.auth[0].token[0].elementText
+
+		# store the auth info for next time
+		self.__setCachedToken(rsp.xml)
 
 		return token
+
+	#-----------------------------------------------------------------------
+	def getToken(self, perms="read", browser="lynx"):
+		"""Get a token either from the cache, or make a new one from the
+		frob.
+
+		This first attempts to find a token in the user's token cache on
+		disk.
+		
+		If that fails (or if the token is no longer valid based on
+		flickr.auth.checkToken) a new frob is acquired.  The frob is
+		validated by having the user log into flickr (with lynx), and
+		subsequently a valid token is retrieved.
+
+		The newly minted token is then cached locally for the next run.
+
+		perms--"read", "write", or "delete"
+		browser--whatever browser should be used in the system() call
+
+		Use this method if you're sure that the browser process ends
+		when the user has granted the autorization - not sooner and
+		not later.
+		"""
+		
+		(token, frob) = self.getTokenPartOne(perms, browser, False)
+		return self.getTokenPartTwo((token, frob))
+
 
 ########################################################################
 # App functionality
