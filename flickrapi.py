@@ -6,7 +6,8 @@
 See http://flickrapi.sf.net/ for more info.
 '''
 
-__version__ = '$Revision$'
+__version__ = '0.12-beta0'
+__revision__ = '$Revision$'
 
 # Copyright (c) 2007 by the respective coders, see
 # http://flickrapi.sf.net/
