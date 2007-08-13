@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+'''A FlickrAPI interface.
+
+See http://flickrapi.sf.net/ for more info.
+'''
+
 __version__ = '$Revision$'
-__url__ = '$HeadURL$'
 
 # Copyright (c) 2007 by the respective coders, see
 # http://flickrapi.sf.net/
@@ -28,7 +32,6 @@ __url__ = '$HeadURL$'
 
 import sys
 import md5
-import string
 import urllib
 import urllib2
 import mimetools
@@ -40,8 +43,12 @@ import xml.dom.minidom
 # Exceptions
 ########################################################################
 
-class UploadException(Exception):
-    pass
+class IllegalArgumentException(ValueError):
+    '''Raised when a method is passed an illegal argument.
+    
+    More specific details will be included in the exception message
+    when thrown.
+    '''
 
 ########################################################################
 # XML functionality
@@ -116,9 +123,8 @@ class XMLNode:
                         setattr(thisNode, a.nodeName, [])
 
                     # add the child node as an attrib to this node
-                    list = getattr(thisNode, a.nodeName);
-                    #print "appending child: %s to %s" % (a.nodeName, thisNode.elementName)
-                    list.append(child);
+                    list = getattr(thisNode, a.nodeName)
+                    list.append(child)
 
                     __parseXMLElement(a, child)
 
@@ -271,7 +277,7 @@ class FlickrAPI:
         if filename == None and jpegData == None or \
             filename != None and jpegData != None:
 
-            raise UploadException("filename OR jpegData must be specified")
+            raise IllegalArgumentException("filename OR jpegData must be specified")
 
         # verify key names
         for a in arg.keys():
@@ -348,7 +354,7 @@ class FlickrAPI:
         """
         
         if (not filename and not jpegData) or (filename and jpegData):
-            raise UploadException("filename OR jpegData must be specified")
+            raise IllegalArgumentException("filename OR jpegData must be specified")
 
         # verify key names
         known_keys = ('api_key', 'auth_token', 'filename', 'jpegData',
@@ -368,7 +374,7 @@ class FlickrAPI:
         # required params
         for a in ('api_key', 'auth_token', 'api_sig', 'photo_id'):
             if a not in arg:
-                raise UploadException('Missing required argument %s' %
+                raise IllegalArgumentException('Missing required argument %s' %
                         a)
             body += "--%s\r\n" % (boundary)
             body += "Content-Disposition: form-data; name=\""+a+"\"\r\n\r\n"
