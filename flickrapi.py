@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__version__ = '$Revision$'
+__url__ = '$HeadURL$'
+
 # Copyright (c) 2007 by the respective coders, see
 # http://flickrapi.sf.net/
 #
