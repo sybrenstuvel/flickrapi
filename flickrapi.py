@@ -8,6 +8,7 @@ See http://flickrapi.sf.net/ for more info.
 
 __version__ = '0.12-beta0'
 __revision__ = '$Revision$'
+__all__ = ('FlickrAPI', 'IllegalArgumentException', 'XMLNode', '__version__', '__revision__')
 
 # Copyright (c) 2007 by the respective coders, see
 # http://flickrapi.sf.net/
@@ -36,9 +37,13 @@ import md5
 import urllib
 import urllib2
 import mimetools
-import httplib
 import os.path
 import xml.dom.minidom
+import logging
+
+logging.basicConfig()
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 
 ########################################################################
 # Exceptions
@@ -59,12 +64,12 @@ class IllegalArgumentException(ValueError):
 class XMLNode:
     """XMLNode -- generic class for holding an XML node
 
-    xmlStr = '''<xml foo="32">
+    xml_str = '''<xml foo="32">
     <name bar="10">Name0</name>
     <name bar="11" baz="12">Name1</name>
     </xml>'''
 
-    f = XMLNode.parseXML(xmlStr)
+    f = XMLNode.parseXML(xml_str)
 
     print f.elementName              # xml
     print f['foo']                   # 32
@@ -80,10 +85,10 @@ class XMLNode:
 
     def __init__(self):
         """Construct an empty XML node."""
-        self.elementName=""
-        self.elementText=""
-        self.attrib={}
-        self.xml=""
+        self.elementName = ""
+        self.elementText = ""
+        self.attrib = {}
+        self.xml = ""
 
     def __setitem__(self, key, item):
         """Store a node's attribute in the attrib hash."""
@@ -95,11 +100,11 @@ class XMLNode:
 
     #-----------------------------------------------------------------------
     @classmethod
-    def parseXML(cls, xmlStr, storeXML=False):
+    def parseXML(cls, xml_str, store_xml=False):
         """Convert an XML string into a nice instance tree of XMLNodes.
 
-        xmlStr -- the XML to parse
-        storeXML -- if True, stores the XML string in the root XMLNode.xml
+        xml_str -- the XML to parse
+        store_xml -- if True, stores the XML string in the root XMLNode.xml
 
         """
 
@@ -134,11 +139,11 @@ class XMLNode:
             
             return thisNode
 
-        dom = xml.dom.minidom.parseString(xmlStr)
+        dom = xml.dom.minidom.parseString(xml_str)
 
         # get the root
         rootNode = XMLNode()
-        if storeXML: rootNode.xml = xmlStr
+        if store_xml: rootNode.xml = xml_str
 
         return __parseXMLElement(dom.firstChild, rootNode)
 
@@ -170,6 +175,10 @@ class FlickrAPI:
 
         self.__handlerCache={}
 
+    def __repr__(self):
+        return '[FlickrAPI for key "%s"]' % self.apiKey
+    __str__ = __repr__
+    
     #-------------------------------------------------------------------
     def __sign(self, data):
         """Calculate the flickr signature for a set of params.
@@ -183,12 +192,13 @@ class FlickrAPI:
         keys.sort()
         for a in keys: dataName += (a + str(data[a]))
         #print dataName
-        hash = md5.new()
-        hash.update(dataName)
-        return hash.hexdigest()
+        
+        md5_hash = md5.new()
+        md5_hash.update(dataName)
+        return md5_hash.hexdigest()
 
     #-------------------------------------------------------------------
-    def __getattr__(self, method, **arg):
+    def __getattr__(self, method):
         """Handle all the flickr API calls.
         
         This is Michele Campeotto's cleverness, wherein he writes a
@@ -203,32 +213,39 @@ class FlickrAPI:
 
         example usage:
 
-            flickr.auth_getFrob(api_key="AAAAAA")
-            rsp = flickr.favorites_getList(api_key=flickrAPIKey, \\
+            flickr.auth_getFrob(apiKey="AAAAAA")
+            rsp = flickr.favorites_getList(apiKey=flickrAPIKey, \\
                 auth_token=token)
 
         """
 
-        if not self.__handlerCache.has_key(method):
-            def handler(_self = self, _method = method, **arg):
-                _method = "flickr." + _method.replace("_", ".")
-                url = "http://" + FlickrAPI.flickrHost + \
-                    FlickrAPI.flickrRESTForm
-                arg["method"] = _method
-                postData = urllib.urlencode(arg) + "&api_sig=" + \
-                    _self.__sign(arg)
-                #print "--url---------------------------------------------"
-                #print url
-                #print "--postData----------------------------------------"
-                #print postData
-                f = urllib.urlopen(url, postData)
-                data = f.read()
-                #print "--response----------------------------------------"
-                #print data
-                f.close()
-                return XMLNode.parseXML(data, True)
+        # Refuse to act as a proxy for unimplemented special methods
+        if method.startswith('__'):
+            raise AttributeError("No such attribute '%s'" % method)
 
-            self.__handlerCache[method] = handler;
+        if self.__handlerCache.has_key(method):
+            # If we already have the handler, return it
+            return self.__handlerCache.has_key(method)
+        
+        # Construct the method anem and URL only once for each handler.
+        method = "flickr." + method.replace("_", ".")
+        url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrRESTForm
+
+        def handler(**args):
+            '''Dynamically created handler for a Flickr API call'''
+            
+            LOG.debug("Calling %s(%s)" % (method, args))
+
+            args["method"] = method
+            postData = urllib.urlencode(args) + "&api_sig=" + self.__sign(args)
+
+            f = urllib.urlopen(url, postData)
+            data = f.read()
+            f.close()
+            
+            return XMLNode.parseXML(data, True)
+
+        self.__handlerCache[method] = handler
 
         return self.__handlerCache[method]
     
@@ -408,11 +425,11 @@ class FlickrAPI:
 
     #-----------------------------------------------------------------------
     @classmethod
-    def testFailure(cls, rsp, exit=True):
+    def testFailure(cls, rsp, exit_on_error=True):
         """Exit app if the rsp XMLNode indicates failure."""
         if rsp['stat'] == "fail":
             sys.stderr.write("%s\n" % (cls.getPrintableError(rsp)))
-            if exit: sys.exit(1)
+            if exit_on_error: sys.exit(1)
 
     #-----------------------------------------------------------------------
     @classmethod
@@ -471,7 +488,7 @@ class FlickrAPI:
             return None
 
     #-----------------------------------------------------------------------
-    def __setCachedToken(self, xml):
+    def __setCachedToken(self, token_xml):
         """Cache a token for later use.
 
         The cached tag is stored by simply saving the entire RSP response
@@ -484,7 +501,7 @@ class FlickrAPI:
             os.makedirs(path)
 
         f = file(self.__getCachedTokenFilename(), "w")
-        f.write(xml)
+        f.write(token_xml)
         f.close()
 
 
@@ -617,7 +634,7 @@ class FlickrAPI:
 # App functionality
 ########################################################################
 
-def main(argv):
+def main():
     # flickr auth information:
     flickrAPIKey = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # API key
     flickrSecret = "yyyyyyyyyyyyyyyy"                  # shared "secret"
@@ -649,5 +666,6 @@ def main(argv):
     return 0
 
 # run the main if we're not being imported:
-if __name__ == "__main__": sys.exit(main(sys.argv))
+if __name__ == "__main__":
+    sys.exit(main())
 
