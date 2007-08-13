@@ -45,7 +45,7 @@ from flickrapi.xmlnode import XMLNode
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
+LOG.setLevel(logging.INFO)
 
 ########################################################################
 # Exceptions
