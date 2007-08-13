@@ -14,4 +14,4 @@ setup(name='flickrapi',
     author='Beej Jorgensen', 
     author_email='beej@beej.us', 
     description='Python interface to the Flickr API', 
-    py_modules=['flickrapi'])
+    packages=['flickrapi'])
