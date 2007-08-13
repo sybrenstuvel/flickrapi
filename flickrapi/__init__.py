@@ -38,8 +38,10 @@ import urllib
 import urllib2
 import mimetools
 import os.path
-import xml.dom.minidom
 import logging
+
+from flickrapi.tokencache import TokenCache
+from flickrapi.xmlnode import XMLNode
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
@@ -56,96 +58,6 @@ class IllegalArgumentException(ValueError):
     when thrown.
     '''
 
-########################################################################
-# XML functionality
-########################################################################
-
-#-----------------------------------------------------------------------
-class XMLNode:
-    """XMLNode -- generic class for holding an XML node
-
-    xml_str = '''<xml foo="32">
-    <name bar="10">Name0</name>
-    <name bar="11" baz="12">Name1</name>
-    </xml>'''
-
-    f = XMLNode.parseXML(xml_str)
-
-    print f.elementName              # xml
-    print f['foo']                   # 32
-    print f.name                     # [<name XMLNode>, <name XMLNode>]
-    print f.name[0].elementName      # name
-    print f.name[0]["bar"]           # 10
-    print f.name[0].elementText      # Name0
-    print f.name[1].elementName      # name
-    print f.name[1]["bar"]           # 11
-    print f.name[1]["baz"]           # 12
-
-    """
-
-    def __init__(self):
-        """Construct an empty XML node."""
-        self.elementName = ""
-        self.elementText = ""
-        self.attrib = {}
-        self.xml = ""
-
-    def __setitem__(self, key, item):
-        """Store a node's attribute in the attrib hash."""
-        self.attrib[key] = item
-
-    def __getitem__(self, key):
-        """Retrieve a node's attribute from the attrib hash."""
-        return self.attrib[key]
-
-    #-----------------------------------------------------------------------
-    @classmethod
-    def parseXML(cls, xml_str, store_xml=False):
-        """Convert an XML string into a nice instance tree of XMLNodes.
-
-        xml_str -- the XML to parse
-        store_xml -- if True, stores the XML string in the root XMLNode.xml
-
-        """
-
-        def __parseXMLElement(element, thisNode):
-            """Recursive call to process this XMLNode."""
-            thisNode.elementName = element.nodeName
-
-            #print element.nodeName
-
-            # add element attributes as attributes to this node
-            for i in range(element.attributes.length):
-                an = element.attributes.item(i)
-                thisNode[an.name] = an.nodeValue
-
-            for a in element.childNodes:
-                if a.nodeType == xml.dom.Node.ELEMENT_NODE:
-
-                    child = XMLNode()
-                    try:
-                        list = getattr(thisNode, a.nodeName)
-                    except AttributeError:
-                        setattr(thisNode, a.nodeName, [])
-
-                    # add the child node as an attrib to this node
-                    list = getattr(thisNode, a.nodeName)
-                    list.append(child)
-
-                    __parseXMLElement(a, child)
-
-                elif a.nodeType == xml.dom.Node.TEXT_NODE:
-                    thisNode.elementText += a.nodeValue
-            
-            return thisNode
-
-        dom = xml.dom.minidom.parseString(xml_str)
-
-        # get the root
-        rootNode = XMLNode()
-        if store_xml: rootNode.xml = xml_str
-
-        return __parseXMLElement(dom.firstChild, rootNode)
 
 ########################################################################
 # Flickr functionality
@@ -161,6 +73,7 @@ class FlickrAPI:
       rsp = flickr.auth_checkToken(api_key=flickrAPIKey, auth_token=token)
 
     """
+    
     flickrHost = "api.flickr.com"
     flickrRESTForm = "/services/rest/"
     flickrAuthForm = "/services/auth/"
@@ -172,7 +85,8 @@ class FlickrAPI:
         """Construct a new FlickrAPI instance for a given API key and secret."""
         self.apiKey = apiKey
         self.secret = secret
-
+        self.token_cache = TokenCache(apiKey)
+        
         self.__handlerCache={}
 
     def __repr__(self):
@@ -457,55 +371,6 @@ class FlickrAPI:
         return "Success"
 
     #-----------------------------------------------------------------------
-    def __getCachedTokenPath(self):
-        """Return the directory holding the app data."""
-        return os.path.expanduser(os.path.join("~", ".flickr", self.apiKey))
-
-    #-----------------------------------------------------------------------
-    def __getCachedTokenFilename(self):
-        """Return the full pathname of the cached token file."""
-        return os.path.join(self.__getCachedTokenPath(), "auth.xml")
-
-    #-----------------------------------------------------------------------
-    def __getCachedToken(self):
-        """Read and return a cached token, or None if not found.
-
-        The token is read from the cached token file, which is basically the
-        entire RSP response containing the auth element.
-        """
-
-        try:
-            f = file(self.__getCachedTokenFilename(), "r")
-            
-            data = f.read()
-            f.close()
-
-            rsp = XMLNode.parseXML(data)
-
-            return rsp.auth[0].token[0].elementText
-
-        except IOError:
-            return None
-
-    #-----------------------------------------------------------------------
-    def __setCachedToken(self, token_xml):
-        """Cache a token for later use.
-
-        The cached tag is stored by simply saving the entire RSP response
-        containing the auth element.
-
-        """
-
-        path = self.__getCachedTokenPath()
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-        f = file(self.__getCachedTokenFilename(), "w")
-        f.write(token_xml)
-        f.close()
-
-
-    #-----------------------------------------------------------------------
     def validateFrob(self, frob, perms, browser, fork):
         auth_url = self.__getAuthURL(perms, frob)
         
@@ -558,11 +423,11 @@ class FlickrAPI:
         """
         
         # see if we have a saved token
-        token = self.__getCachedToken()
+        token = self.token_cache.token
         frob = None
 
         # see if it's valid
-        if token != None:
+        if token:
             rsp = self.auth_checkToken(api_key=self.apiKey, auth_token=token)
             if rsp['stat'] != "ok":
                 token = None
@@ -573,7 +438,7 @@ class FlickrAPI:
                 elif tokenPerms == "write" and perms == "delete": token = None
 
         # get a new token if we need one
-        if token == None:
+        if not token:
             # get the frob
             rsp = self.auth_getFrob(api_key=self.apiKey)
             self.testFailure(rsp)
@@ -599,7 +464,7 @@ class FlickrAPI:
         token = rsp.auth[0].token[0].elementText
 
         # store the auth info for next time
-        self.__setCachedToken(rsp.xml)
+        self.token_cache.token = rsp.xml
 
         return token
 
