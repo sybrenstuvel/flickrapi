@@ -51,10 +51,10 @@ class UploadException(Exception):
 class XMLNode:
 	"""XMLNode -- generic class for holding an XML node
 
-	xmlStr = \"\"\"<xml foo="32">
+	xmlStr = '''<xml foo="32">
 	<name bar="10">Name0</name>
 	<name bar="11" baz="12">Name1</name>
-	</xml>\"\"\"
+	</xml>'''
 
 	f = XMLNode.parseXML(xmlStr)
 
