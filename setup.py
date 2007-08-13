@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='FlickrAPI',
-	version='0.11-pre0.12-build$Revision$',
+	version='0.11',
 	url='http://beej.us/flickr/flickrapi/',
 	author='Beej Jorgensen',
 	author_email='beej@beej.us',

@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: FlickrAPI
-Version: 0.11-pre0.12-build$Revision$
+Version: 0.11
 Summary: Python interface to the Flickr API
 Home-page: http://beej.us/flickr/flickrapi/
 Author: Beej Jorgensen
