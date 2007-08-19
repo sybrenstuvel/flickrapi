@@ -9,7 +9,7 @@ See http://flickrapi.sf.net/ for more info.
 __version__ = '0.12-beta1'
 __revision__ = '$Revision$'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'XMLNode',
-           'setLogLevel', '__version__', '__revision__')
+           'set_log_level', '__version__', '__revision__')
 
 # Copyright (c) 2007 by the respective coders, see
 # http://flickrapi.sf.net/
@@ -559,10 +559,12 @@ def main():
     fapi = FlickrAPI(flickrAPIKey, flickrSecret)
 
     # do the whole whatever-it-takes to get a valid token:
-    token = fapi.getToken(browser="firefox")
+    (token, frob) = fapi.getTokenPartOne(browser='firefox', perms='write')
+    if not token: raw_input("Press ENTER after you authorized this program")
+    fapi.getTokenPartTwo((token, frob))
 
     # get my favorites
-    rsp = fapi.favorites_getList(api_key=flickrAPIKey,auth_token=token)
+    rsp = fapi.favorites_getList()
     fapi.testFailure(rsp)
 
     # and print them
@@ -571,7 +573,6 @@ def main():
 
     # upload the file foo.jpg
     #rsp = fapi.upload(filename="foo.jpg", \
-    #   api_key=flickrAPIKey, auth_token=token, \
     #   title="This is the title", description="This is the description", \
     #   tags="tag1 tag2 tag3", is_public="1")
     #if rsp == None:
