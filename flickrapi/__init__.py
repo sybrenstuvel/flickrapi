@@ -224,14 +224,13 @@ class FlickrAPI:
 
             raise IllegalArgumentException("filename OR jpegData must be specified")
 
+        
         # verify key names
+        possible_args = ("api_key", "auth_token", "title", "description", "tags",
+                         "is_public", "is_friend", "is_family")
         for a in arg.keys():
-            if a != "api_key" and a != "auth_token" and a != "title" and \
-                a != "description" and a != "tags" and a != "is_public" and \
-                a != "is_friend" and a != "is_family":
-
-                sys.stderr.write("FlickrAPI: warning: unknown parameter " \
-                    "\"%s\" sent to FlickrAPI.upload\n" % (a))
+            if a not in possible_args:
+                LOG.warn("Unknown parameter '%s' sent to FlickrAPI.upload" % a)
         
         arg["api_sig"] = self.__sign(arg)
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrUploadForm
@@ -306,12 +305,10 @@ class FlickrAPI:
             raise IllegalArgumentException("filename OR jpegData must be specified")
 
         # verify key names
-        known_keys = ('api_key', 'auth_token', 'filename', 'jpegData',
-                'photo_id')
+        possible_args = ('api_key', 'auth_token', 'filename', 'jpegData', 'photo_id')
         for a in arg.keys():
-            if a not in known_keys:
-                sys.stderr.write("FlickrAPI: warning: unknown parameter " \
-                    "\"%s\" sent to FlickrAPI.replace\n" % (a))
+            if a not in possible_args:
+                LOG.warn("Unknown parameter '%s' sent to FlickrAPI.replace" % a)
         
         arg["api_sig"] = self.__sign(arg)
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrReplaceForm
