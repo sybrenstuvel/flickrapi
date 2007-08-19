@@ -93,6 +93,7 @@ class FlickrAPI:
         self.apiKey = apiKey
         self.secret = secret
         self.token_cache = TokenCache(apiKey)
+        self.token = self.token_cache.token
         self.fail_on_error = fail_on_error
         
         self.__handlerCache={}
@@ -158,7 +159,14 @@ class FlickrAPI:
             
             LOG.debug("Calling %s(%s)" % (method, args))
 
-            args["method"] = method
+            # Set some defaults
+            defaults = {'method': method,
+                        'auth_token': self.token,
+                        'api_key': self.apiKey}
+            for key, default_value in defaults.iteritems():
+                if key not in args:
+                    args[key] = default_value
+
             postData = urllib.urlencode(args) + "&api_sig=" + self.__sign(args)
 
             f = urllib.urlopen(url, postData)
@@ -231,6 +239,13 @@ class FlickrAPI:
         for a in arg.keys():
             if a not in possible_args:
                 LOG.warn("Unknown parameter '%s' sent to FlickrAPI.upload" % a)
+
+        # Set some defaults
+        defaults = {'auth_token': self.token,
+                    'api_key': self.apiKey}
+        for key, default_value in defaults.iteritems():
+            if key not in args:
+                args[key] = default_value
         
         arg["api_sig"] = self.__sign(arg)
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrUploadForm
@@ -478,6 +493,7 @@ class FlickrAPI:
 
         # If a valid token was obtained, we're done
         if token:
+            self.token = token
             return token
         
         # get a token
@@ -488,6 +504,7 @@ class FlickrAPI:
 
         # store the auth info for next time
         self.token_cache.token = rsp.xml
+        self.token = token
 
         return token
 
