@@ -156,8 +156,6 @@ class FlickrAPI:
 
         def handler(**args):
             '''Dynamically created handler for a Flickr API call'''
-            
-            LOG.debug("Calling %s(%s)" % (method, args))
 
             # Set some defaults
             defaults = {'method': method,
@@ -166,6 +164,11 @@ class FlickrAPI:
             for key, default_value in defaults.iteritems():
                 if key not in args:
                     args[key] = default_value
+                # You are able to remove a default by assigning None
+                if key in args and args[key] is None:
+                    del args[key]
+
+            LOG.debug("Calling %s(%s)" % (method, args))
 
             postData = urllib.urlencode(args) + "&api_sig=" + self.__sign(args)
 
@@ -244,8 +247,8 @@ class FlickrAPI:
         defaults = {'auth_token': self.token,
                     'api_key': self.apiKey}
         for key, default_value in defaults.iteritems():
-            if key not in args:
-                args[key] = default_value
+            if key not in arg:
+                arg[key] = default_value
         
         arg["api_sig"] = self.__sign(arg)
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrUploadForm
@@ -466,19 +469,23 @@ class FlickrAPI:
 
         # see if it's valid
         if token:
-            rsp = self.auth_checkToken(api_key=self.apiKey, auth_token=token)
-            if rsp['stat'] != "ok":
-                token = None
-            else:
+            LOG.debug("Trying cached token '%s'" % token)
+            try:
+                rsp = self.auth_checkToken(api_key=self.apiKey, auth_token=token)
+
                 # see if we have enough permissions
                 tokenPerms = rsp.auth[0].perms[0].elementText
                 if tokenPerms == "read" and perms != "read": token = None
                 elif tokenPerms == "write" and perms == "delete": token = None
+            except FlickrError:
+                LOG.debug("Cached token invalid")
+                token = None
 
         # get a new token if we need one
         if not token:
             # get the frob
-            rsp = self.auth_getFrob(api_key=self.apiKey)
+            LOG.debug("Getting frob for new token")
+            rsp = self.auth_getFrob(api_key=self.apiKey, auth_token=None)
             self.testFailure(rsp)
 
             frob = rsp.frob[0].elementText
@@ -493,15 +500,19 @@ class FlickrAPI:
 
         # If a valid token was obtained, we're done
         if token:
+            LOG.debug("getTokenPartTwo: no need, token already there")
             self.token = token
             return token
+        
+        LOG.debug("getTokenPartTwo: getting a new token for frob '%s'" % frob)
         
         # get a token
         rsp = self.auth_getToken(api_key=self.apiKey, frob=frob)
         self.testFailure(rsp)
 
         token = rsp.auth[0].token[0].elementText
-
+        LOG.debug("getTokenPartTwo: new token '%s'" % token)
+        
         # store the auth info for next time
         self.token_cache.token = rsp.xml
         self.token = token
@@ -570,7 +581,7 @@ def main():
 
     return 0
 
-def setLogLevel(level):
+def set_log_level(level):
     '''Sets the log level of the logger used by the FlickrAPI module.
     
     >>> import flicrkapi
