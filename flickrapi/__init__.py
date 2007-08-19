@@ -8,7 +8,8 @@ See http://flickrapi.sf.net/ for more info.
 
 __version__ = '0.12-beta1'
 __revision__ = '$Revision$'
-__all__ = ('FlickrAPI', 'IllegalArgumentException', 'XMLNode', '__version__', '__revision__')
+__all__ = ('FlickrAPI', 'IllegalArgumentException', 'XMLNode',
+           'setLogLevel', '__version__', '__revision__')
 
 # Copyright (c) 2007 by the respective coders, see
 # http://flickrapi.sf.net/
@@ -58,6 +59,12 @@ class IllegalArgumentException(ValueError):
     when thrown.
     '''
 
+class FlickrError(Exception):
+    '''Raised when a Flickr method fails.
+    
+    More specific details will be included in the exception message
+    when thrown.
+    '''
 
 ########################################################################
 # Flickr functionality
@@ -81,11 +88,12 @@ class FlickrAPI:
     flickrReplaceForm = "/services/replace/"
 
     #-------------------------------------------------------------------
-    def __init__(self, apiKey, secret):
+    def __init__(self, apiKey, secret, fail_on_error=True):
         """Construct a new FlickrAPI instance for a given API key and secret."""
         self.apiKey = apiKey
         self.secret = secret
         self.token_cache = TokenCache(apiKey)
+        self.fail_on_error = fail_on_error
         
         self.__handlerCache={}
 
@@ -157,7 +165,12 @@ class FlickrAPI:
             data = f.read()
             f.close()
             
-            return XMLNode.parseXML(data, True)
+            result = XMLNode.parseXML(data, True)
+            if self.fail_on_error:
+                FlickrAPI.testFailure(result, True)
+    
+            return result
+
 
         self.__handlerCache[method] = handler
 
@@ -266,8 +279,12 @@ class FlickrAPI:
         response = urllib2.urlopen(request)
         rspXML = response.read()
 
-        return XMLNode.parseXML(rspXML)
+        result = XMLNode.parseXML(rspXML)
+        if self.fail_on_error:
+            FlickrAPI.testFailure(result, True)
 
+        return result
+    
     #-------------------------------------------------------------------
     def replace(self, filename=None, jpegData=None, **arg):
         """Replace an existing photo.
@@ -334,16 +351,25 @@ class FlickrAPI:
         response = urllib2.urlopen(request)
         rspXML = response.read()
 
-        return XMLNode.parseXML(rspXML)
+        result = XMLNode.parseXML(rspXML)
+        if self.fail_on_error:
+            FlickrAPI.testFailure(result, True)
+
+        return result
 
 
     #-----------------------------------------------------------------------
     @classmethod
-    def testFailure(cls, rsp, exit_on_error=True):
+    def testFailure(cls, rsp, exception_on_error=True):
         """Exit app if the rsp XMLNode indicates failure."""
-        if rsp['stat'] == "fail":
-            sys.stderr.write("%s\n" % (cls.getPrintableError(rsp)))
-            if exit_on_error: sys.exit(1)
+        if rsp['stat'] != "fail":
+            return
+        
+        message = cls.getPrintableError(rsp)
+        LOG.error(message)
+        
+        if exception_on_error:
+            raise FlickrError(message)
 
     #-----------------------------------------------------------------------
     @classmethod
@@ -530,6 +556,16 @@ def main():
 
     return 0
 
+def setLogLevel(level):
+    '''Sets the log level of the logger used by the FlickrAPI module.
+    
+    >>> import flicrkapi
+    >>> import logging
+    >>> flickrapi.setLogLevel(logging.DEBUG)
+    '''
+    
+    LOG.setLevel(level)
+    
 # run the main if we're not being imported:
 if __name__ == "__main__":
     sys.exit(main())
