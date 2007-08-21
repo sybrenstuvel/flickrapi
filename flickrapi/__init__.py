@@ -8,8 +8,8 @@ See http://flickrapi.sf.net/ for more info.
 
 __version__ = '0.12-beta1'
 __revision__ = '$Revision$'
-__all__ = ('FlickrAPI', 'IllegalArgumentException', 'XMLNode',
-           'set_log_level', '__version__', '__revision__')
+__all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
+        'XMLNode', 'set_log_level', '__version__', '__revision__')
 
 # Copyright (c) 2007 by the respective coders, see
 # http://flickrapi.sf.net/
@@ -582,7 +582,7 @@ def set_log_level(level):
     
     >>> import flicrkapi
     >>> import logging
-    >>> flickrapi.setLogLevel(logging.DEBUG)
+    >>> flickrapi.set_log_level(logging.DEBUG)
     '''
     
     LOG.setLevel(level)
