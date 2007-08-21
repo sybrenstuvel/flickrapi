@@ -10,7 +10,6 @@ from distutils.core import setup, Distribution
 import os
 
 try:
-    raise ImportError
     import docutils.core
 except ImportError:
     docutils = None
