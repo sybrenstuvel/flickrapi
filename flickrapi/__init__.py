@@ -219,8 +219,6 @@ class FlickrAPI:
         filename -- name of a file to upload
         jpegData -- array of jpeg data to upload
 
-        api_key
-        auth_token
         title
         description
         tags -- space-delimited list of tags, "tag1 tag2 tag3"
@@ -314,9 +312,6 @@ class FlickrAPI:
         filename -- name of a file to upload
         jpegData -- array of jpeg data to upload
         photo_id -- the ID of the photo to replace
-
-        api_key
-        auth_token
         """
         
         if (not filename and not jpegData) or (filename and jpegData):
