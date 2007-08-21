@@ -7,4 +7,7 @@ all: documentation.html
 clean:
 	rm -f documentation.html
 
-.PHONY: clean
+upload: documentation.html
+	rsync -va documentation.css documentation.html html4css1.css flickrapi.sf.net:/home/groups/f/fl/flickrapi/htdocs
+
+.PHONY: clean upload
