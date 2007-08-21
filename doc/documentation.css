@@ -23,30 +23,6 @@ p {
     text-align: justify;
 }
 
-hr.footer {
-    margin-top: 9ex;
-    border: 1px solid #006;
-    border-width: 1px 0 0 0;
-}
-
 dt {
     font-weight: bold;
-}
-
-dd {
-    margin-bottom: 0.5ex;
-    list-style-type: disc;
-    display: list-item;
-}
-
-a.featureRequest.solved {
-    background-color: #efe;
-}
-
-a.featureRequest:before {
-    content: '[';
-}
-
-a.featureRequest:after {
-    content: ']';
 }

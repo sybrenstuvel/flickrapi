@@ -31,9 +31,9 @@ applications, here is an explanation of some concepts we use.
 
 
 you
-    You are the reader of this document. We assume you are a
-    programmer and that you are using this Python Flickr API to create
-    an application. In this document we shall address you as male.
+    The reader of this document. We assume you are a programmer and
+    that you are using this Python Flickr API to create an
+    application. In this document we shall address you as male.
 
 application
     The Python application you are creating, that has to interface
