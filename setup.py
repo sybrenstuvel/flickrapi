@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 
 '''Python distutils install script.
 
@@ -13,5 +15,12 @@ setup(name='flickrapi',
     url='http://flickrapi.sourceforge.net/', 
     author='Beej Jorgensen', 
     author_email='beej@beej.us', 
+    maintainer='Sybren Stüvel',
+    maintainer_email='sybren@stuvel.eu',
     description='Python interface to the Flickr API', 
-    packages=['flickrapi'])
+    packages=['flickrapi'],
+    data_files=[
+        ('share/doc/flickrapi-%s' % __version__, ['doc/documentation.html', 'doc/documentation.css', 'doc/html4css1.css']),
+    ],
+    license='Python'
+)
