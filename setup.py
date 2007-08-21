@@ -6,9 +6,25 @@
 Run with "python setup.py install" to install FlickrAPI
 '''
 
-from distutils.core import setup
+from distutils.core import setup, Distribution
+import os
 
 from flickrapi import __version__
+
+class OurDistribution(Distribution):
+    '''Distribution that also generates the documentation HTML'''
+
+    def run_command(self, command):
+        '''Builds the documentation if needed, then passes control to
+        the superclass' run_command(...) method.
+        '''
+
+        # TODO: build documentation
+        if command == 'install_data':
+            os.system("make -C doc")
+        if command == 'clean':
+            os.system("make -C doc clean")
+        Distribution.run_command(self, command)
 
 setup(name='flickrapi', 
     version=__version__, 
@@ -22,5 +38,6 @@ setup(name='flickrapi',
     data_files=[
         ('share/doc/flickrapi-%s' % __version__, ['doc/documentation.html', 'doc/documentation.css', 'doc/html4css1.css']),
     ],
-    license='Python'
+    license='Python',
+    distclass=OurDistribution
 )
