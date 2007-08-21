@@ -9,16 +9,14 @@ Python FlickrAPI
 .. contents::
 .. sectnum::
 
-This document describes the `Python interface`_ to the `Flickr API`_
-service.
-
-.. _`Python interface`: http://flickrapi.sourceforge.net/
-.. _`Flickr API`: http://www.flickr.com/services/api
-
 Introduction
 ======================================================================
 
-{TODO}
+`Flickr`_ is one of the most popular photo sharing websites. Their
+public API makes it very easy to write applications that use Flickr
+some way or another. The possibilities are limitless. This document
+describes how to use the Flickr API in your Python programs using the
+`Python Flickr API interface`_.
 
 
 Concepts
@@ -61,9 +59,6 @@ process; it's good to know what's in there before you go on.
 The document states "The auth_token and api_sig parameters should then
 be passed along with each request". You do *not* have to do this - the
 Python Flickr API takes care of that.
-
-.. _`User Authentication`:
-    http://www.flickr.com/services/api/misc.userauth.html
 
 Here is a simple example of Flickr's two-phase authentication::
 
@@ -251,14 +246,18 @@ be compatible with older versions, but we have no tests for this yet.
 
 Rendering the documentation requires `Docutils`_.
 
-.. _`Docutils`: http://docutils.sourceforge.net/
-
 Links
 ======================================================================
 
-- `Flickr API documentation`_
 - `Python Flickr API interface`_
+- `Flickr`_
 - `Flickr API documentation`_
 
-.. _`Python Flickr API interface`: http://flickrapi.sourceforge.net/
 .. _`Flickr API documentation`: http://www.flickr.com/services/api/
+.. _`Flickr API`: http://www.flickr.com/services/api
+.. _`Flickr`: http://www.flickr.com/
+.. _`Python Flickr API interface`: http://flickrapi.sourceforge.net/
+.. _`Docutils`: http://docutils.sourceforge.net/
+.. _`User Authentication`:
+    http://www.flickr.com/services/api/misc.userauth.html
+
