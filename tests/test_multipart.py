@@ -72,13 +72,12 @@ class MultipartTest(unittest.TestCase):
         m.attach(p)
         lines = str(m).split('\r\n')
 
-        self.assertEquals(lines[0], 'Content-Type: multipart/form-data; boundary=' + m.boundary)
-        self.assertEquals(lines[1], '')
-        self.assertEquals(lines[2], m.boundary)
-        self.assertEquals(lines[3], 'Content-Disposition: form-data; name="title"; purpose="test"')
-        self.assertEquals(lines[4], '')
-        self.assertEquals(lines[5], 'Little red kitty')
-        self.assertEquals(lines[6], m.boundary + '--')
+        self.assertEquals(m.header(), ('Content-Type', 'multipart/form-data; boundary=' + m.boundary))
+        self.assertEquals(lines[0], '--' + m.boundary)
+        self.assertEquals(lines[1], 'Content-Disposition: form-data; name="title"; purpose="test"')
+        self.assertEquals(lines[2], '')
+        self.assertEquals(lines[3], 'Little red kitty')
+        self.assertEquals(lines[4], '--' + m.boundary + '--')
 
     def testAttach(self):
         m = multipart.Multipart()
@@ -93,13 +92,12 @@ class MultipartTest(unittest.TestCase):
         m.attach(p)
         lines = str(m).split('\r\n')
 
-        self.assertEquals(lines[0], 'Content-Type: multipart/form-data; boundary=' + m.boundary)
-        self.assertEquals(lines[1], '')
-        self.assertEquals(lines[2], m.boundary)
-        self.assertEquals(lines[3], 'Content-Disposition: form-data; name="title"; purpose="test"')
-        self.assertEquals(lines[4], '')
-        self.assertEquals(lines[5], 'Little red kitty © Ünicode')
-        self.assertEquals(lines[6], m.boundary + '--')
+        self.assertEquals(m.header(), ('Content-Type', 'multipart/form-data; boundary=' + m.boundary))
+        self.assertEquals(lines[0], '--' + m.boundary)
+        self.assertEquals(lines[1], 'Content-Disposition: form-data; name="title"; purpose="test"')
+        self.assertEquals(lines[2], '')
+        self.assertEquals(lines[3], 'Little red kitty © Ünicode')
+        self.assertEquals(lines[4], '--' + m.boundary + '--')
 
         self.assertTrue(isinstance(str(m), str))
 

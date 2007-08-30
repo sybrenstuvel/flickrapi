@@ -6,7 +6,7 @@
 See http://flickrapi.sf.net/ for more info.
 '''
 
-__version__ = '0.12'
+__version__ = '0.13-beta0'
 __revision__ = '$Revision$'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
         'XMLNode', 'set_log_level', '__version__', '__revision__')
@@ -43,6 +43,7 @@ import logging
 
 from flickrapi.tokencache import TokenCache
 from flickrapi.xmlnode import XMLNode
+from flickrapi.multipart import Part, Multipart, FilePart
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
@@ -205,7 +206,7 @@ class FlickrAPI:
             FlickrAPI.flickrAuthForm, urllib.urlencode(data))
 
     #-------------------------------------------------------------------
-    def upload(self, filename=None, jpegData=None, **arg):
+    def upload(self, filename, **arg):
         """Upload a file to flickr.
 
         Be extra careful you spell the parameters correctly, or you will
@@ -213,33 +214,28 @@ class FlickrAPI:
 
         Supported parameters:
 
-        One of filename or jpegData must be specified by name when 
-        calling this method:
-
         filename -- name of a file to upload
-        jpegData -- array of jpeg data to upload
-
         title
         description
-        tags -- space-delimited list of tags, "tag1 tag2 tag3"
+        tags -- space-delimited list of tags, '''tag1 tag2 "long tag"'''
         is_public -- "1" or "0"
         is_friend -- "1" or "0"
         is_family -- "1" or "0"
 
         """
 
-        if filename == None and jpegData == None or \
-            filename != None and jpegData != None:
-
-            raise IllegalArgumentException("filename OR jpegData must be specified")
-
+        if not filename:
+            raise IllegalArgumentException("filename must be specified")
         
         # verify key names
-        possible_args = ("api_key", "auth_token", "title", "description", "tags",
-                         "is_public", "is_friend", "is_family")
+        required_params = ('api_key', 'auth_token', 'api_sig')
+        optional_params = ('title', 'description', 'tags', 'is_public', 
+            'is_friend', 'is_family')
+        possible_args = required_params + optional_params
+        
         for a in arg.keys():
             if a not in possible_args:
-                LOG.warn("Unknown parameter '%s' sent to FlickrAPI.upload" % a)
+                raise IllegalArgumentException("Unknown parameter '%s' sent to FlickrAPI.upload" % a)
 
         # Set some defaults
         defaults = {'auth_token': self.token,
@@ -247,50 +243,27 @@ class FlickrAPI:
         for key, default_value in defaults.iteritems():
             if key not in arg:
                 arg[key] = default_value
-        
+
         arg["api_sig"] = self.__sign(arg)
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrUploadForm
 
         # construct POST data
-        boundary = mimetools.choose_boundary()
-        body = ""
+        body = Multipart()
 
-        # required params
-        for a in ('api_key', 'auth_token', 'api_sig'):
-            body += "--%s\r\n" % (boundary)
-            body += "Content-Disposition: form-data; name=\""+a+"\"\r\n\r\n"
-            body += "%s\r\n" % (arg[a])
+        for a in required_params + optional_params:
+            if a not in arg: continue
+            
+            part = Part({'name': a}, arg[a].encode('utf-8'))
+            body.attach(part)
 
-        # optional params
-        for a in ('title', 'description', 'tags', 'is_public', \
-            'is_friend', 'is_family'):
+        filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
+        body.attach(filepart)
 
-            if arg.has_key(a):
-                body += "--%s\r\n" % (boundary)
-                body += "Content-Disposition: form-data; name=\""+a+"\"\r\n\r\n"
-                body += "%s\r\n" % (arg[a])
-
-        body += "--%s\r\n" % (boundary)
-        body += "Content-Disposition: form-data; name=\"photo\";"
-        body += " filename=\"%s\"\r\n" % filename
-        body += "Content-Type: image/jpeg\r\n\r\n"
-
-        #print body
-
-        if filename != None:
-            fp = file(filename, "rb")
-            data = fp.read()
-            fp.close()
-        else:
-            data = jpegData
-
-        postData = body.encode("utf_8") + data + \
-            ("\r\n--%s--" % (boundary)).encode("utf_8")
-
+        LOG.debug("Uploading to %s" % url)
         request = urllib2.Request(url)
-        request.add_data(postData)
-        request.add_header("Content-Type", \
-            "multipart/form-data; boundary=%s" % boundary)
+        request.add_data(str(body))
+        request.add_header(*body.header())
+        
         response = urllib2.urlopen(request)
         rspXML = response.read()
 

@@ -45,14 +45,13 @@ class FilePart(Part):
     '''
     
     def __init__(self, parameters, filename, content_type):
-        self.content_type = content_type
-        self.parameters = parameters
-
-        self.parameters['filename'] = filename
+        parameters['filename'] = filename
         
         imagefile = open(filename)
-        self.payload = imagefile.read()
+        payload = imagefile.read()
         imagefile.close()
+
+        Part.__init__(self, parameters, payload, content_type)
 
 class Multipart(object):
     '''Container for multipart data'''
@@ -62,7 +61,7 @@ class Multipart(object):
         
         self.parts = []
         self.content_type = 'form-data/multipart'
-        self.boundary = '---' + str(uuid.uuid1())
+        self.boundary = str(uuid.uuid1()).replace('-', '.')
         
     def attach(self, part):
         '''Attaches a part'''
@@ -72,10 +71,15 @@ class Multipart(object):
     def __str__(self):
         '''Renders the Multipart'''
 
-        lines = ["Content-Type: multipart/form-data; boundary=%s" % self.boundary, '']
+        lines = []
         for part in self.parts:
-            lines += [self.boundary]
+            lines += ['--' + self.boundary]
             lines += part.render()
-        lines += [self.boundary + "--"]
+        lines += ['--' + self.boundary + "--"]
         
         return '\r\n'.join(lines)
+    
+    def header(self):
+        '''Returns the top-level HTTP header of this multipart'''
+        
+        return ("Content-Type", "multipart/form-data; boundary=%s" % self.boundary)
