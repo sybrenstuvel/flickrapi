@@ -40,6 +40,7 @@ import urllib2
 import mimetools
 import os.path
 import logging
+import copy
 
 from flickrapi.tokencache import TokenCache
 from flickrapi.xmlnode import XMLNode
@@ -47,7 +48,7 @@ from flickrapi.multipart import Part, Multipart, FilePart
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
+LOG.setLevel(logging.DEBUG)
 
 ########################################################################
 # Exceptions
@@ -104,23 +105,50 @@ class FlickrAPI:
     __str__ = __repr__
     
     #-------------------------------------------------------------------
-    def __sign(self, data):
+    def sign(self, dictionary):
         """Calculate the flickr signature for a set of params.
 
         data -- a hash of all the params and values to be hashed, e.g.
-                {"api_key":"AAAA", "auth_token":"TTTT"}
+                {"api_key":"AAAA", "auth_token":"TTTT", "key": u"value".encode('utf-8')}
 
         """
-        dataName = self.secret
-        keys = data.keys()
+
+        data = [self.secret]
+        keys = dictionary.keys()
         keys.sort()
-        for a in keys: dataName += (a + str(data[a]))
-        #print dataName
+        for key in keys:
+            data.append(key)
+            if isinstance(dictionary[key], unicode):
+                raise IllegalArgumentException("No Unicode allowed, should have been UTF-8 by now")
+            data.append(dictionary[key])
         
         md5_hash = md5.new()
-        md5_hash.update(dataName)
+        md5_hash.update(''.join(data))
         return md5_hash.hexdigest()
 
+    def encode_and_sign(self, dictionary):
+        '''URL encodes the data in the dictionary, and signs it using the
+        given secret.
+        '''
+        
+        # Rewrite to [(key, value), (key, value), ...] list, so that
+        # the order is preserved. This is nice for the unittests.
+        to_encode = []
+
+        dictionary = copy.copy(dictionary)
+        
+        # Encode all unicode strings as UTF-8, the rest: just cast to strings
+        for (key, datum) in dictionary.iteritems():
+            if isinstance(datum, unicode):
+                datum = datum.encode('utf-8')
+            else:
+                datum = str(datum)
+            dictionary[key] = datum
+            to_encode.append((key, datum))
+
+        to_encode.append(('api_sig', self.sign(dictionary)))
+        return urllib.urlencode(to_encode)
+        
     #-------------------------------------------------------------------
     def __getattr__(self, method):
         """Handle all the flickr API calls.
@@ -171,7 +199,7 @@ class FlickrAPI:
 
             LOG.debug("Calling %s(%s)" % (method, args))
 
-            postData = urllib.urlencode(args) + "&api_sig=" + self.__sign(args)
+            postData = self.encode_and_sign(args)
 
             f = urllib.urlopen(url, postData)
             data = f.read()
@@ -200,10 +228,13 @@ class FlickrAPI:
 
         """
 
-        data = {"api_key": self.apiKey, "frob": frob, "perms": perms}
-        data["api_sig"] = self.__sign(data)
+        encoded = self.encode_and_sign({
+                    "api_key": self.apiKey,
+                    "frob": frob,
+                    "perms": perms})
+
         return "http://%s%s?%s" % (FlickrAPI.flickrHost, \
-            FlickrAPI.flickrAuthForm, urllib.urlencode(data))
+            FlickrAPI.flickrAuthForm, encoded)
 
     #-------------------------------------------------------------------
     def upload(self, filename, **arg):
@@ -244,7 +275,7 @@ class FlickrAPI:
             if key not in arg:
                 arg[key] = default_value
 
-        arg["api_sig"] = self.__sign(arg)
+        arg["api_sig"] = self.sign(arg)
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrUploadForm
 
         # construct POST data
@@ -296,7 +327,7 @@ class FlickrAPI:
             if a not in possible_args:
                 LOG.warn("Unknown parameter '%s' sent to FlickrAPI.replace" % a)
         
-        arg["api_sig"] = self.__sign(arg)
+        arg["api_sig"] = self.sign(arg)
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrReplaceForm
 
         # construct POST data

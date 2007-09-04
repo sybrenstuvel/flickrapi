@@ -2,7 +2,7 @@
 Python FlickrAPI
 ======================================================================
 
-:Version: 0.12
+:Version: 0.13-beta0
 :Author: Sybren Stüvel
 :Status: Final
 
@@ -185,11 +185,7 @@ flickr.upload(...)
 The ``flickr.upload(...)`` method has the following parameters:
 
 ``filename``
-    The filename of the image.
-
-``jpegData``
-    The image data in a string. Either use ``jpegData`` or
-    ``filename``, but not both.
+    The filename of the image. The image data is read from this file.
 
 ``title``
     The title of the photo
@@ -236,6 +232,25 @@ The ``flickr.replace(...)`` method has the following parameters:
 Only the image itself is replaced, not the other data (title, tags
 etc.).
 
+Unicode and UTF-8
+======================================================================
+
+Flickr expects every text to be encoded in UTF-8. The Python Flickr
+API can help you in a limited way. If you pass a string as a
+``unicode`` string, it will automatically be encoded to UTF-8 before
+it's sent to Flickr.
+
+If you do not use ``unicode`` strings, you're on your own, and you're
+expected to perform the UTF-8 encoding yourself.
+
+Here is an example::
+
+    flickr.photos_setMeta(photo_id='12345',
+                          title=u'Money',
+                          description=u'Around \u20ac30,-')
+
+This sets the photo's title to "Money" and the description to "Around
+€30,-".
 
 Requirements and compatibility
 ======================================================================
