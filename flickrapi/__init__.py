@@ -462,7 +462,9 @@ class FlickrAPI:
                 elif tokenPerms == "write" and perms == "delete": token = None
             except FlickrError:
                 LOG.debug("Cached token invalid")
+                self.token_cache.forget()
                 token = None
+                self.token = None
 
         # get a new token if we need one
         if not token:

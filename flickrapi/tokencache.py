@@ -43,7 +43,7 @@ class TokenCache(object):
 
             return rsp.auth[0].token[0].elementText
 
-        except IOError:
+        except Exception:
             return None
 
     def __setCachedToken(self, token_xml):
@@ -62,4 +62,9 @@ class TokenCache(object):
         f.write(token_xml)
         f.close()
 
-    token = property(__getCachedToken, __setCachedToken, None, "The cached token")
+    def forget(self):
+        '''Removes the cached token'''
+        
+        os.unlink(self.__getCachedTokenFilename())
+        
+    token = property(__getCachedToken, __setCachedToken, forget, "The cached token")
