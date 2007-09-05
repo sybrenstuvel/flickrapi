@@ -243,7 +243,6 @@ class FlickrAPI:
         return "http://%s%s?%s" % (FlickrAPI.flickrHost, \
             FlickrAPI.flickrAuthForm, encoded)
 
-    #-------------------------------------------------------------------
     def upload(self, filename, **arg):
         """Upload a file to flickr.
 
@@ -268,22 +267,18 @@ class FlickrAPI:
         # verify key names
         required_params = ('api_key', 'auth_token', 'api_sig')
         optional_params = ('title', 'description', 'tags', 'is_public', 
-            'is_friend', 'is_family')
+                           'is_friend', 'is_family')
         possible_args = required_params + optional_params
         
         for a in arg.keys():
             if a not in possible_args:
                 raise IllegalArgumentException("Unknown parameter '%s' sent to FlickrAPI.upload" % a)
 
-        # Set some defaults
-        defaults = {'auth_token': self.token,
-                    'api_key': self.apiKey}
-        for key, default_value in defaults.iteritems():
-            if key not in arg:
-                arg[key] = default_value
+        arguments = {'auth_token': self.token, 'api_key': self.apiKey}
+        arguments.update(arg)
 
         # Convert to UTF-8 if an argument is an Unicode string
-        arg = self.make_utf8(arg)
+        arg = self.make_utf8(arguments)
         
         arg["api_sig"] = self.sign(arg)
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrUploadForm
@@ -294,90 +289,63 @@ class FlickrAPI:
         for a in required_params + optional_params:
             if a not in arg: continue
             
-            data = arg[a]
-            if isinstance(data, unicode):
-                data = unicode.encode('utf-8')
-            else:
-                data = str(data)
-            
-            part = Part({'name': a}, data)
+            part = Part({'name': a}, arg[a])
             body.attach(part)
 
         filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
         body.attach(filepart)
+
+        return self.send_multipart(url, body)
+    
+    def replace(self, filename, photo_id):
+        """Replace an existing photo.
+
+        Supported parameters:
+
+        filename -- name of a file to upload
+        photo_id -- the ID of the photo to replace
+        """
+        
+        if not filename:
+            raise IllegalArgumentException("filename must be specified")
+        if not photo_id:
+            raise IllegalArgumentException("photo_id must be specified")
+
+        args = {'filename': filename,
+                'photo_id': photo_id,
+                'auth_token': self.token,
+                'api_key': self.apiKey}
+
+        args = self.make_utf8(args)
+        args["api_sig"] = self.sign(args)
+        url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrReplaceForm
+
+        # construct POST data
+        body = Multipart()
+
+        for arg, value in args.iteritems():
+            # No part for the filename
+            if value == 'filename': continue
+            
+            part = Part({'name': arg}, value)
+            body.attach(part)
+
+        filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
+        body.attach(filepart)
+
+        return self.send_multipart(url, body)
+
+    def send_multipart(self, url, body):
+        '''Sends a Multipart object to an URL.
+        
+        Returns the resulting XML from Flickr.
+        '''
 
         LOG.debug("Uploading to %s" % url)
         request = urllib2.Request(url)
         request.add_data(str(body))
         request.add_header(*body.header())
         
-        response = urllib2.urlopen(request)
-        rspXML = response.read()
-
-        result = XMLNode.parseXML(rspXML)
-        if self.fail_on_error:
-            FlickrAPI.testFailure(result, True)
-
-        return result
-    
-    #-------------------------------------------------------------------
-    def replace(self, filename=None, jpegData=None, **arg):
-        """Replace an existing photo.
-
-        Supported parameters:
-
-        One of filename or jpegData must be specified by name when 
-        calling this method:
-
-        filename -- name of a file to upload
-        jpegData -- array of jpeg data to upload
-        photo_id -- the ID of the photo to replace
-        """
-        
-        if (not filename and not jpegData) or (filename and jpegData):
-            raise IllegalArgumentException("filename OR jpegData must be specified")
-
-        # verify key names
-        possible_args = ('api_key', 'auth_token', 'filename', 'jpegData', 'photo_id')
-        for a in arg.keys():
-            if a not in possible_args:
-                LOG.warn("Unknown parameter '%s' sent to FlickrAPI.replace" % a)
-        
-        arg["api_sig"] = self.sign(arg)
-        url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrReplaceForm
-
-        # construct POST data
-        boundary = mimetools.choose_boundary()
-        body = ""
-
-        # required params
-        for a in ('api_key', 'auth_token', 'api_sig', 'photo_id'):
-            if a not in arg:
-                raise IllegalArgumentException('Missing required argument %s' %
-                        a)
-            body += "--%s\r\n" % (boundary)
-            body += "Content-Disposition: form-data; name=\""+a+"\"\r\n\r\n"
-            body += "%s\r\n" % (arg[a])
-
-        body += "--%s\r\n" % (boundary)
-        body += "Content-Disposition: form-data; name=\"photo\";"
-        body += " filename=\"%s\"\r\n" % filename
-        body += "Content-Type: image/jpeg\r\n\r\n"
-
-        if filename:
-            fp = file(filename, "rb")
-            data = fp.read()
-            fp.close()
-        else:
-            data = jpegData
-
-        postData = body.encode("utf_8") + data + \
-            ("\r\n--%s--" % (boundary)).encode("utf_8")
-
-        request = urllib2.Request(url)
-        request.add_data(postData)
-        request.add_header("Content-Type", \
-            "multipart/form-data; boundary=%s" % boundary)
         response = urllib2.urlopen(request)
         rspXML = response.read()
 
