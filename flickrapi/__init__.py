@@ -48,7 +48,7 @@ from flickrapi.multipart import Part, Multipart, FilePart
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
+LOG.setLevel(logging.INFO)
 
 ########################################################################
 # Exceptions
@@ -118,9 +118,12 @@ class FlickrAPI:
         keys.sort()
         for key in keys:
             data.append(key)
-            if isinstance(dictionary[key], unicode):
-                raise IllegalArgumentException("No Unicode allowed, should have been UTF-8 by now")
-            data.append(dictionary[key])
+            datum = dictionary[key]
+            if isinstance(datum, unicode):
+                raise IllegalArgumentException("No Unicode allowed, "
+                        "argument %s (%r) should have been UTF-8 by now"
+                        % (key, datum))
+            data.append(datum)
         
         md5_hash = md5.new()
         md5_hash.update(''.join(data))
@@ -131,23 +134,27 @@ class FlickrAPI:
         given secret.
         '''
         
-        # Rewrite to [(key, value), (key, value), ...] list, so that
-        # the order is preserved. This is nice for the unittests.
-        to_encode = []
-
-        dictionary = copy.copy(dictionary)
+        dictionary = self.make_utf8(dictionary)
+        dictionary['api_sig'] = self.sign(dictionary)
+        return urllib.urlencode(dictionary)
         
-        # Encode all unicode strings as UTF-8, the rest: just cast to strings
-        for (key, datum) in dictionary.iteritems():
-            if isinstance(datum, unicode):
-                datum = datum.encode('utf-8')
-            else:
-                datum = str(datum)
-            dictionary[key] = datum
-            to_encode.append((key, datum))
+    def make_utf8(self, dictionary):
+        '''Encodes all Unicode strings in the dictionary to UTF-8. Converts
+        all other objects to regular strings.
+        
+        Returns a copy of the dictionary, doesn't touch the original.
+        '''
+        
+        result = {}
 
-        to_encode.append(('api_sig', self.sign(dictionary)))
-        return urllib.urlencode(to_encode)
+        for (key, value) in dictionary.iteritems():
+            if isinstance(value, unicode):
+                value = value.encode('utf-8')
+            else:
+                value = str(value)
+            result[key] = value
+        
+        return result
         
     #-------------------------------------------------------------------
     def __getattr__(self, method):
@@ -275,6 +282,9 @@ class FlickrAPI:
             if key not in arg:
                 arg[key] = default_value
 
+        # Convert to UTF-8 if an argument is an Unicode string
+        arg = self.make_utf8(arg)
+        
         arg["api_sig"] = self.sign(arg)
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrUploadForm
 
@@ -284,7 +294,13 @@ class FlickrAPI:
         for a in required_params + optional_params:
             if a not in arg: continue
             
-            part = Part({'name': a}, arg[a].encode('utf-8'))
+            data = arg[a]
+            if isinstance(data, unicode):
+                data = unicode.encode('utf-8')
+            else:
+                data = str(data)
+            
+            part = Part({'name': a}, data)
             body.attach(part)
 
         filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')

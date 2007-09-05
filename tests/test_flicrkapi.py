@@ -64,21 +64,24 @@ class SigningTest(unittest.TestCase):
         self.assertEqual('0f6e51fe5121a9713fb1ca383bb8551c', signed)
 
 class EncodingTest(unittest.TestCase):
-    '''Test URL encoding + signing of data'''
+    '''Test URL encoding + signing of data. Tests using sets, because
+    we don't know in advance in which order the arguments will show up,
+    and we don't care about that anyway.
+    '''
     
     def testSimple(self): 
         '''Test simple ASCII-only data'''
 
         encoded = f.encode_and_sign({'abc': 'def', 'foo': 'bar'})
-        self.assertEqual('abc=def&foo=bar'
-                         '&api_sig=ec0a50e52a86751c2effbf5c8f96d5e8'
-                         , encoded)
+        expected = set(['abc=def',
+                        'foo=bar',
+                        'api_sig=ec0a50e52a86751c2effbf5c8f96d5e8'
+                        ])
+        self.assertEqual(expected, set(encoded.split('&')))
 
         # Order shouldn't matter for the signature
         encoded = f.encode_and_sign({'foo': 'bar', 'abc': 'def'})
-        self.assertEqual('foo=bar&abc=def'
-                         '&api_sig=ec0a50e52a86751c2effbf5c8f96d5e8'
-                         , encoded)
+        self.assertEqual(expected, set(encoded.split('&')))
 
     def testUnicode(self):
         '''Test Unicode data'''
@@ -86,25 +89,26 @@ class EncodingTest(unittest.TestCase):
         # Unicode strings with ASCII data only should result in the
         # same as in the testSimple() test. 
         encoded = f.encode_and_sign({'abc': u'def', 'foo': u'bar'})
-        self.assertEqual('abc=def&foo=bar'
-                         '&api_sig=ec0a50e52a86751c2effbf5c8f96d5e8'
-                         , encoded)
+        expected = set(['abc=def',
+                        'foo=bar',
+                        'api_sig=ec0a50e52a86751c2effbf5c8f96d5e8'
+                        ])
+        self.assertEqual(expected, set(encoded.split('&')))
 
         # Non-ASCII UTF-8 data should work too
         # EURO = 0xE2 0x82 0xAC in UTF-8
         # U_UML = 0xC3 0xBC in UTF-8
         data = EURO_UNICODE + U_UML_UNICODE
         encoded = f.encode_and_sign({'abc': data.encode('utf-8')})
-        self.assertEqual('abc=%E2%82%AC%C3%BC'
-                         '&api_sig=0f6e51fe5121a9713fb1ca383bb8551c'
-                         , encoded)
+        expected = set(['abc=%E2%82%AC%C3%BC',
+                        'api_sig=0f6e51fe5121a9713fb1ca383bb8551c'
+                        ])
+        self.assertEqual(expected, set(encoded.split('&')))
 
         # Straight Unicode should work too
         data = EURO_UNICODE + U_UML_UNICODE
         encoded = f.encode_and_sign({'abc': data})
-        self.assertEqual('abc=%E2%82%AC%C3%BC'
-                         '&api_sig=0f6e51fe5121a9713fb1ca383bb8551c'
-                         , encoded)
+        self.assertEqual(expected, set(encoded.split('&')))
 
 class DynamicMethodTest(unittest.TestCase):
     '''Tests the dynamic methods used to interface with Flickr.'''
