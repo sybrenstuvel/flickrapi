@@ -230,6 +230,20 @@ The ``flickr.upload(...)`` method has the following parameters:
     "1" if the private photo is visible for friends, "0" if not. The
     default is not.
 
+``callback``
+    This should be a method that receives two parameters, ``progress``
+    and ``done``. The callback method will be called every once in a
+    while during uploading. Example::
+
+        def func(progress, done):
+            if done:
+                print "Done uploading"
+            else:
+                print "At %s%%" % progress
+
+        flickr.upload(filename='test.jpg', callback=func)
+    
+
 flickr.replace(...)
 ----------------------------------------------------------------------
 

@@ -45,6 +45,7 @@ import copy
 from flickrapi.tokencache import TokenCache
 from flickrapi.xmlnode import XMLNode
 from flickrapi.multipart import Part, Multipart, FilePart
+from flickrapi import reportinghttp
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
@@ -235,7 +236,7 @@ class FlickrAPI:
         return "http://%s%s?%s" % (FlickrAPI.flickrHost, \
             FlickrAPI.flickrAuthForm, encoded)
 
-    def upload(self, filename, **arg):
+    def upload(self, filename, callback=None, **arg):
         """Upload a file to flickr.
 
         Be extra careful you spell the parameters correctly, or you will
@@ -244,6 +245,7 @@ class FlickrAPI:
         Supported parameters:
 
         filename -- name of a file to upload
+        callback -- method that gets progress reports
         title
         description
         tags -- space-delimited list of tags, '''tag1 tag2 "long tag"'''
@@ -251,6 +253,14 @@ class FlickrAPI:
         is_friend -- "1" or "0"
         is_family -- "1" or "0"
 
+        The callback method should take two parameters:
+        def callback(progress, done)
+        
+        Progress is a number between 0 and 100, and done is a boolean
+        that's true only when the upload is done.
+        
+        For now, the callback gets a 'done' twice, once for the HTTP
+        headers, once for the body.
         """
 
         if not filename:
@@ -287,7 +297,7 @@ class FlickrAPI:
         filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
         body.attach(filepart)
 
-        return self.send_multipart(url, body)
+        return self.send_multipart(url, body, callback)
     
     def replace(self, filename, photo_id):
         """Replace an existing photo.
@@ -327,7 +337,7 @@ class FlickrAPI:
 
         return self.send_multipart(url, body)
 
-    def send_multipart(self, url, body):
+    def send_multipart(self, url, body, progress_callback=None):
         '''Sends a Multipart object to an URL.
         
         Returns the resulting XML from Flickr.
@@ -340,7 +350,10 @@ class FlickrAPI:
         (header, value) = body.header()
         request.add_header(header, value)
         
-        response = urllib2.urlopen(request)
+        if progress_callback:
+            response = reportinghttp.urlopen(request, progress_callback)
+        else:
+            response = urllib2.urlopen(request)
         rspXML = response.read()
 
         result = XMLNode.parseXML(rspXML)
@@ -348,7 +361,6 @@ class FlickrAPI:
             FlickrAPI.testFailure(result, True)
 
         return result
-
 
     #-----------------------------------------------------------------------
     @classmethod
