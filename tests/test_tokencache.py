@@ -72,4 +72,28 @@ class TestCache(unittest.TestCase):
         cache = flickrapi.TokenCache(self.api_key)
         
         self.assertEquals(None, cache.token)
+    
+    def testCreateDir(self):
+        token_path = self.target_path()
+        tokendir = os.path.dirname(token_path)
         
+        # Move token dir to a temporary dir
+        tempdir = None
+        if os.path.exists(tokendir):
+            tempdir = '%s-DO-NOT-EXIST' % tokendir
+            if os.path.exists(tempdir):
+                raise Exception("Tempdir %s exists, please remove" % tempdir)
+            os.rename(tokendir, tempdir)
+        
+        self.assertFalse(os.path.exists(tokendir))
+        
+        cache = flickrapi.TokenCache(self.api_key)
+        cache.token = '''<rsp stat='ok'><auth><token>x</token></auth></rsp>'''
+        
+        self.assertTrue(os.path.exists(tokendir))
+
+        os.unlink(os.path.join(tokendir, 'auth.xml'))
+        os.rmdir(tokendir)
+        
+        if tempdir:
+            os.rename(tempdir, tokendir)
