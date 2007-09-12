@@ -221,10 +221,6 @@ The ``flickr.replace(...)`` method has the following parameters:
 ``filename``
     The filename of the image.
 
-``jpegData``
-    The image data in a string. Either use ``jpegData`` or
-    ``filename``, but not both.
-
 ``photo_id``
     The identifier of the photo that is to be replaced. Do not use
     this when uploading a new photo.
