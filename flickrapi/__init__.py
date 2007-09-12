@@ -336,7 +336,9 @@ class FlickrAPI:
         LOG.debug("Uploading to %s" % url)
         request = urllib2.Request(url)
         request.add_data(str(body))
-        request.add_header(*body.header())
+        
+        (header, value) = body.header()
+        request.add_header(header, value)
         
         response = urllib2.urlopen(request)
         rspXML = response.read()
