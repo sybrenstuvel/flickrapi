@@ -6,7 +6,7 @@
 See http://flickrapi.sf.net/ for more info.
 '''
 
-__version__ = '0.13'
+__version__ = '0.14-beta0'
 __revision__ = '$Revision$'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
         'XMLNode', 'set_log_level', '__version__', '__revision__')
@@ -158,24 +158,11 @@ class FlickrAPI:
         
     #-------------------------------------------------------------------
     def __getattr__(self, method):
-        """Handle all the flickr API calls.
-        
-        This is Michele Campeotto's cleverness, wherein he writes a
-        general handler for methods not defined, and assumes they are
-        flickr methods.  He then converts them to a form to be passed as
-        the method= parameter, and goes from there.
+        """Handle all the regular Flickr API calls.
 
-        http://micampe.it/things/flickrclient
-
-        My variant is the same basic thing, except it tracks if it has
-        already created a handler for a specific call or not.
-
-        example usage:
-
-            flickr.auth_getFrob(apiKey="AAAAAA")
-            rsp = flickr.favorites_getList(apiKey=flickrAPIKey, \\
-                auth_token=token)
-
+        >>> flickr.auth_getFrob(apiKey="AAAAAA")
+        >>> xmlnode = flickr.photos_getInfo(photo_id='1234')
+        >>> json = flickr.photos_getInfo(photo_id='1234', format='json')
         """
 
         # Refuse to act as a proxy for unimplemented special methods
@@ -186,7 +173,7 @@ class FlickrAPI:
             # If we already have the handler, return it
             return self.__handlerCache.has_key(method)
         
-        # Construct the method anem and URL only once for each handler.
+        # Construct the method name and URL
         method = "flickr." + method.replace("_", ".")
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrRESTForm
 
@@ -196,7 +183,8 @@ class FlickrAPI:
             # Set some defaults
             defaults = {'method': method,
                         'auth_token': self.token,
-                        'api_key': self.apiKey}
+                        'api_key': self.apiKey,
+                        'format': 'rest'}
             for key, default_value in defaults.iteritems():
                 if key not in args:
                     args[key] = default_value
@@ -211,13 +199,17 @@ class FlickrAPI:
             f = urllib.urlopen(url, postData)
             data = f.read()
             f.close()
+
+            # Return the raw response when a non-REST format
+            # was chosen.
+            if args['format'] != 'rest':
+                return data
             
             result = XMLNode.parseXML(data, True)
             if self.fail_on_error:
                 FlickrAPI.testFailure(result, True)
-    
-            return result
 
+            return result
 
         self.__handlerCache[method] = handler
 

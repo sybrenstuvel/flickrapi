@@ -2,7 +2,7 @@
 Python FlickrAPI
 ======================================================================
 
-:Version: 0.13
+:Version: 0.14-beta0
 :Author: Sybren Stüvel
 :Status: Final
 
@@ -171,6 +171,23 @@ strive to notice an error condition as soon as possible. Checking the
 return value of every call is not Pythonic. For backward compatibility
 you can pass ``fail_on_error=False`` to the ``FlickrAPI`` constructor.
 
+Other response formats
+----------------------------------------------------------------------
+
+Flickr supports different response formats, such as JSON and XML-RPC.
+If you want, you can use such a different response format. Just
+add a ``format="json"`` option to the Flickr call. The Python Flickr
+API won't parse that format for you, though, so you just get the raw
+response::
+
+  >>> f.test_echo(boo='baah', format='json')
+  'jsonFlickrApi({"format":{"_content":"json"},
+    "auth_token":{"_content":"xxxxx"},
+    "boo":{"_content":"baah"},
+    "api_sig":{"_content":"xxx"},
+    "api_key":{"_content":"xxx"},
+    "method":{"_content":"flickr.test.echo"},
+    "stat":"ok"})'
 
 Uploading or replacing images
 ======================================================================
