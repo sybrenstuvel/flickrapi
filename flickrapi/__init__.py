@@ -41,6 +41,7 @@ import mimetools
 import os.path
 import logging
 import copy
+import webbrowser
 
 from flickrapi.tokencache import TokenCache
 from flickrapi.xmlnode import XMLNode
@@ -401,20 +402,12 @@ class FlickrAPI:
         return "Success"
 
     #-----------------------------------------------------------------------
-    def validateFrob(self, frob, perms, browser, fork):
+    def validateFrob(self, frob, perms):
         auth_url = self.__getAuthURL(perms, frob)
+        webbrowser.open(auth_url, True, True)
         
-        if fork:
-            if os.fork():
-                return
-        
-            os.execlp(browser, browser, auth_url)
-            raise SystemExit("Error starting browser, sorry")
-        
-        os.system("%s '%s'" % (browser, auth_url))
-
     #-----------------------------------------------------------------------
-    def getTokenPartOne(self, perms="read", browser="firefox", fork=True):
+    def getTokenPartOne(self, perms="read"):
         """Get a token either from the cache, or make a new one from the
         frob.
         
@@ -442,8 +435,7 @@ class FlickrAPI:
 
         The newly minted token is then cached locally for the next run.
 
-        perms--"read", "write", or "delete"
-        browser--whatever browser should be used in the system() call             
+        perms--"read", "write", or "delete"           
     
         An example:
         
@@ -482,7 +474,7 @@ class FlickrAPI:
             frob = rsp.frob[0].elementText
 
             # validate online
-            self.validateFrob(frob, perms, browser, fork)
+            self.validateFrob(frob, perms)
 
         return (token, frob)
         
