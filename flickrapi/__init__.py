@@ -6,7 +6,7 @@
 See http://flickrapi.sf.net/ for more info.
 '''
 
-__version__ = '0.14-beta0'
+__version__ = '0.14-beta1'
 __revision__ = '$Revision$'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
         'XMLNode', 'set_log_level', '__version__', '__revision__')
