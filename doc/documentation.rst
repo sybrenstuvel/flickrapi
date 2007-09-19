@@ -2,7 +2,7 @@
 Python FlickrAPI
 ======================================================================
 
-:Version: 0.14-beta0
+:Version: 0.14
 :Author: Sybren Stüvel
 :Status: Final
 
