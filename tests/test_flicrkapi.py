@@ -160,7 +160,8 @@ class DynamicMethodTest(unittest.TestCase):
         expected = set(['api_key=123key', 
                         'monkey=lord', 
                         'method=flickr.photos.setMeta', 
-                        'api_sig=fc6e5f9532f3c3e4c8bfd86cf93884a0'
+                        'api_sig=6dba930ec386a0d2d13fedb0c5069b9a',
+                        'format=rest'
                         ])
         self.assertEquals(expected, sent)
          
@@ -172,7 +173,8 @@ class DynamicMethodTest(unittest.TestCase):
                         'title=monkeylord',
                         'description=%E2%82%AC%C3%BC',
                         'method=flickr.photos.setMeta',
-                        'api_sig=ffde3c04d60f752ad5a1547dd9d8b4d6'
+                        'api_sig=afbeaf8496a1c68b7cbe294d67e75ddb',
+                        'format=rest'
                         ])
         self.assertEquals(expected, sent)
          
