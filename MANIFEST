@@ -5,6 +5,7 @@ flickrapi/__init__.py
 flickrapi/tokencache.py
 flickrapi/xmlnode.py
 flickrapi/multipart.py
+flickrapi/reportinghttp.py
 doc/documentation.rst
 doc/GNUmakefile
 doc/html4css1.css
