@@ -94,6 +94,7 @@ class FlickrAPI:
     #-------------------------------------------------------------------
     def __init__(self, apiKey, secret, fail_on_error=True):
         """Construct a new FlickrAPI instance for a given API key and secret."""
+        
         self.apiKey = apiKey
         self.secret = secret
         self.token_cache = TokenCache(apiKey)
@@ -441,7 +442,7 @@ class FlickrAPI:
         
         (token, frob) = flickr.getTokenPartOne(perms='write')
         if not token: raw_input("Press ENTER after you authorized this program")
-        token = flickr.getTokenPartTwo((token, frob))
+        flickr.getTokenPartTwo((token, frob))
         """
         
         # see if we have a saved token
@@ -503,29 +504,25 @@ class FlickrAPI:
         return token
 
     #-----------------------------------------------------------------------
-    def getToken(self, perms="read", browser="lynx"):
-        """Get a token either from the cache, or make a new one from the
-        frob.
-
-        This first attempts to find a token in the user's token cache on
-        disk.
-        
-        If that fails (or if the token is no longer valid based on
-        flickr.auth.checkToken) a new frob is acquired.  The frob is
-        validated by having the user log into flickr (with lynx), and
-        subsequently a valid token is retrieved.
-
-        The newly minted token is then cached locally for the next run.
-
-        perms--"read", "write", or "delete"
-        browser--whatever browser should be used in the system() call
-
-        Use this method if you're sure that the browser process ends
+    def getToken(self, perms="read"):
+        """Use this method if you're sure that the browser process ends
         when the user has granted the autorization - not sooner and
         not later.
+        
+        This method is deprecated, and will no longer be supported in
+        future versions of this API. That's also why we don't tell you
+        what it does in this documentation.
+        
+        Use something this instead:
+
+        (token, frob) = flickr.getTokenPartOne(perms='write')
+        if not token: raw_input("Press ENTER after you authorized this program")
+        flickr.getTokenPartTwo((token, frob))
         """
         
-        (token, frob) = self.getTokenPartOne(perms, browser, False)
+        LOG.warn("Deprecated method getToken(...) called")
+        
+        (token, frob) = self.getTokenPartOne(perms)
         return self.getTokenPartTwo((token, frob))
 
 
