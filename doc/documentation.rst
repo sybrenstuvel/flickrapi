@@ -45,63 +45,24 @@ user
     we shall address the user as female.
 
 
-Authentication
+Calling API functions
 ======================================================================
 
-Her photos may be private. Access to her account is private for sure.
-A lot of Flickr API calls require the application to be authenticated.
-This means that the user has to tell Flickr that the application is
-allowed to do whatever it needs to do.
-
-The Flickr document `User Authentication`_ explains the authentication
-process; it's good to know what's in there before you go on.
-
-The document states "The auth_token and api_sig parameters should then
-be passed along with each request". You do *not* have to do this - the
-Python Flickr API takes care of that.
-
-Here is a simple example of Flickr's two-phase authentication::
+You start by creating a FlickrAPI object with your API key. This key
+can be obtained at `Flickr Services`_. Once you have that key, the
+cool stuff can begin. Calling a Flickr function is very easy. Here
+are some examples::
 
     import flickrapi
 
     api_key = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-    api_secret = 'YYYYYYYYYYYYYYYY'
 
-    flickr = flickrapi.FlickrAPI(api_key, api_secret)
-
-    (token, frob) = flickr.getTokenPartOne(perms='write')
-    if not token: raw_input("Press ENTER after you authorized this program")
-    flickr.getTokenPartTwo((token, frob))
-
-The ``api_key`` and ``api_secret`` can be obtained from
-http://www.flickr.com/services/api/keys/.
-
-The call to ``flickr.getTokenPartOne(...)`` does a lot of things.
-First, it checks the on-disk token cache. After all, the application
-may be authenticated already. 
-
-If the application isn't authenticated, a browser opens the Flickr
-page, on which the user can grant the application the appropriate
-access. The application has to wait for the user to do this, hence the
-``raw_input("Press ENTER after you authorized this program")``. A GUI
-application can use a popup for this, or some other way for the user
-to indicate she has performed the authentication ritual.
-
-Once this step is done, we can continue to store the token in the
-cache and remember it for future API calls. This is what
-``flickr.getTokenPartTwo(...)`` does.
-
-
-
-Calling API functions
-======================================================================
-
-When the application has been authenticated, the cool stuff can begin.
-Calling a Flickr function is very easy. Here are some examples::
+    flickr = flickrapi.FlickrAPI(api_key)
 
     untagged = flickr.photos_getUntagged(min_taken_date='2004-04-01')
 
     sets = flickr.photosets_getList()
+
 
 There is a simple naming scheme here. If the flickr function is called
 ``flickr.photosets.getList`` just call ``photosets_getList`` on your
@@ -188,6 +149,52 @@ response::
     "api_key":{"_content":"xxx"},
     "method":{"_content":"flickr.test.echo"},
     "stat":"ok"})'
+
+Authentication
+======================================================================
+
+Her photos may be private. Access to her account is private for sure.
+A lot of Flickr API calls require the application to be authenticated.
+This means that the user has to tell Flickr that the application is
+allowed to do whatever it needs to do.
+
+The Flickr document `User Authentication`_ explains the authentication
+process; it's good to know what's in there before you go on.
+
+The document states "The auth_token and api_sig parameters should then
+be passed along with each request". You do *not* have to do this - the
+Python Flickr API takes care of that.
+
+Here is a simple example of Flickr's two-phase authentication::
+
+    import flickrapi
+
+    api_key = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+    api_secret = 'YYYYYYYYYYYYYYYY'
+
+    flickr = flickrapi.FlickrAPI(api_key, api_secret)
+
+    (token, frob) = flickr.getTokenPartOne(perms='write')
+    if not token: raw_input("Press ENTER after you authorized this program")
+    flickr.getTokenPartTwo((token, frob))
+
+The ``api_key`` and ``api_secret`` can be obtained from
+http://www.flickr.com/services/api/keys/.
+
+The call to ``flickr.getTokenPartOne(...)`` does a lot of things.
+First, it checks the on-disk token cache. After all, the application
+may be authenticated already. 
+
+If the application isn't authenticated, a browser opens the Flickr
+page, on which the user can grant the application the appropriate
+access. The application has to wait for the user to do this, hence the
+``raw_input("Press ENTER after you authorized this program")``. A GUI
+application can use a popup for this, or some other way for the user
+to indicate she has performed the authentication ritual.
+
+Once this step is done, we can continue to store the token in the
+cache and remember it for future API calls. This is what
+``flickr.getTokenPartTwo(...)`` does.
 
 Uploading or replacing images
 ======================================================================
@@ -295,6 +302,7 @@ Links
 - `Flickr`_
 - `Flickr API documentation`_
 
+.. _`Flickr Services`: http://www.flickr.com/services/api/keys/apply/
 .. _`Flickr API documentation`: http://www.flickr.com/services/api/
 .. _`Flickr API`: http://www.flickr.com/services/api
 .. _`Flickr`: http://www.flickr.com/

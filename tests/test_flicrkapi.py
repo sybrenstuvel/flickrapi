@@ -110,6 +110,13 @@ class EncodingTest(unittest.TestCase):
         encoded = f.encode_and_sign({'abc': data})
         self.assertEqual(expected, set(encoded.split('&')))
 
+    def testNoSecret(self):
+        
+        no_secret = flickrapi.FlickrAPI(key)
+        data = EURO_UNICODE + U_UML_UNICODE
+        encoded = no_secret.encode_and_sign({'abc': data})
+        self.assertEqual('abc=%E2%82%AC%C3%BC', encoded)
+
 class DynamicMethodTest(unittest.TestCase):
     '''Tests the dynamic methods used to interface with Flickr.'''
     

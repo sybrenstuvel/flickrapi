@@ -92,7 +92,7 @@ class FlickrAPI:
     flickrReplaceForm = "/services/replace/"
 
     #-------------------------------------------------------------------
-    def __init__(self, apiKey, secret, fail_on_error=True):
+    def __init__(self, apiKey, secret=None, fail_on_error=True):
         """Construct a new FlickrAPI instance for a given API key and secret."""
         
         self.apiKey = apiKey
@@ -134,11 +134,12 @@ class FlickrAPI:
 
     def encode_and_sign(self, dictionary):
         '''URL encodes the data in the dictionary, and signs it using the
-        given secret.
+        given secret, if a secret was given.
         '''
         
         dictionary = self.make_utf8(dictionary)
-        dictionary['api_sig'] = self.sign(dictionary)
+        if self.secret:
+            dictionary['api_sig'] = self.sign(dictionary)
         return urllib.urlencode(dictionary)
         
     def make_utf8(self, dictionary):
@@ -284,7 +285,8 @@ class FlickrAPI:
         # Convert to UTF-8 if an argument is an Unicode string
         arg = self.make_utf8(arguments)
         
-        arg["api_sig"] = self.sign(arg)
+        if self.secret:
+            arg["api_sig"] = self.sign(arg)
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrUploadForm
 
         # construct POST data
@@ -321,7 +323,9 @@ class FlickrAPI:
                 'api_key': self.apiKey}
 
         args = self.make_utf8(args)
-        args["api_sig"] = self.sign(args)
+        
+        if self.secret:
+            args["api_sig"] = self.sign(args)
         url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrReplaceForm
 
         # construct POST data
