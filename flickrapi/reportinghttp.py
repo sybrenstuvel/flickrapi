@@ -11,7 +11,6 @@ __all__ = ['urlopen']
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
 
 progress_callback = None
 

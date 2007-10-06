@@ -571,7 +571,7 @@ def set_log_level(level):
     
     >>> import flicrkapi
     >>> import logging
-    >>> flickrapi.set_log_level(logging.DEBUG)
+    >>> flickrapi.set_log_level(logging.INFO)
     '''
     
     LOG.setLevel(level)
