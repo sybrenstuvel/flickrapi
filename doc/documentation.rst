@@ -60,7 +60,7 @@ are some examples::
 
     untagged = flickr.photos_getUntagged(min_taken_date='2004-04-01')
 
-    sets = flickr.photosets_getList()
+    sets = flickr.photosets_getList(user_id='73509078@N00')
 
 
 There is a simple naming scheme here. If the flickr function is called
@@ -76,41 +76,44 @@ dictionary keys with unicode values. Subelements are stored in
 properties.
 
 Here is a simple example of the result of above ``sets =
-flickr.photosets_getList()`` call.
+flickr.photosets_getList(...)`` call.
 
 Here is an example of an XML reply::
 
-    <photosets cancreate="1">
-        <photoset id="5" primary="2483" secret="abcdef" server="8" photos="4">
-            <title>Test</title>
-            <description>foo</description>
-        </photoset>
-        <photoset id="4" primary="1234" secret="832659" server="3" photos="12">
-            <title>My Set</title>
-            <description>bar</description>
-        </photoset>
-    </photosets>
+    <rsp stat='ok'>
+        <photosets cancreate="1">
+            <photoset id="5" primary="2483" secret="abcdef" server="8" photos="4">
+                <title>Test</title>
+                <description>foo</description>
+            </photoset>
+            <photoset id="4" primary="1234" secret="832659" server="3" photos="12">
+                <title>My Set</title>
+                <description>bar</description>
+            </photoset>
+        </photosets>
+    </rsp>
 
 The ``sets`` variable will be structured as such::
 
-    sets['cancreate'] = u'1'
-    sets.photoset = < a list of XMLNode objects >
-    
-    sets.photoset[0]['id'] = u'5'
-    sets.photoset[0]['primary'] = u'2483'
-    sets.photoset[0]['secret'] = u'abcdef'
-    sets.photoset[0]['server'] = u'8'
-    sets.photoset[0]['photos'] = u'4'
-    sets.photoset[0].title[0].elementText = u'Test'
-    sets.photoset[0].description[0].elementText = u'foo'
-    
-    sets.photoset[1]['id'] = u'4'
-    sets.photoset[1]['primary'] = u'1234'
-    sets.photoset[1]['secret'] = u'832659'
-    sets.photoset[1]['server'] = u'3'
-    sets.photoset[1]['photos'] = u'12'
-    sets.photoset[1].title[0].elementText = u'My Set'
-    sets.photoset[1].description[0].elementText = u'bar'
+    sets['stat'] = 'ok'
+    sets.photosets[0]['cancreate'] = u'1'
+    sets.photosets[0].photoset = < a list of XMLNode objects >
+
+    sets.photosets[0].photoset[0]['id'] = u'5'
+    sets.photosets[0].photoset[0]['primary'] = u'2483'
+    sets.photosets[0].photoset[0]['secret'] = u'abcdef'
+    sets.photosets[0].photoset[0]['server'] = u'8'
+    sets.photosets[0].photoset[0]['photos'] = u'4'
+    sets.photosets[0].photoset[0].title[0].elementText = u'Test'
+    sets.photosets[0].photoset[0].description[0].elementText = u'foo'
+
+    sets.photosets[0].photoset[1]['id'] = u'4'
+    sets.photosets[0].photoset[1]['primary'] = u'1234'
+    sets.photosets[0].photoset[1]['secret'] = u'832659'
+    sets.photosets[0].photoset[1]['server'] = u'3'
+    sets.photosets[0].photoset[1]['photos'] = u'12'
+    sets.photosets[0].photoset[1].title[0].elementText = u'My Set'
+    sets.photosets[0].photoset[1].description[0].elementText = u'bar'
 
 Every ``XMLNode`` also has a ``elementName`` property. The content of
 this property is left as an exercise for the reader.
