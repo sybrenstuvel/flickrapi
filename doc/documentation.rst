@@ -57,11 +57,8 @@ are some examples::
     api_key = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 
     flickr = flickrapi.FlickrAPI(api_key)
-
-    untagged = flickr.photos_getUntagged(min_taken_date='2004-04-01')
-
+    photos = flickr.photos_search(user_id='73509078@N00', per_page='10')
     sets = flickr.photosets_getList(user_id='73509078@N00')
-
 
 There is a simple naming scheme here. If the flickr function is called
 ``flickr.photosets.getList`` just call ``photosets_getList`` on your
