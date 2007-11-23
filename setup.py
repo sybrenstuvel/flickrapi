@@ -45,12 +45,21 @@ data = {
     'url': 'http://flickrapi.sourceforge.net/', 
     'author': 'Beej Jorgensen', 
     'author_email': 'beej@beej.us', 
-    'maintainer': 'Sybren Stüvel',
+    'maintainer': 'Sybren Stuvel',
     'maintainer_email': 'sybren@stuvel.eu',
-    'description': 'Python interface to the Flickr API', 
+    'description': 'The official Python interface to the Flickr API', 
     'packages': ['flickrapi'],
     'data_files': [],
     'license': 'Python',
+    'classifiers': [
+        'Development Status :: 6 - Mature',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Python License (CNRI Python License)',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Multimedia :: Graphics',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ],
     'distclass': OurDistribution
 }
 
