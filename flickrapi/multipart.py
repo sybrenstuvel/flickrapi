@@ -2,7 +2,8 @@
 
 '''Module for encoding data as form-data/multipart'''
 
-import uuid
+import os
+import base64
 
 class Part(object):
     '''A single part of the multipart data.
@@ -53,6 +54,12 @@ class FilePart(Part):
 
         Part.__init__(self, parameters, payload, content_type)
 
+def boundary():
+    """Generate a random boundary, a bit like Python 2.5's uuid module."""
+
+    bytes = os.urandom(16)
+    return base64.b64encode(bytes, 'ab').strip('=')
+   
 class Multipart(object):
     '''Container for multipart data'''
     
@@ -61,7 +68,7 @@ class Multipart(object):
         
         self.parts = []
         self.content_type = 'form-data/multipart'
-        self.boundary = str(uuid.uuid1()).replace('-', '.')
+        self.boundary = boundary()
         
     def attach(self, part):
         '''Attaches a part'''
