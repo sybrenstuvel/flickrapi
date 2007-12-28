@@ -48,6 +48,11 @@ data = {
     'maintainer': 'Sybren Stuvel',
     'maintainer_email': 'sybren@stuvel.eu',
     'description': 'The official Python interface to the Flickr API', 
+    'long_description': 'The easiest to use, most complete, and '
+        'most actively developed Python interface to the Flickr API.'
+        'It includes support for authorized and non-authorized '
+        'access, uploading and replacing photos, and all Flickr API '
+        'functions.', 
     'packages': ['flickrapi'],
     'data_files': [],
     'license': 'Python',
