@@ -3,10 +3,12 @@
 
 '''A FlickrAPI interface.
 
-See http://flickrapi.sf.net/ for more info.
+See `the FlickrAPI homepage`_ for more info.
+
+.. _`the FlickrAPI homepage`: http://flickrapi.sf.net/
 '''
 
-__version__ = '0.15'
+__version__ = '0.16-beta0'
 __revision__ = '$Revision$'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
         'XMLNode', 'set_log_level', '__version__', '__revision__')
@@ -74,6 +76,25 @@ class FlickrError(Exception):
 # Flickr functionality
 ########################################################################
 
+def make_utf8(dictionary):
+    '''Encodes all Unicode strings in the dictionary to UTF-8. Converts
+    all other objects to regular strings.
+    
+    Returns a copy of the dictionary, doesn't touch the original.
+    '''
+    
+    result = {}
+
+    for (key, value) in dictionary.iteritems():
+        if isinstance(value, unicode):
+            value = value.encode('utf-8')
+        else:
+            value = str(value)
+        result[key] = value
+    
+    return result
+        
+
 #-----------------------------------------------------------------------
 class FlickrAPI:
     """Encapsulated flickr functionality.
@@ -95,16 +116,18 @@ class FlickrAPI:
     def __init__(self, apiKey, secret=None, fail_on_error=True):
         """Construct a new FlickrAPI instance for a given API key and secret."""
         
-        self.apiKey = apiKey
+        self.api_key = apiKey
         self.secret = secret
         self.token_cache = TokenCache(apiKey)
         self.token = self.token_cache.token
         self.fail_on_error = fail_on_error
         
-        self.__handlerCache={}
+        self.__handler_cache = {}
 
     def __repr__(self):
-        return '[FlickrAPI for key "%s"]' % self.apiKey
+        '''Returns a string representation of this object.'''
+
+        return '[FlickrAPI for key "%s"]' % self.api_key
     __str__ = __repr__
     
     #-------------------------------------------------------------------
@@ -137,28 +160,10 @@ class FlickrAPI:
         given secret, if a secret was given.
         '''
         
-        dictionary = self.make_utf8(dictionary)
+        dictionary = make_utf8(dictionary)
         if self.secret:
             dictionary['api_sig'] = self.sign(dictionary)
         return urllib.urlencode(dictionary)
-        
-    def make_utf8(self, dictionary):
-        '''Encodes all Unicode strings in the dictionary to UTF-8. Converts
-        all other objects to regular strings.
-        
-        Returns a copy of the dictionary, doesn't touch the original.
-        '''
-        
-        result = {}
-
-        for (key, value) in dictionary.iteritems():
-            if isinstance(value, unicode):
-                value = value.encode('utf-8')
-            else:
-                value = str(value)
-            result[key] = value
-        
-        return result
         
     #-------------------------------------------------------------------
     def __getattr__(self, method):
@@ -173,9 +178,9 @@ class FlickrAPI:
         if method.startswith('__'):
             raise AttributeError("No such attribute '%s'" % method)
 
-        if self.__handlerCache.has_key(method):
+        if self.__handler_cache.has_key(method):
             # If we already have the handler, return it
-            return self.__handlerCache.has_key(method)
+            return self.__handler_cache.has_key(method)
         
         # Construct the method name and URL
         method = "flickr." + method.replace("_", ".")
@@ -187,7 +192,7 @@ class FlickrAPI:
             # Set some defaults
             defaults = {'method': method,
                         'auth_token': self.token,
-                        'api_key': self.apiKey,
+                        'api_key': self.api_key,
                         'format': 'rest'}
             for key, default_value in defaults.iteritems():
                 if key not in args:
@@ -198,11 +203,11 @@ class FlickrAPI:
 
             LOG.debug("Calling %s(%s)" % (method, args))
 
-            postData = self.encode_and_sign(args)
+            post_data = self.encode_and_sign(args)
 
-            f = urllib.urlopen(url, postData)
-            data = f.read()
-            f.close()
+            flicksocket = urllib.urlopen(url, post_data)
+            data = flicksocket.read()
+            flicksocket.close()
 
             # Return the raw response when a non-REST format
             # was chosen.
@@ -215,12 +220,12 @@ class FlickrAPI:
 
             return result
 
-        self.__handlerCache[method] = handler
+        self.__handler_cache[method] = handler
 
-        return self.__handlerCache[method]
+        return self.__handler_cache[method]
     
     #-------------------------------------------------------------------
-    def __getAuthURL(self, perms, frob):
+    def __get_auth_url(self, perms, frob):
         """Return the authorization URL to get a token.
 
         This is the URL the app will launch a browser toward if it
@@ -232,7 +237,7 @@ class FlickrAPI:
         """
 
         encoded = self.encode_and_sign({
-                    "api_key": self.apiKey,
+                    "api_key": self.api_key,
                     "frob": frob,
                     "perms": perms})
 
@@ -277,13 +282,14 @@ class FlickrAPI:
         
         for a in arg.keys():
             if a not in possible_args:
-                raise IllegalArgumentException("Unknown parameter '%s' sent to FlickrAPI.upload" % a)
+                raise IllegalArgumentException("Unknown parameter "
+                        "'%s' sent to FlickrAPI.upload" % a)
 
-        arguments = {'auth_token': self.token, 'api_key': self.apiKey}
+        arguments = {'auth_token': self.token, 'api_key': self.api_key}
         arguments.update(arg)
 
         # Convert to UTF-8 if an argument is an Unicode string
-        arg = self.make_utf8(arguments)
+        arg = make_utf8(arguments)
         
         if self.secret:
             arg["api_sig"] = self.sign(arg)
@@ -293,7 +299,8 @@ class FlickrAPI:
         body = Multipart()
 
         for a in required_params + optional_params:
-            if a not in arg: continue
+            if a not in arg:
+                continue
             
             part = Part({'name': a}, arg[a])
             body.attach(part)
@@ -320,9 +327,9 @@ class FlickrAPI:
         args = {'filename': filename,
                 'photo_id': photo_id,
                 'auth_token': self.token,
-                'api_key': self.apiKey}
+                'api_key': self.api_key}
 
-        args = self.make_utf8(args)
+        args = make_utf8(args)
         
         if self.secret:
             args["api_sig"] = self.sign(args)
@@ -333,7 +340,8 @@ class FlickrAPI:
 
         for arg, value in args.iteritems():
             # No part for the filename
-            if value == 'filename': continue
+            if value == 'filename':
+                continue
             
             part = Part({'name': arg}, value)
             body.attach(part)
@@ -408,7 +416,7 @@ class FlickrAPI:
 
     #-----------------------------------------------------------------------
     def validateFrob(self, frob, perms):
-        auth_url = self.__getAuthURL(perms, frob)
+        auth_url = self.__get_auth_url(perms, frob)
         webbrowser.open(auth_url, True, True)
         
     #-----------------------------------------------------------------------
@@ -457,7 +465,9 @@ class FlickrAPI:
         if token:
             LOG.debug("Trying cached token '%s'" % token)
             try:
-                rsp = self.auth_checkToken(api_key=self.apiKey, auth_token=token)
+                rsp = self.auth_checkToken(
+                        api_key=self.api_key,
+                        auth_token=token)
 
                 # see if we have enough permissions
                 tokenPerms = rsp.auth[0].perms[0].elementText
@@ -473,7 +483,7 @@ class FlickrAPI:
         if not token:
             # get the frob
             LOG.debug("Getting frob for new token")
-            rsp = self.auth_getFrob(api_key=self.apiKey, auth_token=None)
+            rsp = self.auth_getFrob(api_key=self.api_key, auth_token=None)
             self.testFailure(rsp)
 
             frob = rsp.frob[0].elementText
@@ -495,7 +505,7 @@ class FlickrAPI:
         LOG.debug("getTokenPartTwo: getting a new token for frob '%s'" % frob)
         
         # get a token
-        rsp = self.auth_getToken(api_key=self.apiKey, frob=frob)
+        rsp = self.auth_getToken(api_key=self.api_key, frob=frob)
         self.testFailure(rsp)
 
         token = rsp.auth[0].token[0].elementText
@@ -535,16 +545,22 @@ class FlickrAPI:
 ########################################################################
 
 def main():
+    '''This is just a demonstration of the FlickrAPI usage.
+    For more information, see the package documentation in the 'doc'
+    directory.
+    '''
+
     # flickr auth information:
-    flickrAPIKey = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # API key
-    flickrSecret = "yyyyyyyyyyyyyyyy"                  # shared "secret"
+    flickr_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # API key
+    flickr_secret = "yyyyyyyyyyyyyyyy"               # shared "secret"
 
     # make a new FlickrAPI instance
-    fapi = FlickrAPI(flickrAPIKey, flickrSecret)
+    fapi = FlickrAPI(flickr_key, flickr_secret)
 
     # do the whole whatever-it-takes to get a valid token:
     (token, frob) = fapi.getTokenPartOne(browser='firefox', perms='write')
-    if not token: raw_input("Press ENTER after you authorized this program")
+    if not token:
+        raw_input("Press ENTER after you authorized this program")
     fapi.getTokenPartTwo((token, frob))
 
     # get my favorites
@@ -552,8 +568,8 @@ def main():
     fapi.testFailure(rsp)
 
     # and print them
-    for a in rsp.photos[0].photo:
-        print "%10s: %s" % (a['id'], a['title'].encode("ascii", "replace"))
+    for photo in rsp.photos[0].photo:
+        print "%10(id)s: %(title)s" % photo
 
     # upload the file foo.jpg
     #rsp = fapi.upload(filename="foo.jpg", \
