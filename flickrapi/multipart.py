@@ -48,7 +48,7 @@ class FilePart(Part):
     def __init__(self, parameters, filename, content_type):
         parameters['filename'] = filename
         
-        imagefile = open(filename)
+        imagefile = open(filename, 'rb')
         payload = imagefile.read()
         imagefile.close()
 
