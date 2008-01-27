@@ -37,7 +37,7 @@ class XMLNode:
         self.elementName = ""
         self.elementText = ""
         self.attrib = {}
-        self.xml = ""
+        self.xml = None
 
     def __setitem__(self, key, item):
         """Store a node's attribute in the attrib hash."""
@@ -73,13 +73,13 @@ class XMLNode:
 
                     child = XMLNode()
                     try:
-                        list = getattr(thisNode, a.nodeName)
+                        getattr(thisNode, a.nodeName)
                     except AttributeError:
                         setattr(thisNode, a.nodeName, [])
 
                     # add the child node as an attrib to this node
-                    list = getattr(thisNode, a.nodeName)
-                    list.append(child)
+                    children = getattr(thisNode, a.nodeName)
+                    children.append(child)
 
                     __parseXMLElement(a, child)
 
@@ -94,4 +94,4 @@ class XMLNode:
         rootNode = XMLNode()
         if store_xml: rootNode.xml = xml_str
 
-        return __parseXMLElement(dom.firstChild, rootNode)
+        return __parseXMLElement(dom.firstChild, rootNode) # IGNORE:E1101
