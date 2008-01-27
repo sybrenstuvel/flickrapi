@@ -98,12 +98,12 @@ def make_utf8(dictionary):
 #-----------------------------------------------------------------------
 class FlickrAPI:
     """Encapsulated flickr functionality.
-
-    Example usage:
-
+    
+    Example usage::
+    
       flickr = FlickrAPI(flickrAPIKey, flickrSecret)
       rsp = flickr.auth_checkToken(api_key=flickrAPIKey, auth_token=token)
-
+    
     """
     
     flickrHost = "api.flickr.com"
@@ -133,9 +133,11 @@ class FlickrAPI:
     #-------------------------------------------------------------------
     def sign(self, dictionary):
         """Calculate the flickr signature for a set of params.
-
-        data -- a hash of all the params and values to be hashed, e.g.
-                {"api_key":"AAAA", "auth_token":"TTTT", "key": u"value".encode('utf-8')}
+        
+        data
+            a hash of all the params and values to be hashed, e.g.
+            ``{"api_key":"AAAA", "auth_token":"TTTT", "key":
+            u"value".encode('utf-8')}``
 
         """
 
@@ -168,10 +170,12 @@ class FlickrAPI:
     #-------------------------------------------------------------------
     def __getattr__(self, method):
         """Handle all the regular Flickr API calls.
+        
+        Example::
 
-        >>> flickr.auth_getFrob(apiKey="AAAAAA")
-        >>> xmlnode = flickr.photos_getInfo(photo_id='1234')
-        >>> json = flickr.photos_getInfo(photo_id='1234', format='json')
+            flickr.auth_getFrob(apiKey="AAAAAA")
+            xmlnode = flickr.photos_getInfo(photo_id='1234')
+            json = flickr.photos_getInfo(photo_id='1234', format='json')
         """
 
         # Refuse to act as a proxy for unimplemented special methods
@@ -231,8 +235,10 @@ class FlickrAPI:
         This is the URL the app will launch a browser toward if it
         needs a new token.
             
-        perms -- "read", "write", or "delete"
-        frob -- picked up from an earlier call to FlickrAPI.auth_getFrob()
+        perms
+            "read", "write", or "delete"
+        frob
+            picked up from an earlier call to FlickrAPI.auth_getFrob()
 
         """
 
@@ -252,14 +258,25 @@ class FlickrAPI:
 
         Supported parameters:
 
-        filename -- name of a file to upload
-        callback -- method that gets progress reports
+        filename
+            name of a file to upload
+        callback
+            method that gets progress reports
         title
+            title of the photo
         description
-        tags -- space-delimited list of tags, '''tag1 tag2 "long tag"'''
-        is_public -- "1" or "0"
-        is_friend -- "1" or "0"
-        is_family -- "1" or "0"
+            description a.k.a. caption of the photo
+        tags
+            space-delimited list of tags, ``'''tag1 tag2 "long
+            tag"'''``
+        is_public
+            "1" or "0" for a public resp. private photo
+        is_friend
+            "1" or "0" whether friends can see the photo while it's
+            marked as private
+        is_family
+            "1" or "0" whether family can see the photo while it's
+            marked as private
 
         The callback method should take two parameters:
         def callback(progress, done)
@@ -315,8 +332,10 @@ class FlickrAPI:
 
         Supported parameters:
 
-        filename -- name of a file to upload
-        photo_id -- the ID of the photo to replace
+        filename
+            name of a file to upload
+        photo_id
+            the ID of the photo to replace
         """
         
         if not filename:
@@ -421,40 +440,39 @@ class FlickrAPI:
         
     #-----------------------------------------------------------------------
     def getTokenPartOne(self, perms="read"):
-        """Get a token either from the cache, or make a new one from the
-        frob.
+        """Get a token either from the cache, or make a new one from
+        the frob.
         
-        This first attempts to find a token in the user's token cache on
-        disk. If that token is present and valid, it is returned by the
-        method.
+        This first attempts to find a token in the user's token cache
+        on disk. If that token is present and valid, it is returned by
+        the method.
         
         If that fails (or if the token is no longer valid based on
         flickr.auth.checkToken) a new frob is acquired.  The frob is
         validated by having the user log into flickr (with a browser).
         
-        If the browser needs to take over the terminal, use fork=False,
-        otherwise use fork=True.
-        
         To get a proper token, follow these steps:
             - Store the result value of this method call
-            - Give the user a way to signal the program that he/she has
-              authorized it, for example show a button that can be
+            - Give the user a way to signal the program that he/she
+              has authorized it, for example show a button that can be
               pressed.
             - Wait for the user to signal the program that the
               authorization was performed, but only if there was no
               cached token.
-            - Call flickrapi.getTokenPartTwo(...) and pass it the result
-              value you stored.
-
-        The newly minted token is then cached locally for the next run.
-
-        perms--"read", "write", or "delete"           
-    
-        An example:
+            - Call flickrapi.getTokenPartTwo(...) and pass it the
+              result value you stored.
         
-        (token, frob) = flickr.getTokenPartOne(perms='write')
-        if not token: raw_input("Press ENTER after you authorized this program")
-        flickr.getTokenPartTwo((token, frob))
+        The newly minted token is then cached locally for the next
+        run.
+        
+        perms
+            "read", "write", or "delete"           
+        
+        An example::
+        
+            (token, frob) = flickr.getTokenPartOne(perms='write')
+            if not token: raw_input("Press ENTER after you authorized this program")
+            flickr.getTokenPartTwo((token, frob))
         """
         
         # see if we have a saved token
