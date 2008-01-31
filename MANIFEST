@@ -14,3 +14,5 @@ tests/runtests.py
 tests/test_flicrkapi.py
 tests/test_multipart.py
 tests/test_tokencache.py
+tests/runtests.py
+tests/test_xmlnode.py
