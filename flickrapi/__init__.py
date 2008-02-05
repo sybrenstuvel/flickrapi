@@ -48,33 +48,12 @@ import webbrowser
 from flickrapi.tokencache import TokenCache
 from flickrapi.xmlnode import XMLNode
 from flickrapi.multipart import Part, Multipart, FilePart
+from flickrapi.exceptions import *
 from flickrapi import reportinghttp
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
-
-########################################################################
-# Exceptions
-########################################################################
-
-class IllegalArgumentException(ValueError):
-    '''Raised when a method is passed an illegal argument.
-    
-    More specific details will be included in the exception message
-    when thrown.
-    '''
-
-class FlickrError(Exception):
-    '''Raised when a Flickr method fails.
-    
-    More specific details will be included in the exception message
-    when thrown.
-    '''
-
-########################################################################
-# Flickr functionality
-########################################################################
 
 def make_utf8(dictionary):
     '''Encodes all Unicode strings in the dictionary to UTF-8. Converts
@@ -95,30 +74,27 @@ def make_utf8(dictionary):
     return result
         
 
-#-----------------------------------------------------------------------
 class FlickrAPI:
-    """Encapsulated flickr functionality.
+    """Encapsulates Flickr functionality.
     
     Example usage::
     
       flickr = FlickrAPI(flickrAPIKey, flickrSecret)
       rsp = flickr.auth_checkToken(api_key=flickrAPIKey, auth_token=token)
-    
     """
     
-    flickrHost = "api.flickr.com"
-    flickrRESTForm = "/services/rest/"
-    flickrAuthForm = "/services/auth/"
-    flickrUploadForm = "/services/upload/"
-    flickrReplaceForm = "/services/replace/"
+    flickr_host = "api.flickr.com"
+    flickr_rest_form = "/services/rest/"
+    flickr_auth_form = "/services/auth/"
+    flickr_upload_form = "/services/upload/"
+    flickr_replace_form = "/services/replace/"
 
-    #-------------------------------------------------------------------
-    def __init__(self, apiKey, secret=None, fail_on_error=True):
+    def __init__(self, api_key, secret=None, fail_on_error=True):
         """Construct a new FlickrAPI instance for a given API key and secret."""
         
-        self.api_key = apiKey
+        self.api_key = api_key
         self.secret = secret
-        self.token_cache = TokenCache(apiKey)
+        self.token_cache = TokenCache(api_key)
         self.token = self.token_cache.token
         self.fail_on_error = fail_on_error
         
@@ -127,10 +103,10 @@ class FlickrAPI:
     def __repr__(self):
         '''Returns a string representation of this object.'''
 
+
         return '[FlickrAPI for key "%s"]' % self.api_key
     __str__ = __repr__
     
-    #-------------------------------------------------------------------
     def sign(self, dictionary):
         """Calculate the flickr signature for a set of params.
         
@@ -167,13 +143,12 @@ class FlickrAPI:
             dictionary['api_sig'] = self.sign(dictionary)
         return urllib.urlencode(dictionary)
         
-    #-------------------------------------------------------------------
     def __getattr__(self, method):
         """Handle all the regular Flickr API calls.
         
         Example::
 
-            flickr.auth_getFrob(apiKey="AAAAAA")
+            flickr.auth_getFrob(api_key="AAAAAA")
             xmlnode = flickr.photos_getInfo(photo_id='1234')
             json = flickr.photos_getInfo(photo_id='1234', format='json')
         """
@@ -188,7 +163,7 @@ class FlickrAPI:
         
         # Construct the method name and URL
         method = "flickr." + method.replace("_", ".")
-        url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrRESTForm
+        url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_rest_form
 
         def handler(**args):
             '''Dynamically created handler for a Flickr API call'''
@@ -218,9 +193,9 @@ class FlickrAPI:
             if args['format'] != 'rest':
                 return data
             
-            result = XMLNode.parseXML(data, True)
+            result = XMLNode.parse(data, True)
             if self.fail_on_error:
-                FlickrAPI.testFailure(result, True)
+                FlickrAPI.test_failure(result, True)
 
             return result
 
@@ -228,7 +203,6 @@ class FlickrAPI:
 
         return self.__handler_cache[method]
     
-    #-------------------------------------------------------------------
     def __get_auth_url(self, perms, frob):
         """Return the authorization URL to get a token.
 
@@ -247,8 +221,8 @@ class FlickrAPI:
                     "frob": frob,
                     "perms": perms})
 
-        return "http://%s%s?%s" % (FlickrAPI.flickrHost, \
-            FlickrAPI.flickrAuthForm, encoded)
+        return "http://%s%s?%s" % (FlickrAPI.flickr_host, \
+            FlickrAPI.flickr_auth_form, encoded)
 
     def upload(self, filename, callback=None, **arg):
         """Upload a file to flickr.
@@ -310,7 +284,7 @@ class FlickrAPI:
         
         if self.secret:
             arg["api_sig"] = self.sign(arg)
-        url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrUploadForm
+        url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_upload_form
 
         # construct POST data
         body = Multipart()
@@ -325,7 +299,7 @@ class FlickrAPI:
         filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
         body.attach(filepart)
 
-        return self.send_multipart(url, body, callback)
+        return self.__send_multipart(url, body, callback)
     
     def replace(self, filename, photo_id):
         """Replace an existing photo.
@@ -352,7 +326,7 @@ class FlickrAPI:
         
         if self.secret:
             args["api_sig"] = self.sign(args)
-        url = "http://" + FlickrAPI.flickrHost + FlickrAPI.flickrReplaceForm
+        url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_replace_form
 
         # construct POST data
         body = Multipart()
@@ -368,9 +342,9 @@ class FlickrAPI:
         filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
         body.attach(filepart)
 
-        return self.send_multipart(url, body)
+        return self.__send_multipart(url, body)
 
-    def send_multipart(self, url, body, progress_callback=None):
+    def __send_multipart(self, url, body, progress_callback=None):
         '''Sends a Multipart object to an URL.
         
         Returns the resulting XML from Flickr.
@@ -389,15 +363,14 @@ class FlickrAPI:
             response = urllib2.urlopen(request)
         rspXML = response.read()
 
-        result = XMLNode.parseXML(rspXML)
+        result = XMLNode.parse(rspXML)
         if self.fail_on_error:
-            FlickrAPI.testFailure(result, True)
+            FlickrAPI.test_failure(result, True)
 
         return result
 
-    #-----------------------------------------------------------------------
     @classmethod
-    def testFailure(cls, rsp, exception_on_error=True):
+    def test_failure(cls, rsp, exception_on_error=True):
         """Exit app if the rsp XMLNode indicates failure."""
         if rsp['stat'] != "fail":
             return
@@ -408,38 +381,37 @@ class FlickrAPI:
         if exception_on_error:
             raise FlickrError(message)
 
-    #-----------------------------------------------------------------------
     @classmethod
-    def getPrintableError(cls, rsp):
+    def get_printable_error(cls, rsp):
         """Return a printed error message string."""
-        return "%s: error %s: %s" % (rsp.elementName, \
-            cls.getRspErrorCode(rsp), cls.getRspErrorMsg(rsp))
+        return "%s: error %s: %s" % (rsp.name, \
+            cls.get_rsp_error_code(rsp), cls.get_rsp_error_msg(rsp))
 
-    #-----------------------------------------------------------------------
     @classmethod
-    def getRspErrorCode(cls, rsp):
+    def get_rsp_error_code(cls, rsp):
         """Return the error code of a response, or 0 if no error."""
         if rsp['stat'] == "fail":
             return rsp.err[0]['code']
 
         return 0
 
-    #-----------------------------------------------------------------------
     @classmethod
-    def getRspErrorMsg(cls, rsp):
+    def get_rsp_error_msg(cls, rsp):
         """Return the error message of a response, or "Success" if no error."""
         if rsp['stat'] == "fail":
             return rsp.err[0]['msg']
 
         return "Success"
 
-    #-----------------------------------------------------------------------
-    def validateFrob(self, frob, perms):
+    def validate_frob(self, frob, perms):
+        '''Lets the user validate the frob by launching a browser to
+        the Flickr website.
+        '''
+        
         auth_url = self.__get_auth_url(perms, frob)
         webbrowser.open(auth_url, True, True)
         
-    #-----------------------------------------------------------------------
-    def getTokenPartOne(self, perms="read"):
+    def get_token_part_one(self, perms="read"):
         """Get a token either from the cache, or make a new one from
         the frob.
         
@@ -459,7 +431,7 @@ class FlickrAPI:
             - Wait for the user to signal the program that the
               authorization was performed, but only if there was no
               cached token.
-            - Call flickrapi.getTokenPartTwo(...) and pass it the
+            - Call flickrapi.get_token_part_two(...) and pass it the
               result value you stored.
         
         The newly minted token is then cached locally for the next
@@ -470,9 +442,9 @@ class FlickrAPI:
         
         An example::
         
-            (token, frob) = flickr.getTokenPartOne(perms='write')
+            (token, frob) = flickr.get_token_part_one(perms='write')
             if not token: raw_input("Press ENTER after you authorized this program")
-            flickr.getTokenPartTwo((token, frob))
+            flickr.get_token_part_two((token, frob))
         """
         
         # see if we have a saved token
@@ -488,7 +460,7 @@ class FlickrAPI:
                         auth_token=token)
 
                 # see if we have enough permissions
-                tokenPerms = rsp.auth[0].perms[0].elementText
+                tokenPerms = rsp.auth[0].perms[0].text
                 if tokenPerms == "read" and perms != "read": token = None
                 elif tokenPerms == "write" and perms == "delete": token = None
             except FlickrError:
@@ -502,103 +474,38 @@ class FlickrAPI:
             # get the frob
             LOG.debug("Getting frob for new token")
             rsp = self.auth_getFrob(api_key=self.api_key, auth_token=None)
-            self.testFailure(rsp)
+            self.test_failure(rsp)
 
-            frob = rsp.frob[0].elementText
+            frob = rsp.frob[0].text
 
             # validate online
-            self.validateFrob(frob, perms)
+            self.validate_frob(frob, perms)
 
         return (token, frob)
         
-    def getTokenPartTwo(self, (token, frob)):
-        """Part two of getting a token, see getTokenPartOne(...) for details."""
+    def get_token_part_two(self, (token, frob)):
+        """Part two of getting a token, see ``get_token_part_one(...) for details."""
 
-        # If a valid token was obtained, we're done
+        # If a valid token was obtained in the past, we're done
         if token:
-            LOG.debug("getTokenPartTwo: no need, token already there")
+            LOG.debug("get_token_part_two: no need, token already there")
             self.token = token
             return token
         
-        LOG.debug("getTokenPartTwo: getting a new token for frob '%s'" % frob)
+        LOG.debug("get_token_part_two: getting a new token for frob '%s'" % frob)
         
         # get a token
         rsp = self.auth_getToken(api_key=self.api_key, frob=frob)
-        self.testFailure(rsp)
+        self.test_failure(rsp)
 
-        token = rsp.auth[0].token[0].elementText
-        LOG.debug("getTokenPartTwo: new token '%s'" % token)
+        token = rsp.auth[0].token[0].text
+        LOG.debug("get_token_part_two: new token '%s'" % token)
         
         # store the auth info for next time
         self.token_cache.token = rsp.xml
         self.token = token
 
         return token
-
-    #-----------------------------------------------------------------------
-    def getToken(self, perms="read"):
-        """Use this method if you're sure that the browser process ends
-        when the user has granted the autorization - not sooner and
-        not later.
-        
-        This method is deprecated, and will no longer be supported in
-        future versions of this API. That's also why we don't tell you
-        what it does in this documentation.
-        
-        Use something this instead:
-
-        (token, frob) = flickr.getTokenPartOne(perms='write')
-        if not token: raw_input("Press ENTER after you authorized this program")
-        flickr.getTokenPartTwo((token, frob))
-        """
-        
-        LOG.warn("Deprecated method getToken(...) called")
-        
-        (token, frob) = self.getTokenPartOne(perms)
-        return self.getTokenPartTwo((token, frob))
-
-
-########################################################################
-# App functionality
-########################################################################
-
-def main():
-    '''This is just a demonstration of the FlickrAPI usage.
-    For more information, see the package documentation in the 'doc'
-    directory.
-    '''
-
-    # flickr auth information:
-    flickr_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # API key
-    flickr_secret = "yyyyyyyyyyyyyyyy"               # shared "secret"
-
-    # make a new FlickrAPI instance
-    fapi = FlickrAPI(flickr_key, flickr_secret)
-
-    # do the whole whatever-it-takes to get a valid token:
-    (token, frob) = fapi.getTokenPartOne(browser='firefox', perms='write')
-    if not token:
-        raw_input("Press ENTER after you authorized this program")
-    fapi.getTokenPartTwo((token, frob))
-
-    # get my favorites
-    rsp = fapi.favorites_getList()
-    fapi.testFailure(rsp)
-
-    # and print them
-    for photo in rsp.photos[0].photo:
-        print "%10(id)s: %(title)s" % photo
-
-    # upload the file foo.jpg
-    #rsp = fapi.upload(filename="foo.jpg", \
-    #   title="This is the title", description="This is the description", \
-    #   tags="tag1 tag2 tag3", is_public="1")
-    #if rsp == None:
-    #   sys.stderr.write("can't find file\n")
-    #else:
-    #   fapi.testFailure(rsp)
-
-    return 0
 
 def set_log_level(level):
     '''Sets the log level of the logger used by the FlickrAPI module.
@@ -608,9 +515,7 @@ def set_log_level(level):
     >>> flickrapi.set_log_level(logging.INFO)
     '''
     
-    LOG.setLevel(level)
-    
-# run the main if we're not being imported:
-if __name__ == "__main__":
-    sys.exit(main())
+    import tokencache.LOG
 
+    LOG.setLevel(level)
+    tokencache.LOG.setLevel(level)

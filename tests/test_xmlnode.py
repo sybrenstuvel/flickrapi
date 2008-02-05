@@ -50,7 +50,7 @@ xml = '''<?xml version="1.0" encoding="utf-8"?>
 class TestXMLNode(unittest.TestCase):
     
     def setUp(self):
-        self.doc = XMLNode.parseXML(xml, True)
+        self.doc = XMLNode.parse(xml, True)
         
     def testXmlStorage(self):
         '''Tests that the XML stored in the parsed document
@@ -63,7 +63,8 @@ class TestXMLNode(unittest.TestCase):
         '''Tests that parsing of XML works as expected.'''
         
         self.assertEqual(self.doc.photo[0]['id'], '2141453991')
-        self.assertEqual(self.doc.photo[0].comments[0].elementText, '3')
+        self.assertEqual(self.doc.photo[0].comments[0].text, '3')
+        self.assertEqual(self.doc.photo[0].comments[0].name, u'comments')
         self.assertEqual(self.doc.photo[0].owner[0]['username'], u"Sybren Stüvel")
 
 

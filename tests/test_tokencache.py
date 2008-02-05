@@ -33,7 +33,7 @@ class TestCache(unittest.TestCase):
         return os.path.expanduser(os.path.join(
             "~", ".flickr", self.api_key, 'auth.xml'))
     
-    def testSetGet(self):
+    def test_set_get(self):
         token = 'xyz'
         xml = '''<rsp stat='ok'><auth><token>%s</token></auth></rsp>''' % token
         
@@ -46,7 +46,7 @@ class TestCache(unittest.TestCase):
         self.assertEquals(xml, contents)        
         self.assertEquals(token, cache.token)
     
-    def testRemove(self):
+    def test_remove(self):
         token = 'xyz'
         xml = '''<rsp stat='ok'><auth><token>%s</token></auth></rsp>''' % token
         
@@ -60,7 +60,7 @@ class TestCache(unittest.TestCase):
         self.assertFalse(os.path.exists(self.target_path()))
         self.assertEquals(None, cache.token)
         
-    def testGetInvalidXML(self):
+    def test_get_invalid_xml(self):
         token_path = self.target_path()
         tokendir = os.path.dirname(token_path)
         if not os.path.exists(tokendir):
@@ -73,7 +73,7 @@ class TestCache(unittest.TestCase):
         
         self.assertEquals(None, cache.token)
     
-    def testCreateDir(self):
+    def test_create_dir(self):
         token_path = self.target_path()
         tokendir = os.path.dirname(token_path)
         

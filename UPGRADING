@@ -1,0 +1,38 @@
+Upgrading from previous versions
+=================================
+
+From 0.15
+---------------------------------
+
+A lot of name changes have occurred in version 0.16 to follow PEP 8.
+Some properties have also had their name shortened. For example, an
+``XMLNode`` now has a ``text`` property instead of ``elementText``.
+After all, the nodes describe XML elements, so what other text would
+there be?
+
+Here is a complete list of the publicly visible changes, broken down
+per class. Changes in the internals of the FlickrAPI aren't documented
+here.
+
+``FlickrAPI``
+    The constructor has its parameter ``apiKey`` changed to
+    ``api_key``.
+
+    All methods names that were originally in "camelCase" are now
+    written in Python style. For example, ``getTokenPartOne`` has been
+    changed to ``get_token_part_one``. The same is true for the class
+    variables that point to the Flickr API URLs. For example,
+    ``flickrHost`` became ``flickr_host``.
+
+    ``send_multipart`` became a private method.
+
+    The ``main`` method was removed. It only served as a simple
+    example, which was obsoleted by the documentation.
+
+``XMLNode``
+    The method ``parseXML`` has become ``parse``, since it can't parse
+    anything but XML, so there is no need to state the obvious.
+
+    Properties ``elementName`` and ``elementText`` have been renamed
+    to ``name`` resp. ``text``.
+

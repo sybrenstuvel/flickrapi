@@ -18,24 +18,24 @@ class XMLNode:
     <name bar="11" baz="12">Name1</name>
     </xml>'''
 
-    f = XMLNode.parseXML(xml_str)
+    f = XMLNode.parse(xml_str)
 
-    print f.elementName              # xml
-    print f['foo']                   # 32
-    print f.name                     # [<name XMLNode>, <name XMLNode>]
-    print f.name[0].elementName      # name
-    print f.name[0]["bar"]           # 10
-    print f.name[0].elementText      # Name0
-    print f.name[1].elementName      # name
-    print f.name[1]["bar"]           # 11
-    print f.name[1]["baz"]           # 12
+    print f.name              # xml
+    print f['foo']            # 32
+    print f.name              # [<name XMLNode>, <name XMLNode>]
+    print f.name[0].name      # name
+    print f.name[0]["bar"]    # 10
+    print f.name[0].text      # Name0
+    print f.name[1].name      # name
+    print f.name[1]["bar"]    # 11
+    print f.name[1]["baz"]    # 12
 
     """
 
     def __init__(self):
         """Construct an empty XML node."""
-        self.elementName = ""
-        self.elementText = ""
+        self.name = ""
+        self.text = ""
         self.attrib = {}
         self.xml = None
 
@@ -47,9 +47,39 @@ class XMLNode:
         """Retrieve a node's attribute from the attrib hash."""
         return self.attrib[key]
 
-    #-----------------------------------------------------------------------
     @classmethod
-    def parseXML(cls, xml_str, store_xml=False):
+    def __parse_element(cls, element, this_node):
+        """Recursive call to process this XMLNode."""
+
+        this_node.name = element.nodeName
+
+        # add element attributes as attributes to this node
+        for i in range(element.attributes.length):
+            an = element.attributes.item(i)
+            this_node[an.name] = an.nodeValue
+
+        for a in element.childNodes:
+            if a.nodeType == xml.dom.Node.ELEMENT_NODE:
+
+                child = XMLNode()
+                try:
+                    getattr(this_node, a.nodeName)
+                except AttributeError:
+                    setattr(this_node, a.nodeName, [])
+
+                # add the child node as an attrib to this node
+                children = getattr(this_node, a.nodeName)
+                children.append(child)
+
+                cls.__parse_element(a, child)
+
+            elif a.nodeType == xml.dom.Node.TEXT_NODE:
+                this_node.text += a.nodeValue
+        
+        return this_node
+
+    @classmethod
+    def parse(cls, xml_str, store_xml=False):
         """Convert an XML string into a nice instance tree of XMLNodes.
 
         xml_str -- the XML to parse
@@ -57,41 +87,10 @@ class XMLNode:
 
         """
 
-        def __parseXMLElement(element, thisNode):
-            """Recursive call to process this XMLNode."""
-            thisNode.elementName = element.nodeName
-
-            #print element.nodeName
-
-            # add element attributes as attributes to this node
-            for i in range(element.attributes.length):
-                an = element.attributes.item(i)
-                thisNode[an.name] = an.nodeValue
-
-            for a in element.childNodes:
-                if a.nodeType == xml.dom.Node.ELEMENT_NODE:
-
-                    child = XMLNode()
-                    try:
-                        getattr(thisNode, a.nodeName)
-                    except AttributeError:
-                        setattr(thisNode, a.nodeName, [])
-
-                    # add the child node as an attrib to this node
-                    children = getattr(thisNode, a.nodeName)
-                    children.append(child)
-
-                    __parseXMLElement(a, child)
-
-                elif a.nodeType == xml.dom.Node.TEXT_NODE:
-                    thisNode.elementText += a.nodeValue
-            
-            return thisNode
-
         dom = xml.dom.minidom.parseString(xml_str)
 
         # get the root
-        rootNode = XMLNode()
-        if store_xml: rootNode.xml = xml_str
+        root_node = XMLNode()
+        if store_xml: root_node.xml = xml_str
 
-        return __parseXMLElement(dom.firstChild, rootNode) # IGNORE:E1101
+        return cls.__parse_element(dom.firstChild, root_node)
