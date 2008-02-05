@@ -2,7 +2,7 @@
 Python FlickrAPI
 ======================================================================
 
-:Version: 0.15
+:Version: 0.16
 :Author: Sybren Stüvel
 
 .. contents::
@@ -101,19 +101,19 @@ The ``sets`` variable will be structured as such::
     sets.photosets[0].photoset[0]['secret'] = u'abcdef'
     sets.photosets[0].photoset[0]['server'] = u'8'
     sets.photosets[0].photoset[0]['photos'] = u'4'
-    sets.photosets[0].photoset[0].title[0].elementText = u'Test'
-    sets.photosets[0].photoset[0].description[0].elementText = u'foo'
+    sets.photosets[0].photoset[0].title[0].text = u'Test'
+    sets.photosets[0].photoset[0].description[0].text = u'foo'
 
     sets.photosets[0].photoset[1]['id'] = u'4'
     sets.photosets[0].photoset[1]['primary'] = u'1234'
     sets.photosets[0].photoset[1]['secret'] = u'832659'
     sets.photosets[0].photoset[1]['server'] = u'3'
     sets.photosets[0].photoset[1]['photos'] = u'12'
-    sets.photosets[0].photoset[1].title[0].elementText = u'My Set'
-    sets.photosets[0].photoset[1].description[0].elementText = u'bar'
+    sets.photosets[0].photoset[1].title[0].text = u'My Set'
+    sets.photosets[0].photoset[1].description[0].text = u'bar'
 
-Every ``XMLNode`` also has a ``elementName`` property. The content of
-this property is left as an exercise for the reader.
+Every ``XMLNode`` also has a ``name`` property. The content of this
+property is left as an exercise for the reader.
 
 Future versions of the Python Flickr API might remove this ``XMLNode``
 class and offer a DOM interface to the returned XML instead.
@@ -135,9 +135,9 @@ Other response formats
 ----------------------------------------------------------------------
 
 Flickr supports different response formats, such as JSON and XML-RPC.
-If you want, you can use such a different response format. Just
-add a ``format="json"`` option to the Flickr call. The Python Flickr
-API won't parse that format for you, though, so you just get the raw
+If you want, you can use such a different response format. Just add a
+``format="json"`` option to the Flickr call. The Python Flickr API
+won't parse that format for you, though, so you just get the raw
 response::
 
   >>> f.test_echo(boo='baah', format='json')
@@ -173,14 +173,14 @@ Here is a simple example of Flickr's two-phase authentication::
 
     flickr = flickrapi.FlickrAPI(api_key, api_secret)
 
-    (token, frob) = flickr.getTokenPartOne(perms='write')
+    (token, frob) = flickr.get_token_part_one(perms='write')
     if not token: raw_input("Press ENTER after you authorized this program")
-    flickr.getTokenPartTwo((token, frob))
+    flickr.get_token_part_two((token, frob))
 
 The ``api_key`` and ``api_secret`` can be obtained from
 http://www.flickr.com/services/api/keys/.
 
-The call to ``flickr.getTokenPartOne(...)`` does a lot of things.
+The call to ``flickr.get_token_part_one(...)`` does a lot of things.
 First, it checks the on-disk token cache. After all, the application
 may be authenticated already. 
 
@@ -193,7 +193,7 @@ to indicate she has performed the authentication ritual.
 
 Once this step is done, we can continue to store the token in the
 cache and remember it for future API calls. This is what
-``flickr.getTokenPartTwo(...)`` does.
+``flickr.get_token_part_two(...)`` does.
 
 Uploading or replacing images
 ======================================================================
@@ -262,16 +262,17 @@ The ``flickr.replace(...)`` method has the following parameters:
     The identifier of the photo that is to be replaced. Do not use
     this when uploading a new photo.
 
-Only the image itself is replaced, not the other data (title, tags
-etc.).
+Only the image itself is replaced, not the other data (title, tags,
+comments, etc.).
 
 Unicode and UTF-8
 ======================================================================
 
 Flickr expects every text to be encoded in UTF-8. The Python Flickr
-API can help you in a limited way. If you pass a string as a
-``unicode`` string, it will automatically be encoded to UTF-8 before
-it's sent to Flickr.
+API can help you in a limited way. If you pass a ``unicode`` string,
+it will automatically be encoded to UTF-8 before it's sent to Flickr.
+This is the preferred way of working, and is also forward-compatible
+with the upcoming Python 3.
 
 If you do not use ``unicode`` strings, you're on your own, and you're
 expected to perform the UTF-8 encoding yourself.

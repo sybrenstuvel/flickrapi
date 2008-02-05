@@ -8,7 +8,7 @@ See `the FlickrAPI homepage`_ for more info.
 .. _`the FlickrAPI homepage`: http://flickrapi.sf.net/
 '''
 
-__version__ = '0.16-beta0'
+__version__ = '0.16-beta1'
 __revision__ = '$Revision$'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
         'XMLNode', 'set_log_level', '__version__', '__revision__')
@@ -375,7 +375,7 @@ class FlickrAPI:
         if rsp['stat'] != "fail":
             return
         
-        message = cls.getPrintableError(rsp)
+        message = cls.get_printable_error(rsp)
         LOG.error(message)
         
         if exception_on_error:
