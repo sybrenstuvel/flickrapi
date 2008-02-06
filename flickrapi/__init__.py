@@ -391,7 +391,7 @@ class FlickrAPI:
     def get_rsp_error_code(cls, rsp):
         """Return the error code of a response, or 0 if no error."""
         if rsp['stat'] == "fail":
-            return rsp.err[0]['code']
+            return int(rsp.err[0]['code'])
 
         return 0
 

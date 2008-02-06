@@ -184,7 +184,42 @@ class DynamicMethodTest(unittest.TestCase):
                         'format=rest'
                         ])
         self.assertEquals(expected, sent)
-         
+
+class ClassMethodTest(unittest.TestCase):
+
+    fail_rsp = flickrapi.XMLNode.parse(
+        '''<rsp stat="fail">
+            <err code='412' msg='Expected error, just testing' />
+           </rsp>''')
+
+    good_rsp = flickrapi.XMLNode.parse(
+        '''<rsp stat="ok">
+            <err code='433' msg='Not an error' />
+           </rsp>''')
+
+    def test_failure(self):
+        self.assertRaises(flickrapi.FlickrError,
+                          flickrapi.FlickrAPI.test_failure, self.fail_rsp)
+
+        self.assertRaises(flickrapi.FlickrError,
+                          flickrapi.FlickrAPI.test_failure,
+                          self.fail_rsp, True)
+
+        flickrapi.FlickrAPI.test_failure(self.fail_rsp, False)
+
+    def test_get_rsp_error_code(self):
+        code = flickrapi.FlickrAPI.get_rsp_error_code(self.fail_rsp)
+        self.assertEqual(412, code)
         
+        code = flickrapi.FlickrAPI.get_rsp_error_code(self.good_rsp)
+        self.assertEqual(0, code)
+    
+    def test_get_rsp_error_msg(self):
+        msg = flickrapi.FlickrAPI.get_rsp_error_msg(self.fail_rsp)
+        self.assertEqual(u'Expected error, just testing', msg)
+
+        msg = flickrapi.FlickrAPI.get_rsp_error_msg(self.good_rsp)
+        self.assertEqual(u'Success', msg)
+
 if __name__ == '__main__':
     unittest.main()
