@@ -8,10 +8,13 @@ import base64
 class Part(object):
     '''A single part of the multipart data.
     
-    >>> Part({'name': 'headline'}, 'Nice Photo')
+    >>> #doctest: +ELLIPSIS
+    >>> Part({'name': 'headline'}, 'Nice Photo') 
+    <flickrapi.multipart.Part object at 0x...>
     
-    >>> image = 'photo.jpg'
+    >>> image = file('tests/photo.jpg')
     >>> Part({'name': 'photo', 'filename': image}, image.read(), 'image/jpeg')
+    <flickrapi.multipart.Part object at 0x...>
     '''
     
     def __init__(self, parameters, payload, content_type=None):
@@ -42,7 +45,9 @@ class FilePart(Part):
     '''A single part with a file as the payload
     
     This example has the same semantics as the second Part example:
-    >>> FilePart({'name': 'photo'}, 'photo.jpg', 'image/jpeg')
+
+    >>> #doctest: +ELLIPSIS
+    >>> FilePart({'name': 'photo'}, 'tests/photo.jpg', 'image/jpeg')
     '''
     
     def __init__(self, parameters, filename, content_type):

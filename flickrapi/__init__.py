@@ -510,12 +510,12 @@ class FlickrAPI:
 def set_log_level(level):
     '''Sets the log level of the logger used by the FlickrAPI module.
     
-    >>> import flicrkapi
+    >>> import flickrapi
     >>> import logging
     >>> flickrapi.set_log_level(logging.INFO)
     '''
     
-    import tokencache.LOG
+    import tokencache
 
     LOG.setLevel(level)
     tokencache.LOG.setLevel(level)
