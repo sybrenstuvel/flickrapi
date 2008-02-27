@@ -34,6 +34,29 @@ class FlickrApiTest(unittest.TestCase):
         self.assertTrue('FlickrAPI' in r)
         self.assertTrue(key in r)
 
+    def test_get_auth_url(self):
+        '''Test the authentication URL generation'''
+        
+        args = dict(api_key=key, frob='frob', perms='read')
+        args['api_sig'] = f.sign(args)
+        
+        url = f.auth_url(args['perms'], args['frob'])
+        
+        # Test the URL part by part
+        (urltype, rest) = urllib.splittype(url)
+        self.assertEqual('http', urltype)
+        
+        (hostport, path) = urllib.splithost(rest)
+        self.assertEqual(flickrapi.FlickrAPI.flickr_host, hostport)
+        
+        (path, query) = urllib.splitquery(path)
+        self.assertEqual(flickrapi.FlickrAPI.flickr_auth_form, path)
+        
+        attrvalues = query.split('&')
+        attribs = dict(av.split('=') for av in attrvalues)
+        self.assertEqual(args, attribs)
+        
+        
 class SigningTest(unittest.TestCase):
     '''Tests the signing of different arguments.'''
 

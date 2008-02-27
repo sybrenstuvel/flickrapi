@@ -200,7 +200,7 @@ class FlickrAPI:
         self.__handler_cache[method] = handler
         return handler
     
-    def __get_auth_url(self, perms, frob):
+    def auth_url(self, perms, frob):
         """Return the authorization URL to get a token.
 
         This is the URL the app will launch a browser toward if it
@@ -405,7 +405,7 @@ class FlickrAPI:
         the Flickr website.
         '''
         
-        auth_url = self.__get_auth_url(perms, frob)
+        auth_url = self.auth_url(perms, frob)
         webbrowser.open(auth_url, True, True)
         
     def get_token_part_one(self, perms="read"):
