@@ -165,6 +165,8 @@ class FlickrAPI:
         def handler(**args):
             '''Dynamically created handler for a Flickr API call'''
 
+            explicit_format = 'format' in args
+
             # Set some defaults
             defaults = {'method': method,
                         'auth_token': self.token,
@@ -185,9 +187,9 @@ class FlickrAPI:
             data = flicksocket.read()
             flicksocket.close()
 
-            # Return the raw response when a non-REST format
-            # was chosen.
-            if args['format'] != 'rest':
+            # Return the raw response when the user requested
+            # a specific format.
+            if explicit_format:
                 return data
             
             result = XMLNode.parse(data, True)

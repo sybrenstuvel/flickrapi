@@ -23,8 +23,8 @@ EURO_UTF8 = EURO_UNICODE.encode('utf-8')
 U_UML_UNICODE = u'\u00fc'
 U_UML_UTF8 = U_UML_UNICODE.encode('utf-8')
 
-key = '123key'
-secret = '42'
+key = 'ecd01ab8f00faf13e1f8801586e126fd'
+secret = '2ee3f558fd79f292'
 f = flickrapi.FlickrAPI(key, secret)
 
 class FlickrApiTest(unittest.TestCase):
@@ -56,6 +56,23 @@ class FlickrApiTest(unittest.TestCase):
         attribs = dict(av.split('=') for av in attrvalues)
         self.assertEqual(args, attribs)
         
+    def test_simple_search(self):
+        '''Test simple Flickr search'''
+        
+        # We expect to be able to find kittens
+        rst = f.photos_search(tags='kitten')
+        self.assertTrue(rst.photos[0]['total'] > 0)
+
+    def test_explicit_format(self):
+        '''Test explicitly requesting a certain format'''
+        
+        xml = f.photos_search(tags='kitten', format='rest')
+        self.assertTrue(isinstance(xml, basestring))
+        print xml
+        
+        # Try to parse it
+        rst = flickrapi.XMLNode.parse(xml, False)
+        self.assertTrue(rst.photos[0]['total'] > 0)
         
 class SigningTest(unittest.TestCase):
     '''Tests the signing of different arguments.'''
@@ -64,14 +81,14 @@ class SigningTest(unittest.TestCase):
         '''Simple arguments, just ASCII'''
         
         signed = f.sign({'abc': 'def'})
-        self.assertEqual('11b956a9182f533065157c0b08539fcf', signed)
+        self.assertEqual('9f215401af1a35e89da67a01be2333d2', signed)
 
         # Order shouldn't matter
         signed = f.sign({'abc': 'def', 'foo': 'bar'})
-        self.assertEqual('ec0a50e52a86751c2effbf5c8f96d5e8', signed)
+        self.assertEqual('57ca69551c24c9c9ce2e2b5c832e61af', signed)
 
         signed = f.sign({'foo': 'bar', 'abc': 'def'})
-        self.assertEqual('ec0a50e52a86751c2effbf5c8f96d5e8', signed)
+        self.assertEqual('57ca69551c24c9c9ce2e2b5c832e61af', signed)
 
     def testUnicode(self):
         '''Test signing of Unicode data'''
@@ -81,17 +98,17 @@ class SigningTest(unittest.TestCase):
 
         # But converted to UTF-8 works just fine
         signed = f.sign({'abc': u'def'.encode('utf-8')})
-        self.assertEqual('11b956a9182f533065157c0b08539fcf', signed)
+        self.assertEqual('9f215401af1a35e89da67a01be2333d2', signed)
         
         # Non-ASCII data should work too
         data = EURO_UNICODE + U_UML_UNICODE
         signed = f.sign({'abc': data.encode('utf-8')})
-        self.assertEqual('0f6e51fe5121a9713fb1ca383bb8551c', signed)
+        self.assertEqual('51188be8b03d1ee892ade48631bfc0fd', signed)
 
         # Straight UTF-8 should work too
         data = EURO_UTF8 + U_UML_UTF8
         signed = f.sign({'abc': data})
-        self.assertEqual('0f6e51fe5121a9713fb1ca383bb8551c', signed)
+        self.assertEqual('51188be8b03d1ee892ade48631bfc0fd', signed)
 
 class EncodingTest(unittest.TestCase):
     '''Test URL encoding + signing of data. Tests using sets, because
@@ -105,7 +122,7 @@ class EncodingTest(unittest.TestCase):
         encoded = f.encode_and_sign({'abc': 'def', 'foo': 'bar'})
         expected = set(['abc=def',
                         'foo=bar',
-                        'api_sig=ec0a50e52a86751c2effbf5c8f96d5e8'
+                        'api_sig=57ca69551c24c9c9ce2e2b5c832e61af'
                         ])
         self.assertEqual(expected, set(encoded.split('&')))
 
@@ -121,7 +138,7 @@ class EncodingTest(unittest.TestCase):
         encoded = f.encode_and_sign({'abc': u'def', 'foo': u'bar'})
         expected = set(['abc=def',
                         'foo=bar',
-                        'api_sig=ec0a50e52a86751c2effbf5c8f96d5e8'
+                        'api_sig=57ca69551c24c9c9ce2e2b5c832e61af'
                         ])
         self.assertEqual(expected, set(encoded.split('&')))
 
@@ -131,7 +148,7 @@ class EncodingTest(unittest.TestCase):
         data = EURO_UNICODE + U_UML_UNICODE
         encoded = f.encode_and_sign({'abc': data.encode('utf-8')})
         expected = set(['abc=%E2%82%AC%C3%BC',
-                        'api_sig=0f6e51fe5121a9713fb1ca383bb8551c'
+                        'api_sig=51188be8b03d1ee892ade48631bfc0fd'
                         ])
         self.assertEqual(expected, set(encoded.split('&')))
 
@@ -194,10 +211,10 @@ class DynamicMethodTest(unittest.TestCase):
         # Plain ASCII should work
         f.photos_setMeta(monkey='lord')
         sent = set(self.fake_url_lib.data.split('&'))
-        expected = set(['api_key=123key', 
+        expected = set(['api_key=%s' % key, 
                         'monkey=lord', 
                         'method=flickr.photos.setMeta', 
-                        'api_sig=6dba930ec386a0d2d13fedb0c5069b9a',
+                        'api_sig=edb3c60b63becf1738e2cd8fcc42834a',
                         'format=rest'
                         ])
         self.assertEquals(expected, sent)
@@ -206,11 +223,11 @@ class DynamicMethodTest(unittest.TestCase):
         f.photos_setMeta(title='monkeylord',
                          description=EURO_UNICODE+U_UML_UNICODE)
         sent = set(self.fake_url_lib.data.split('&'))
-        expected = set(['api_key=123key',
+        expected = set(['api_key=%s' % key,
                         'title=monkeylord',
                         'description=%E2%82%AC%C3%BC',
                         'method=flickr.photos.setMeta',
-                        'api_sig=afbeaf8496a1c68b7cbe294d67e75ddb',
+                        'api_sig=29fa7705fc721fded172a1c113304871',
                         'format=rest'
                         ])
         self.assertEquals(expected, sent)

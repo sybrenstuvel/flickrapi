@@ -149,6 +149,14 @@ response::
     "method":{"_content":"flickr.test.echo"},
     "stat":"ok"})'
 
+You will always get the raw response when you pass the ``format``
+parameter. This means that you'll get unparsed XML with
+``format="rest"``.
+
+Note that by using the ``format`` parameter the FlickrAPI won't parse
+the result, hence it won't be able to check whether a method call
+succeeded or not.
+
 Authentication
 ======================================================================
 
