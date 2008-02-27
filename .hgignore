@@ -1,2 +1,6 @@
 \.pyc$
 \.pyo$
+\.swp$
+^build/
+^doc/documentation.html$
+^.coverage$
