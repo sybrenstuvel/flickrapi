@@ -24,55 +24,48 @@ class TestCache(unittest.TestCase):
 
         self.remove_token()
 
-    def remove_token(self):
-        tp = self.target_path()
+    def remove_token(self, username=None):
+        tp = self.target_path(username)
         if os.path.exists(tp):
             os.unlink(tp)
 
-    def target_path(self):
+    def target_path(self, username=None):
+        if username:
+            filename = 'auth-%s.token' % username
+        else:
+            filename = 'auth.token'
+
         return os.path.expanduser(os.path.join(
-            "~", ".flickr", self.api_key, 'auth.xml'))
+            "~", ".flickr", self.api_key, filename))
     
     def test_set_get(self):
         token = 'xyz'
-        xml = '''<rsp stat='ok'><auth><token>%s</token></auth></rsp>''' % token
         
         cache = flickrapi.TokenCache(self.api_key)
-        cache.token = xml
+        cache.token = token
         
         self.assertTrue(os.path.exists(self.target_path()))
         
         contents = file(self.target_path()).read()
-        self.assertEquals(xml, contents)        
+        self.assertEquals(token, contents.strip())        
         self.assertEquals(token, cache.token)
     
     def test_remove(self):
         token = 'xyz'
-        xml = '''<rsp stat='ok'><auth><token>%s</token></auth></rsp>''' % token
+
+        # Make sure the token doesn't exist yet before we start
+        self.assertFalse(os.path.exists(self.target_path()))
         
+        # Make sure remembering the token works
         cache = flickrapi.TokenCache(self.api_key)
-        cache.token = xml
-        
+        cache.token = token
         self.assertTrue(os.path.exists(self.target_path()))
         
+        # Make sure forgetting really works
         cache.forget()
-        
         self.assertFalse(os.path.exists(self.target_path()))
         self.assertEquals(None, cache.token)
-        
-    def test_get_invalid_xml(self):
-        token_path = self.target_path()
-        tokendir = os.path.dirname(token_path)
-        if not os.path.exists(tokendir):
-            os.makedirs(tokendir)
-        
-        tokenfile = file(token_path, 'w')
-        tokenfile.write('ABC')
-        
-        cache = flickrapi.TokenCache(self.api_key)
-        
-        self.assertEquals(None, cache.token)
-    
+
     def test_create_dir(self):
         token_path = self.target_path()
         tokendir = os.path.dirname(token_path)
@@ -88,12 +81,34 @@ class TestCache(unittest.TestCase):
         self.assertFalse(os.path.exists(tokendir))
         
         cache = flickrapi.TokenCache(self.api_key)
-        cache.token = '''<rsp stat='ok'><auth><token>x</token></auth></rsp>'''
+        cache.token = 'x'
         
         self.assertTrue(os.path.exists(tokendir))
 
-        os.unlink(os.path.join(tokendir, 'auth.xml'))
+        os.unlink(os.path.join(tokendir, 'auth.token'))
         os.rmdir(tokendir)
         
         if tempdir:
             os.rename(tempdir, tokendir)
+
+    def test_multi_user(self):
+        token = 'xyz'
+        username = u'Sybren Stüvel'
+
+        # Cache the auth token        
+        cache = flickrapi.TokenCache(self.api_key, username)
+        cache.token = token
+        
+        # Ensure the token is stored in the right place
+        self.assertTrue(os.path.exists(self.target_path(username)))
+
+        # And that it contains the proper stuff        
+        contents = file(self.target_path(username)).read()
+        self.assertEquals(token, contents.strip())        
+        self.assertEquals(token, cache.token)
+        
+        # Ensure it can't be found by using another user
+        cache = flickrapi.TokenCache(self.api_key, username + u'blah')
+        self.assertEquals(None, cache.token)
+        
+        self.remove_token(username)

@@ -8,7 +8,7 @@ See `the FlickrAPI homepage`_ for more info.
 .. _`the FlickrAPI homepage`: http://flickrapi.sf.net/
 '''
 
-__version__ = '0.16-beta1'
+__version__ = '0.16-beta2'
 __revision__ = '$Revision$'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
         'XMLNode', 'set_log_level', '__version__', '__revision__')
@@ -48,7 +48,7 @@ import webbrowser
 from flickrapi.tokencache import TokenCache
 from flickrapi.xmlnode import XMLNode
 from flickrapi.multipart import Part, Multipart, FilePart
-from flickrapi.exceptions import *
+from flickrapi.exceptions import *  # IGNORE:W0401
 from flickrapi import reportinghttp
 
 logging.basicConfig()
@@ -89,12 +89,12 @@ class FlickrAPI:
     flickr_upload_form = "/services/upload/"
     flickr_replace_form = "/services/replace/"
 
-    def __init__(self, api_key, secret=None, fail_on_error=True):
+    def __init__(self, api_key, secret=None, fail_on_error=True, username=False):
         """Construct a new FlickrAPI instance for a given API key and secret."""
         
         self.api_key = api_key
         self.secret = secret
-        self.token_cache = TokenCache(api_key)
+        self.token_cache = TokenCache(api_key, username)
         self.token = self.token_cache.token
         self.fail_on_error = fail_on_error
         
@@ -118,9 +118,7 @@ class FlickrAPI:
         """
 
         data = [self.secret]
-        keys = dictionary.keys()
-        keys.sort()
-        for key in keys:
+        for key in sorted(dictionary.keys()):
             data.append(key)
             datum = dictionary[key]
             if isinstance(datum, unicode):
@@ -143,7 +141,7 @@ class FlickrAPI:
             dictionary['api_sig'] = self.sign(dictionary)
         return urllib.urlencode(dictionary)
         
-    def __getattr__(self, method):
+    def __getattr__(self, attrib):
         """Handle all the regular Flickr API calls.
         
         Example::
@@ -154,15 +152,14 @@ class FlickrAPI:
         """
 
         # Refuse to act as a proxy for unimplemented special methods
-        if method.startswith('__'):
-            raise AttributeError("No such attribute '%s'" % method)
+        if attrib.startswith('__'):
+            raise AttributeError("No such attribute '%s'" % attrib)
 
-        if self.__handler_cache.has_key(method):
-            # If we already have the handler, return it
-            return self.__handler_cache.has_key(method)
+        # Construct the method name and see if it's cached
+        method = "flickr." + attrib.replace("_", ".")
+        if method in self.__handler_cache:
+            return self.__handler_cache[method]
         
-        # Construct the method name and URL
-        method = "flickr." + method.replace("_", ".")
         url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_rest_form
 
         def handler(**args):
@@ -199,9 +196,9 @@ class FlickrAPI:
 
             return result
 
+        handler.method = method
         self.__handler_cache[method] = handler
-
-        return self.__handler_cache[method]
+        return handler
     
     def __get_auth_url(self, perms, frob):
         """Return the authorization URL to get a token.
@@ -502,7 +499,7 @@ class FlickrAPI:
         LOG.debug("get_token_part_two: new token '%s'" % token)
         
         # store the auth info for next time
-        self.token_cache.token = rsp.xml
+        self.token_cache.token = token
         self.token = token
 
         return token
@@ -515,7 +512,7 @@ def set_log_level(level):
     >>> flickrapi.set_log_level(logging.INFO)
     '''
     
-    import tokencache
+    import flickrapi.tokencache
 
     LOG.setLevel(level)
-    tokencache.LOG.setLevel(level)
+    flickrapi.tokencache.LOG.setLevel(level)
