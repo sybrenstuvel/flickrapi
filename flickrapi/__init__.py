@@ -45,7 +45,7 @@ import logging
 import copy
 import webbrowser
 
-from flickrapi.tokencache import TokenCache
+from flickrapi.tokencache import TokenCache, SimpleTokenCache
 from flickrapi.xmlnode import XMLNode
 from flickrapi.multipart import Part, Multipart, FilePart
 from flickrapi.exceptions import *  # IGNORE:W0401
@@ -89,16 +89,44 @@ class FlickrAPI:
     flickr_upload_form = "/services/upload/"
     flickr_replace_form = "/services/replace/"
 
-    def __init__(self, api_key, secret=None, fail_on_error=True, username=False):
-        """Construct a new FlickrAPI instance for a given API key and secret."""
+    def __init__(self, api_key, secret=None, fail_on_error=True,
+                 username=None, token=None):
+        """Construct a new FlickrAPI instance for a given API key
+        and secret.
+        
+        api_key
+            The API key as obtained from Flickr
+        
+        secret
+            The secret belonging to the API key
+        
+        fail_on_error
+            If False, errors won't be checked by the FlickrAPI module.
+            True by default, of course.
+        
+        username
+            Used to identify the appropriate authentication token for a
+            certain user.
+        
+        token
+            If you already have an authentication token, you can give
+            it here. It won't be stored on disk by the FlickrAPI instance
+        
+        """
         
         self.api_key = api_key
         self.secret = secret
-        self.token_cache = TokenCache(api_key, username)
-        self.token = self.token_cache.token
         self.fail_on_error = fail_on_error
         
         self.__handler_cache = {}
+
+        if token:
+            # Use a memory-only token cache
+            self.token_cache = SimpleTokenCache()
+            self.token_cache.token = token
+        else:
+            # Use a real token cache
+            self.token_cache = TokenCache(api_key, username)
 
     def __repr__(self):
         '''Returns a string representation of this object.'''
@@ -169,7 +197,7 @@ class FlickrAPI:
 
             # Set some defaults
             defaults = {'method': method,
-                        'auth_token': self.token,
+                        'auth_token': self.token_cache.token,
                         'api_key': self.api_key,
                         'format': 'rest'}
             for key, default_value in defaults.iteritems():
@@ -223,6 +251,21 @@ class FlickrAPI:
         return "http://%s%s?%s" % (FlickrAPI.flickr_host, \
             FlickrAPI.flickr_auth_form, encoded)
 
+    def web_login_url(self, perms):
+        '''Returns the web login URL to forward web users to.
+
+        perms
+            "read", "write", or "delete"
+        '''
+        
+        encoded = self.encode_and_sign({
+                    "api_key": self.api_key,
+                    "perms": perms})
+
+        return "http://%s%s?%s" % (FlickrAPI.flickr_host, \
+            FlickrAPI.flickr_auth_form, encoded)
+        
+
     def upload(self, filename, callback=None, **arg):
         """Upload a file to flickr.
 
@@ -275,7 +318,8 @@ class FlickrAPI:
                 raise IllegalArgumentException("Unknown parameter "
                         "'%s' sent to FlickrAPI.upload" % a)
 
-        arguments = {'auth_token': self.token, 'api_key': self.api_key}
+        arguments = {'auth_token': self.token_cache.token,
+                     'api_key': self.api_key}
         arguments.update(arg)
 
         # Convert to UTF-8 if an argument is an Unicode string
@@ -318,7 +362,7 @@ class FlickrAPI:
 
         args = {'filename': filename,
                 'photo_id': photo_id,
-                'auth_token': self.token,
+                'auth_token': self.token_cache.token,
                 'api_key': self.api_key}
 
         args = make_utf8(args)
@@ -454,9 +498,7 @@ class FlickrAPI:
         if token:
             LOG.debug("Trying cached token '%s'" % token)
             try:
-                rsp = self.auth_checkToken(
-                        api_key=self.api_key,
-                        auth_token=token)
+                rsp = self.auth_checkToken(auth_token=token)
 
                 # see if we have enough permissions
                 tokenPerms = rsp.auth[0].perms[0].text
@@ -466,13 +508,12 @@ class FlickrAPI:
                 LOG.debug("Cached token invalid")
                 self.token_cache.forget()
                 token = None
-                self.token = None
 
         # get a new token if we need one
         if not token:
             # get the frob
             LOG.debug("Getting frob for new token")
-            rsp = self.auth_getFrob(api_key=self.api_key, auth_token=None)
+            rsp = self.auth_getFrob(auth_token=None)
             self.test_failure(rsp)
 
             frob = rsp.frob[0].text
@@ -488,21 +529,27 @@ class FlickrAPI:
         # If a valid token was obtained in the past, we're done
         if token:
             LOG.debug("get_token_part_two: no need, token already there")
-            self.token = token
+            self.token_cache.token = token
             return token
         
         LOG.debug("get_token_part_two: getting a new token for frob '%s'" % frob)
+
+        return self.get_token(frob)
+    
+    def get_token(self, frob):
+        '''Gets the token given a certain frob. Used by ``get_token_part_two`` and
+        by the web authentication method.
+        '''
         
         # get a token
-        rsp = self.auth_getToken(api_key=self.api_key, frob=frob)
+        rsp = self.auth_getToken(frob=frob)
         self.test_failure(rsp)
 
         token = rsp.auth[0].token[0].text
-        LOG.debug("get_token_part_two: new token '%s'" % token)
+        LOG.debug("get_token: new token '%s'" % token)
         
         # store the auth info for next time
         self.token_cache.token = token
-        self.token = token
 
         return token
 

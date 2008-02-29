@@ -50,6 +50,17 @@ class TestCache(unittest.TestCase):
         self.assertEquals(token, contents.strip())        
         self.assertEquals(token, cache.token)
     
+    def test_get_from_file(self):
+        token = 'xyz'
+
+        # Store in one instance
+        cache = flickrapi.TokenCache(self.api_key)
+        cache.token = token
+        
+        # Read from another instance
+        cache = flickrapi.TokenCache(self.api_key)
+        self.assertEquals(token, cache.token)
+    
     def test_remove(self):
         token = 'xyz'
 

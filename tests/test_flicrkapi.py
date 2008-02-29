@@ -27,23 +27,14 @@ key = 'ecd01ab8f00faf13e1f8801586e126fd'
 secret = '2ee3f558fd79f292'
 f = flickrapi.FlickrAPI(key, secret)
 
-class FlickrApiTest(unittest.TestCase):
+class SuperTest(unittest.TestCase):
+    '''Superclass for unittests, provides useful methods.'''
     
-    def test_repr(self):
-        r = repr(f)
-        self.assertTrue('FlickrAPI' in r)
-        self.assertTrue(key in r)
-
-    def test_get_auth_url(self):
-        '''Test the authentication URL generation'''
-        
-        args = dict(api_key=key, frob='frob', perms='read')
-        args['api_sig'] = f.sign(args)
-        
-        url = f.auth_url(args['perms'], args['frob'])
-        
+    def assertUrl(self, protocol, host, path, query_arguments, actual_url):
+        '''Asserts that the 'actual_url' matches the given parts.'''
+            
         # Test the URL part by part
-        (urltype, rest) = urllib.splittype(url)
+        (urltype, rest) = urllib.splittype(actual_url)
         self.assertEqual('http', urltype)
         
         (hostport, path) = urllib.splithost(rest)
@@ -54,7 +45,39 @@ class FlickrApiTest(unittest.TestCase):
         
         attrvalues = query.split('&')
         attribs = dict(av.split('=') for av in attrvalues)
-        self.assertEqual(args, attribs)
+        self.assertEqual(query_arguments, attribs)
+    
+class FlickrApiTest(SuperTest):
+    
+    def test_repr(self):
+        r = repr(f)
+        self.assertTrue('FlickrAPI' in r)
+        self.assertTrue(key in r)
+
+    def test_auth_url(self):
+        '''Test the authentication URL generation'''
+        
+        args = dict(api_key=key, frob='frob', perms='read')
+        args['api_sig'] = f.sign(args)
+        
+        url = f.auth_url(args['perms'], args['frob'])
+        
+        self.assertUrl('http', flickrapi.FlickrAPI.flickr_host, 
+                       flickrapi.FlickrAPI.flickr_auth_form, args, 
+                       url)
+        
+    def test_web_login_url(self):
+        '''Test the web login URL.'''
+        
+        args = dict(api_key=key, perms='read')
+        args['api_sig'] = f.sign(args)
+        
+        url = f.web_login_url(args['perms'])
+        
+        self.assertUrl('http', flickrapi.FlickrAPI.flickr_host,
+                       flickrapi.FlickrAPI.flickr_auth_form, args,
+                       url)
+        
         
     def test_simple_search(self):
         '''Test simple Flickr search'''
@@ -68,11 +91,24 @@ class FlickrApiTest(unittest.TestCase):
         
         xml = f.photos_search(tags='kitten', format='rest')
         self.assertTrue(isinstance(xml, basestring))
-        print xml
         
         # Try to parse it
         rst = flickrapi.XMLNode.parse(xml, False)
         self.assertTrue(rst.photos[0]['total'] > 0)
+    
+    def test_token_constructor(self):
+        '''Test passing a token to the constructor'''
+        
+        token = '123-abc-def'
+        
+        # Pass the token
+        flickr = flickrapi.FlickrAPI(key, secret, token=token)
+        
+        # It should be in the in-memory token cache now
+        self.assertEqual(token, flickr.token_cache.token)
+        
+        # But not in the on-disk token cache
+        self.assertNotEqual(token, flickrapi.TokenCache(key))
         
 class SigningTest(unittest.TestCase):
     '''Tests the signing of different arguments.'''

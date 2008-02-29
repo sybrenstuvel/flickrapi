@@ -79,11 +79,13 @@ Here is an example of an XML reply::
 
     <rsp stat='ok'>
         <photosets cancreate="1">
-            <photoset id="5" primary="2483" secret="abcdef" server="8" photos="4">
+            <photoset id="5" primary="2483" secret="abcdef"
+                    server="8" photos="4">
                 <title>Test</title>
                 <description>foo</description>
             </photoset>
-            <photoset id="4" primary="1234" secret="832659" server="3" photos="12">
+            <photoset id="4" primary="1234" secret="832659"
+                    server="3" photos="12">
                 <title>My Set</title>
                 <description>bar</description>
             </photoset>
@@ -203,6 +205,61 @@ Once this step is done, we can continue to store the token in the
 cache and remember it for future API calls. This is what
 ``flickr.get_token_part_two(...)`` does.
 
+Authenticating web applications
+----------------------------------------------------------------------
+
+When working with web applications, things are a bit different. The
+user using the application (through a browser) is likely to be
+different from the user running the server-side software.
+
+We'll assume you're following Flickr's `Web Applications How-To`_, and
+just tell you how things are splified when working with the Python
+Flickr API.
+
+    3. Create a login link. Use ``flickr.web_login_url(perms)``` for
+       that.  It'll return the login link for you, given the
+       permissions you passed in the ``perms`` parameter.
+
+    5. Don't bother understanding the signing process; the
+       ``FlickrAPI`` module takes care of that for you. Once you
+       received the frob from Flickr, use
+       ``flickr.get_token("the_frob")``. The FlickrAPI module will
+       remember the token for you.
+
+    6. You can safely skip this, and just use the FlickrAPI module as
+       usual. Only read this if you want to understand how the
+       FlickrAPI module signs method calls for you.
+
+Token handling in web applications
+----------------------------------------------------------------------
+
+Web applications have two kinds of users: identified and anonymous
+users. If your users are identified, you can pass their name (or other
+means of identification) as the ``username`` parameter to the
+``FlickrAPI`` constructor, and get a FlickrAPI instance that's bound
+to that user. It will keep track of the authentication token for that
+user, and there's nothing special you'll have to do.
+
+When working with anonymous users, you'll have to store the
+authentication token in a cookie. In step 5. above, use this::
+
+    token = flickr.get_token("the_frob")
+
+Then use your web framework to store the token in a cookie. When
+reading a token from a cookie, pass it on to the FlickrAPI constructor
+like this::
+
+    flickr = flickrapi.FlickrAPI(api_key, api_secret, token=token)
+
+It won't be stored in the on-disk token cache - which is a good thing,
+since
+
+    A. you don't know who the user is, so you wouldn't be able to
+       retrieve the appropriate tokens for visiting users.
+
+    B. the tokens are stored in cookies, so there is no need to store
+       them in another place.
+
 Uploading or replacing images
 ======================================================================
 
@@ -318,4 +375,5 @@ Links
 .. _`Docutils`: http://docutils.sourceforge.net/
 .. _`User Authentication`:
     http://www.flickr.com/services/api/misc.userauth.html
-
+.. _`Web Applications How-To`:
+    http://www.flickr.com/services/api/auth.howto.web.html
