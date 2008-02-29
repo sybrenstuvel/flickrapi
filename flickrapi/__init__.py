@@ -77,9 +77,10 @@ class FlickrAPI:
     """Encapsulates Flickr functionality.
     
     Example usage::
-    
-      flickr = FlickrAPI(flickrAPIKey, flickrSecret)
-      rsp = flickr.auth_checkToken(api_key=flickrAPIKey, auth_token=token)
+      
+      flickr = flickrapi.FlickrAPI(api_key)
+      photos = flickr.photos_search(user_id='73509078@N00', per_page='10')
+      sets = flickr.photosets_getList(user_id='73509078@N00')
     """
     
     flickr_host = "api.flickr.com"
@@ -523,7 +524,7 @@ class FlickrAPI:
         return (token, frob)
         
     def get_token_part_two(self, (token, frob)):
-        """Part two of getting a token, see ``get_token_part_one(...) for details."""
+        """Part two of getting a token, see ``get_token_part_one(...)`` for details."""
 
         # If a valid token was obtained in the past, we're done
         if token:
