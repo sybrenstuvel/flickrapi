@@ -1,6 +1,7 @@
 MANIFEST
 README
 setup.py
+runtests
 UPGRADING
 flickrapi/exceptions.py
 flickrapi/__init__.py
