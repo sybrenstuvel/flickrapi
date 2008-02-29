@@ -8,10 +8,9 @@ See `the FlickrAPI homepage`_ for more info.
 .. _`the FlickrAPI homepage`: http://flickrapi.sf.net/
 '''
 
-__version__ = '0.16-beta2'
-__revision__ = '$Revision$'
+__version__ = '1.0-rc1'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
-        'XMLNode', 'set_log_level', '__version__', '__revision__')
+        'XMLNode', 'set_log_level', '__version__')
 
 # Copyright (c) 2007 by the respective coders, see
 # http://flickrapi.sf.net/

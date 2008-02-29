@@ -15,7 +15,7 @@ sys.path.insert(0, '..')
 
 import flickrapi
 
-print "Testing FlickrAPI version %s %s" % (flickrapi.__version__, flickrapi.__revision__)
+print "Testing FlickrAPI version %s" % flickrapi.__version__
 
 # Some useful constants
 EURO_UNICODE = u'\u20ac'
