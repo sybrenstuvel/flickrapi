@@ -2,5 +2,6 @@
 \.pyo$
 \.swp$
 ^build/
+^dist/
 ^doc/documentation.html$
 ^.coverage$
