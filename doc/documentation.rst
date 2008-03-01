@@ -260,6 +260,85 @@ since
     B. the tokens are stored in cookies, so there is no need to store
        them in another place.
 
+Example using Django
+----------------------------------------------------------------------
+
+Here is a simple example in Django_::
+
+ import flickrapi
+ from django.conf import settings
+ from django.http import HttpResponseRedirect, HttpResponse
+
+ import logging
+ logging.basicConfig()
+
+ log = logging.getLogger(__name__)
+ log.setLevel(logging.DEBUG)
+
+ def require_flickr_auth(view):
+     '''View decorator, redirects users to Flickr when no valid
+     authentication token is available.
+     '''
+
+     def protected_view(request, *args, **kwargs):
+         if 'token' in request.session:
+             token = request.session['token']
+             log.info('Getting token from session: %s' % token)
+         else:
+             token = None
+             log.info('No token in session')
+
+         f = flickrapi.FlickrAPI(settings.FLICKR_API_KEY,
+                 settings.FLICKR_API_SECRET, token=token)
+
+         if token:
+             # We have a token, but it might not be valid
+             log.info('Verifying token')
+             try:
+                 f.auth_checkToken() 
+             except flickrapi.FlickrError:
+                 token = None 
+                 del request.session['token']
+
+         if not token:
+             # No valid token, so redirect to Flickr
+             log.info('Redirecting user to Flickr to get frob')
+             url = f.web_login_url(perms='read')
+             return HttpResponseRedirect(url)
+
+         # If the token is valid, we can call the decorated view.
+         log.info('Token is valid')
+         
+         return view(request, *args, **kwargs)
+
+     return protected_view
+
+ def callback(request):
+     log.info('We got a callback from Flickr, store the token')
+
+     f = flickrapi.FlickrAPI(settings.FLICKR_API_KEY,
+             settings.FLICKR_API_SECRET)
+
+     frob = request.GET['frob']
+     token = f.get_token(frob)
+     request.session['token'] = token
+
+     return HttpResponseRedirect('/content')
+
+ @require_flickr_auth
+ def content(request):
+     return HttpResponse('Welcome, oh authenticated user!')
+
+Every view that calls an authenticated Flickr method should be
+decorated with ``@require_flickr_auth``. For more information on
+function decorators, see `PEP 318`_.
+
+The ``callback`` view should be called when the user is sent to the
+callback URL as defined in your Flickr API key. The key and secret
+should be configured in your settings.py, in the properties
+``FLICKR_API_KEY`` and ``FLICKR_API_SECRET``.
+
+
 Uploading or replacing images
 ======================================================================
 
@@ -377,3 +456,5 @@ Links
     http://www.flickr.com/services/api/misc.userauth.html
 .. _`Web Applications How-To`:
     http://www.flickr.com/services/api/auth.howto.web.html
+.. _Django: http://www.djangoproject.com/
+.. _`PEP 318`: http://www.python.org/dev/peps/pep-0318/

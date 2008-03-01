@@ -200,6 +200,7 @@ class FlickrAPI:
                         'auth_token': self.token_cache.token,
                         'api_key': self.api_key,
                         'format': 'rest'}
+
             for key, default_value in defaults.iteritems():
                 if key not in args:
                     args[key] = default_value
@@ -542,7 +543,7 @@ class FlickrAPI:
         '''
         
         # get a token
-        rsp = self.auth_getToken(frob=frob)
+        rsp = self.auth_getToken(frob=frob, auth_token=None)
         self.test_failure(rsp)
 
         token = rsp.auth[0].token[0].text
