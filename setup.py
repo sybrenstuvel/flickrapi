@@ -8,6 +8,7 @@ Run with "python setup.py install" to install FlickrAPI
 
 from distutils.core import setup, Distribution
 import os
+import sys
 
 try:
     import docutils.core
@@ -68,6 +69,20 @@ data = {
     'distclass': OurDistribution
 }
 
+# Check the Python version
+(major, minor) = sys.version_info[:2]
+
+if major < 2 or (major == 2 and minor < 4):
+    raise SystemExit("Sorry, Python 2.4 or newer required")
+
+if major == 2 and minor < 5:
+    # We still want to use this function, but Python 2.4 doesn't have
+    # it built-in.
+    def all(iterator):
+        for item in iterator:
+            if not item: return False
+        return True
+
 alldocs = ['doc/documentation.html', 'doc/documentation.css', 'doc/html4css1.css']
 
 if docutils or all(os.path.exists(doc) for doc in alldocs):
@@ -76,6 +91,11 @@ if docutils or all(os.path.exists(doc) for doc in alldocs):
     data['data_files'].append(('share/doc/flickrapi-%s' % __version__, alldocs))
     documentation_available = True
 else:
+    print "======================================================================="
     print "WARNING: Unable to import docutils, documentation will not be included"
+    print "Documentation for the latest version can be found at"
+    print "http://flickrapi.sourceforge.net/documentation"
+    print "======================================================================="
+    print
 
 setup(**data)
