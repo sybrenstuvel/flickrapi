@@ -434,8 +434,7 @@ Requirements and compatibility
 ======================================================================
 
 The Python Flickr API only uses built-in Python modules. It is
-compatible with Python 2.5 and possibly earlier versions. We strive to
-be compatible with older versions, but we have no tests for this yet.
+compatible with Python 2.4 and newer.
 
 Rendering the documentation requires `Docutils`_.
 
