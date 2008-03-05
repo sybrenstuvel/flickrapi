@@ -25,11 +25,19 @@ U_UML_UTF8 = U_UML_UNICODE.encode('utf-8')
 
 key = 'ecd01ab8f00faf13e1f8801586e126fd'
 secret = '2ee3f558fd79f292'
-f = flickrapi.FlickrAPI(key, secret)
 
 class SuperTest(unittest.TestCase):
     '''Superclass for unittests, provides useful methods.'''
     
+    def setUp(self):
+        super(SuperTest, self).setUp()
+        self.f = flickrapi.FlickrAPI(key, secret)
+        self.f_noauth = flickrapi.FlickrAPI(key)
+
+        # Remove any unwanted tokens
+        self.f.token_cache.forget()
+        self.f_noauth.token_cache.forget()
+
     def assertUrl(self, protocol, host, path, query_arguments, actual_url):
         '''Asserts that the 'actual_url' matches the given parts.'''
             
@@ -48,9 +56,8 @@ class SuperTest(unittest.TestCase):
         self.assertEqual(query_arguments, attribs)
     
 class FlickrApiTest(SuperTest):
-    
     def test_repr(self):
-        r = repr(f)
+        r = repr(self.f)
         self.assertTrue('FlickrAPI' in r)
         self.assertTrue(key in r)
 
@@ -58,9 +65,9 @@ class FlickrApiTest(SuperTest):
         '''Test the authentication URL generation'''
         
         args = dict(api_key=key, frob='frob', perms='read')
-        args['api_sig'] = f.sign(args)
+        args['api_sig'] = self.f.sign(args)
         
-        url = f.auth_url(args['perms'], args['frob'])
+        url = self.f.auth_url(args['perms'], args['frob'])
         
         self.assertUrl('http', flickrapi.FlickrAPI.flickr_host, 
                        flickrapi.FlickrAPI.flickr_auth_form, args, 
@@ -70,9 +77,9 @@ class FlickrApiTest(SuperTest):
         '''Test the web login URL.'''
         
         args = dict(api_key=key, perms='read')
-        args['api_sig'] = f.sign(args)
+        args['api_sig'] = self.f.sign(args)
         
-        url = f.web_login_url(args['perms'])
+        url = self.f.web_login_url(args['perms'])
         
         self.assertUrl('http', flickrapi.FlickrAPI.flickr_host,
                        flickrapi.FlickrAPI.flickr_auth_form, args,
@@ -83,13 +90,13 @@ class FlickrApiTest(SuperTest):
         '''Test simple Flickr search'''
         
         # We expect to be able to find kittens
-        rst = f.photos_search(tags='kitten')
+        rst = self.f.photos_search(tags='kitten')
         self.assertTrue(rst.photos[0]['total'] > 0)
 
     def test_explicit_format(self):
         '''Test explicitly requesting a certain format'''
         
-        xml = f.photos_search(tags='kitten', format='rest')
+        xml = self.f.photos_search(tags='kitten', format='rest')
         self.assertTrue(isinstance(xml, basestring))
         
         # Try to parse it
@@ -109,44 +116,44 @@ class FlickrApiTest(SuperTest):
         
         # But not in the on-disk token cache
         self.assertNotEqual(token, flickrapi.TokenCache(key))
-        
-class SigningTest(unittest.TestCase):
+
+class SigningTest(SuperTest):
     '''Tests the signing of different arguments.'''
 
     def testSimple(self):
         '''Simple arguments, just ASCII'''
         
-        signed = f.sign({'abc': 'def'})
+        signed = self.f.sign({'abc': 'def'})
         self.assertEqual('9f215401af1a35e89da67a01be2333d2', signed)
 
         # Order shouldn't matter
-        signed = f.sign({'abc': 'def', 'foo': 'bar'})
+        signed = self.f.sign({'abc': 'def', 'foo': 'bar'})
         self.assertEqual('57ca69551c24c9c9ce2e2b5c832e61af', signed)
 
-        signed = f.sign({'foo': 'bar', 'abc': 'def'})
+        signed = self.f.sign({'foo': 'bar', 'abc': 'def'})
         self.assertEqual('57ca69551c24c9c9ce2e2b5c832e61af', signed)
 
     def testUnicode(self):
         '''Test signing of Unicode data'''
 
         # Unicode can't be signed directly
-        self.assertRaises(flickrapi.IllegalArgumentException, f.sign, {'abc': u'def'})
+        self.assertRaises(flickrapi.IllegalArgumentException, self.f.sign, {'abc': u'def'})
 
         # But converted to UTF-8 works just fine
-        signed = f.sign({'abc': u'def'.encode('utf-8')})
+        signed = self.f.sign({'abc': u'def'.encode('utf-8')})
         self.assertEqual('9f215401af1a35e89da67a01be2333d2', signed)
         
         # Non-ASCII data should work too
         data = EURO_UNICODE + U_UML_UNICODE
-        signed = f.sign({'abc': data.encode('utf-8')})
+        signed = self.f.sign({'abc': data.encode('utf-8')})
         self.assertEqual('51188be8b03d1ee892ade48631bfc0fd', signed)
 
         # Straight UTF-8 should work too
         data = EURO_UTF8 + U_UML_UTF8
-        signed = f.sign({'abc': data})
+        signed = self.f.sign({'abc': data})
         self.assertEqual('51188be8b03d1ee892ade48631bfc0fd', signed)
 
-class EncodingTest(unittest.TestCase):
+class EncodingTest(SuperTest):
     '''Test URL encoding + signing of data. Tests using sets, because
     we don't know in advance in which order the arguments will show up,
     and we don't care about that anyway.
@@ -155,7 +162,7 @@ class EncodingTest(unittest.TestCase):
     def testSimple(self): 
         '''Test simple ASCII-only data'''
 
-        encoded = f.encode_and_sign({'abc': 'def', 'foo': 'bar'})
+        encoded = self.f.encode_and_sign({'abc': 'def', 'foo': 'bar'})
         expected = set(['abc=def',
                         'foo=bar',
                         'api_sig=57ca69551c24c9c9ce2e2b5c832e61af'
@@ -163,7 +170,7 @@ class EncodingTest(unittest.TestCase):
         self.assertEqual(expected, set(encoded.split('&')))
 
         # Order shouldn't matter for the signature
-        encoded = f.encode_and_sign({'foo': 'bar', 'abc': 'def'})
+        encoded = self.f.encode_and_sign({'foo': 'bar', 'abc': 'def'})
         self.assertEqual(expected, set(encoded.split('&')))
 
     def testUnicode(self):
@@ -171,7 +178,7 @@ class EncodingTest(unittest.TestCase):
 
         # Unicode strings with ASCII data only should result in the
         # same as in the testSimple() test. 
-        encoded = f.encode_and_sign({'abc': u'def', 'foo': u'bar'})
+        encoded = self.f.encode_and_sign({'abc': u'def', 'foo': u'bar'})
         expected = set(['abc=def',
                         'foo=bar',
                         'api_sig=57ca69551c24c9c9ce2e2b5c832e61af'
@@ -182,7 +189,7 @@ class EncodingTest(unittest.TestCase):
         # EURO = 0xE2 0x82 0xAC in UTF-8
         # U_UML = 0xC3 0xBC in UTF-8
         data = EURO_UNICODE + U_UML_UNICODE
-        encoded = f.encode_and_sign({'abc': data.encode('utf-8')})
+        encoded = self.f.encode_and_sign({'abc': data.encode('utf-8')})
         expected = set(['abc=%E2%82%AC%C3%BC',
                         'api_sig=51188be8b03d1ee892ade48631bfc0fd'
                         ])
@@ -190,7 +197,7 @@ class EncodingTest(unittest.TestCase):
 
         # Straight Unicode should work too
         data = EURO_UNICODE + U_UML_UNICODE
-        encoded = f.encode_and_sign({'abc': data})
+        encoded = self.f.encode_and_sign({'abc': data})
         self.assertEqual(expected, set(encoded.split('&')))
 
     def testNoSecret(self):
@@ -200,7 +207,7 @@ class EncodingTest(unittest.TestCase):
         encoded = no_secret.encode_and_sign({'abc': data})
         self.assertEqual('abc=%E2%82%AC%C3%BC', encoded)
 
-class DynamicMethodTest(unittest.TestCase):
+class DynamicMethodTest(SuperTest):
     '''Tests the dynamic methods used to interface with Flickr.'''
     
     class FakeUrllib(object):
@@ -229,11 +236,15 @@ class DynamicMethodTest(unittest.TestCase):
             #    original(*args, **kwargs)
             
     def setUp(self):
+        super(DynamicMethodTest, self).setUp()
+
         # Set fake urllib
         self.fake_url_lib = self.FakeUrllib() 
         flickrapi.urllib = self.fake_url_lib
 
     def tearDown(self):
+        super(DynamicMethodTest, self).tearDown()
+
         # Restore original urllib
         flickrapi.urllib = urllib
     
@@ -245,7 +256,7 @@ class DynamicMethodTest(unittest.TestCase):
         '''
         
         # Plain ASCII should work
-        f.photos_setMeta(monkey='lord')
+        self.f.photos_setMeta(monkey='lord')
         sent = set(self.fake_url_lib.data.split('&'))
         expected = set(['api_key=%s' % key, 
                         'monkey=lord', 
@@ -256,7 +267,7 @@ class DynamicMethodTest(unittest.TestCase):
         self.assertEquals(expected, sent)
          
         # Unicode should work too
-        f.photos_setMeta(title='monkeylord',
+        self.f.photos_setMeta(title='monkeylord',
                          description=EURO_UNICODE+U_UML_UNICODE)
         sent = set(self.fake_url_lib.data.split('&'))
         expected = set(['api_key=%s' % key,
@@ -273,23 +284,22 @@ class DynamicMethodTest(unittest.TestCase):
         starting with __.
         '''
         
-        self.assertRaises(AttributeError, f, '__get_photos')
+        self.assertRaises(AttributeError, self.f, '__get_photos')
 
     def test_get_dynamic_method(self):
         
-        method = f.photos_setMeta
+        method = self.f.photos_setMeta
         self.assertTrue(callable(method))
         self.assertEquals('flickr.photos.setMeta', method.method)
 
         # Test that we can get it again - should come from the cache,
         # but no way to test that.        
-        method = f.photos_setMeta
+        method = self.f.photos_setMeta
         self.assertTrue(callable(method))
         self.assertEquals('flickr.photos.setMeta', method.method)
         
-        
-        
-class ClassMethodTest(unittest.TestCase):
+class ClassMethodTest(SuperTest):
+    '''Tests the @classmethod methods'''
 
     fail_rsp = flickrapi.XMLNode.parse(
         '''<rsp stat="fail">

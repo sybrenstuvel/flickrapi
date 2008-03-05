@@ -66,9 +66,15 @@ class TestCache(unittest.TestCase):
 
         # Make sure the token doesn't exist yet before we start
         self.assertFalse(os.path.exists(self.target_path()))
+
+        cache = flickrapi.TokenCache(self.api_key)
+
+        # Make sure we can forget a token that doesn't exist
+        cache.forget()
+        self.assertFalse(os.path.exists(self.target_path()))
+        self.assertEquals(None, cache.token)
         
         # Make sure remembering the token works
-        cache = flickrapi.TokenCache(self.api_key)
         cache.token = token
         self.assertTrue(os.path.exists(self.target_path()))
         

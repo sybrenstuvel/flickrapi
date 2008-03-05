@@ -81,7 +81,10 @@ class TokenCache(object):
     def forget(self):
         '''Removes the cached token'''
         
-        del self.memory[self.username]
-        os.unlink(self.__get_cached_token_filename())
+        if self.username in self.memory:
+            del self.memory[self.username]
+        filename = self.__get_cached_token_filename()
+        if os.path.exists(filename):
+            os.unlink(filename)
         
     token = property(__get_cached_token, __set_cached_token, forget, "The cached token")
