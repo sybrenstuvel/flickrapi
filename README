@@ -9,8 +9,9 @@ To install the Python Flickr API module, run::
 
     python setup.py install
 
-To run the unittests, install nose first using::
+To run the unittests, install nose and pymock first using::
     
     easy_install nose
+    easy_install pymock
 
 then run ``nosetest`` in the top-level directory.

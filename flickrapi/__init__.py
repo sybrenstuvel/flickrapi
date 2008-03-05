@@ -195,6 +195,10 @@ class FlickrAPI:
 
             explicit_format = 'format' in args
 
+            if self.token_cache.token and not self.secret:
+                raise ValueError("Auth tokens cannot be used without "
+                                 "API secret")
+
             # Set some defaults
             defaults = {'method': method,
                         'auth_token': self.token_cache.token,

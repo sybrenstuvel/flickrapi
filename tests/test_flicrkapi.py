@@ -9,6 +9,8 @@ import unittest
 import sys
 import urllib
 import StringIO
+import exceptions
+from pymock import *
 
 # Make sure the flickrapi module from the source distribution is used
 sys.path.insert(0, '..')
@@ -26,7 +28,7 @@ U_UML_UTF8 = U_UML_UNICODE.encode('utf-8')
 key = 'ecd01ab8f00faf13e1f8801586e126fd'
 secret = '2ee3f558fd79f292'
 
-class SuperTest(unittest.TestCase):
+class SuperTest(PyMockTestCase):
     '''Superclass for unittests, provides useful methods.'''
     
     def setUp(self):
@@ -115,7 +117,21 @@ class FlickrApiTest(SuperTest):
         self.assertEqual(token, flickr.token_cache.token)
         
         # But not in the on-disk token cache
-        self.assertNotEqual(token, flickrapi.TokenCache(key))
+        self.assertNotEqual(token, flickrapi.TokenCache(key))              
+
+
+    def test_auth_token_without_secret(self):
+        '''Auth tokens without secrets are meaningless'''
+
+        
+        token = '123-abc-def'
+        
+        # Create a normal FlickrAPI object
+        flickr = flickrapi.FlickrAPI(key)
+
+        flickr.token_cache.token = token
+        self.assertRaises(exceptions.ValueError, flickr.photos_search,
+                          tags='kitten')
 
 class SigningTest(SuperTest):
     '''Tests the signing of different arguments.'''
