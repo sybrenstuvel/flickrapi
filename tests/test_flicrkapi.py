@@ -10,7 +10,7 @@ import sys
 import urllib
 import StringIO
 import exceptions
-from pymock import *
+from pymock import PyMockTestCase
 
 # Make sure the flickrapi module from the source distribution is used
 sys.path.insert(0, '..')
@@ -40,22 +40,23 @@ class SuperTest(PyMockTestCase):
         self.f.token_cache.forget()
         self.f_noauth.token_cache.forget()
 
-    def assertUrl(self, protocol, host, path, query_arguments, actual_url):
+    def assertUrl(self, expected_protocol, expected_host, expected_path,
+                  expected_query_arguments, actual_url):
         '''Asserts that the 'actual_url' matches the given parts.'''
             
         # Test the URL part by part
         (urltype, rest) = urllib.splittype(actual_url)
-        self.assertEqual('http', urltype)
+        self.assertEqual(expected_protocol, urltype)
         
         (hostport, path) = urllib.splithost(rest)
-        self.assertEqual(flickrapi.FlickrAPI.flickr_host, hostport)
+        self.assertEqual(expected_host, hostport)
         
         (path, query) = urllib.splitquery(path)
-        self.assertEqual(flickrapi.FlickrAPI.flickr_auth_form, path)
+        self.assertEqual(expected_path, path)
         
         attrvalues = query.split('&')
         attribs = dict(av.split('=') for av in attrvalues)
-        self.assertEqual(query_arguments, attribs)
+        self.assertEqual(expected_query_arguments, attribs)
     
 class FlickrApiTest(SuperTest):
     def test_repr(self):
