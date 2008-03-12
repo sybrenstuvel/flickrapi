@@ -11,9 +11,16 @@ See `the FlickrAPI homepage`_ for more info.
 __version__ = '1.0-rc2'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
         'XMLNode', 'set_log_level', '__version__')
+__author__ = u'Sybren Stüvel'
 
 # Copyright (c) 2007 by the respective coders, see
 # http://flickrapi.sf.net/
+#
+# This code is subject to the Python licence, as can be read on
+# http://www.python.org/download/releases/2.5.2/license/
+#
+# For those without an internet connection, here is a summary. When this
+# summary clashes with the Python licence, the latter will be applied.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
