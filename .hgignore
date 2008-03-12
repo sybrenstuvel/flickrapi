@@ -3,5 +3,5 @@
 \.swp$
 ^build/
 ^dist/
-^doc/documentation.html$
+^doc/flickrapi.html$
 ^.coverage$

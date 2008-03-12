@@ -23,7 +23,7 @@ from flickrapi import __version__
 documentation_available = False
 
 class OurDistribution(Distribution):
-    '''Distribution that also generates the documentation HTML'''
+    '''Distribution that also generates the flickrapi.html'''
 
     def run_command(self, command):
         '''Builds the documentation if needed, then passes control to
@@ -31,13 +31,14 @@ class OurDistribution(Distribution):
         '''
 
         if command == 'install_data' and docutils:
-            print 'creating doc/documentation.html'
+            print 'creating doc/flickrapi.html'
             docutils.core.publish_file(writer_name='html',
-                    source=open('doc/documentation.rst'),
+                    source=open('doc/flickrapi.rst'),
                     source_path='doc',
-                    destination=open('doc/documentation.html', 'w'),
+                    destination=open('doc/flickrapi.html', 'w'),
                     destination_path='doc',
-                    settings_overrides={'stylesheet_path': 'doc/documentation.css'}
+                    settings_overrides={'stylesheet_path':
+                        'doc/documentation.css'}
             )
         Distribution.run_command(self, command)
 
@@ -79,7 +80,7 @@ if major == 2 and minor < 5:
             if not item: return False
         return True
 
-alldocs = ['doc/documentation.html', 'doc/documentation.css', 'doc/html4css1.css']
+alldocs = ['doc/flickrapi.html', 'doc/documentation.css', 'doc/html4css1.css']
 
 if docutils or all(os.path.exists(doc) for doc in alldocs):
     # Only include documentation if it can be built, or if it has been
