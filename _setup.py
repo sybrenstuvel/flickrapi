@@ -5,6 +5,8 @@ contains very simple Python code and checks the Python version, and
 this file, which contains code only parsable by 2.4+.
 '''
 
+__author__ = u'Sybren Stüvel'
+
 from distutils.core import setup, Distribution
 import os
 import sys
@@ -29,7 +31,7 @@ class OurDistribution(Distribution):
         '''
 
         if command == 'install_data' and docutils:
-            publisher = docutils.core.Publisher()
+            print 'creating doc/documentation.html'
             docutils.core.publish_file(writer_name='html',
                     source=open('doc/documentation.rst'),
                     source_path='doc',
@@ -43,9 +45,9 @@ data = {
     'name': 'flickrapi', 
     'version': __version__, 
     'url': 'http://flickrapi.sourceforge.net/', 
-    'author': 'Beej Jorgensen', 
+    'author': u'Beej Jorgensen and Sybren Stüvel', 
     'author_email': 'beej@beej.us', 
-    'maintainer': 'Sybren Stuvel',
+    'maintainer': u'Sybren Stüvel',
     'maintainer_email': 'sybren@stuvel.eu',
     'description': 'The official Python interface to the Flickr API', 
     'long_description': 'The easiest to use, most complete, and '
