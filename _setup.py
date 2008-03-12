@@ -45,9 +45,9 @@ data = {
     'name': 'flickrapi', 
     'version': __version__, 
     'url': 'http://flickrapi.sourceforge.net/', 
-    'author': u'Beej Jorgensen and Sybren Stüvel', 
+    'author': u'Beej Jorgensen and Sybren Stuvel', 
     'author_email': 'beej@beej.us', 
-    'maintainer': u'Sybren Stüvel',
+    'maintainer': u'Sybren Stuvel',
     'maintainer_email': 'sybren@stuvel.eu',
     'description': 'The official Python interface to the Flickr API', 
     'long_description': 'The easiest to use, most complete, and '
