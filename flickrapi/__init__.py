@@ -8,7 +8,7 @@ See `the FlickrAPI homepage`_ for more info.
 .. _`the FlickrAPI homepage`: http://flickrapi.sf.net/
 '''
 
-__version__ = '1.0-rc2'
+__version__ = '1.0'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
         'XMLNode', 'set_log_level', '__version__')
 __author__ = u'Sybren Stüvel'
