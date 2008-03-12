@@ -54,7 +54,7 @@ import webbrowser
 from flickrapi.tokencache import TokenCache, SimpleTokenCache
 from flickrapi.xmlnode import XMLNode
 from flickrapi.multipart import Part, Multipart, FilePart
-from flickrapi.exceptions import *  # IGNORE:W0401
+from flickrapi.exceptions import IllegalArgumentException, FlickrError
 from flickrapi import reportinghttp
 
 logging.basicConfig()

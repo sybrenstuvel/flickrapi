@@ -134,6 +134,20 @@ class FlickrApiTest(SuperTest):
         self.assertRaises(exceptions.ValueError, flickr.photos_search,
                           tags='kitten')
 
+    def test_upload_without_filename(self):
+        '''Uploading a file without filename is impossible'''
+        
+        self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
+                          self.f.upload, '')
+        
+        self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
+                          self.f.upload, None)
+
+    def test_upload_illegal_arg(self):
+        self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
+                          self.f.upload, 'photo.jpg', foo='bar')
+        
+
 class SigningTest(SuperTest):
     '''Tests the signing of different arguments.'''
 
