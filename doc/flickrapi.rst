@@ -108,22 +108,27 @@ We assume you did ``sets = flickr.photosets_getList(...)``. The
     sets.photosets[0].photoset = < a list of XMLNode objects >
 
     set0 = sets.photosets[0].photoset[0]
-    set0['id'] = u'5'
-    set0['primary'] = u'2483'
-    set0['secret'] = u'abcdef'
-    set0['server'] = u'8'
-    set0['photos'] = u'4'
-    set0.title[0].text = u'Test'
-    set0.description[0].text = u'foo'
-
     set1 = sets.photosets[0].photoset[1]
-    set1['id'] = u'4'
-    set1['primary'] = u'1234'
-    set1['secret'] = u'832659'
-    set1['server'] = u'3'
-    set1['photos'] = u'12'
-    set1.title[0].text = u'My Set'
-    set1.description[0].text = u'bar'
+
+    +--------------------------+-----------+
+    | variable                 | value     |
+    +--------------------------+-----------+
+    | set0['id']               | u'5'      |
+    | set0['primary']          | u'2483'   |
+    | set0['secret']           | u'abcdef' |
+    | set0['server']           | u'8'      |
+    | set0['photos']           | u'4'      |
+    | set0.title[0].text       | u'Test'   |
+    | set0.description[0].text | u'foo'    |
+    +--------------------------+-----------+
+    | set1['id']               | u'4'      |
+    | set1['primary']          | u'1234'   |
+    | set1['secret']           | u'832659' |
+    | set1['server']           | u'3'      |
+    | set1['photos']           | u'12'     |
+    | set1.title[0].text       | u'My Set' |
+    | set1.description[0].text | u'bar'    |
+    +--------------------------+-----------+
 
 Every ``XMLNode`` also has a ``name`` property. The content of this
 property is left as an exercise for the reader.
@@ -151,18 +156,40 @@ in the XMLNode example::
     sets.find('photosets').attrib['cancreate'] = '1'
 
     set0 = sets.find('photosets').findall('photoset')[0]
-    set0.attrib = {'id': '5',
-                   'photos': '4',
-                   'primary': '2483',
-                   'secret': 'abcdef',
-                   'server': '8'}
-    set0.find('title').text = 'Test'
-    set0.find('description').text = 'foo'
+
+    +-------------------------------+-----------+
+    | variable                      | value     |
+    +-------------------------------+-----------+
+    | set0.attrib['id']             | u'5'      |
+    | set0.attrib['primary']        | u'2483'   |
+    | set0.attrib['secret']         | u'abcdef' |
+    | set0.attrib['server']         | u'8'      |
+    | set0.attrib['photos']         | u'4'      |
+    | set0.title[0].text            | u'Test'   |
+    | set0.description[0].text      | u'foo'    |
+    | set0.find('title').text       | 'Test'
+    | set0.find('description').text | 'foo'
+    +-------------------------------+-----------+
 
     ... and similar for set1 ...
 
 ElementTree is a more mature, better thought out XML parsing
-framework. *In version 1.2, this will become the default parser*.
+framework. In version 1.2, this will become the default parser. It
+might require a bit more typing, but the ElementTree has several
+advantages:
+
+    #. As a standard XML representation, ElementTree will be easier to
+       plug into existing software.
+
+    #. Easier to iterate over elements. For example, to list all
+       "title" elements, you only need to do
+       ``sets.getiterator('title')``.
+
+    #. Developed by the Python team, which means it's subject to more
+       rigorous testing and has a wider audience than the Python
+       Flickr API module. This will result in a higher quality and
+       less bugs.
+
 
 Erroneous calls
 ----------------------------------------------------------------------
