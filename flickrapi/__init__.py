@@ -638,7 +638,7 @@ class FlickrAPI:
         if token:
             LOG.debug("Trying cached token '%s'" % token)
             try:
-                rsp = self.auth_checkToken(auth_token=token)
+                rsp = self.auth_checkToken(auth_token=token, format='xmlnode')
 
                 # see if we have enough permissions
                 tokenPerms = rsp.auth[0].perms[0].text
@@ -653,7 +653,7 @@ class FlickrAPI:
         if not token:
             # get the frob
             LOG.debug("Getting frob for new token")
-            rsp = self.auth_getFrob(auth_token=None)
+            rsp = self.auth_getFrob(auth_token=None, format='xmlnode')
             self.test_failure(rsp)
 
             frob = rsp.frob[0].text
@@ -682,7 +682,7 @@ class FlickrAPI:
         '''
         
         # get a token
-        rsp = self.auth_getToken(frob=frob, auth_token=None)
+        rsp = self.auth_getToken(frob=frob, auth_token=None, format='xmlnode')
         self.test_failure(rsp)
 
         token = rsp.auth[0].token[0].text
