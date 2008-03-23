@@ -96,6 +96,20 @@ def debug(method):
 
     return debugged
 
+# REST parsers, {format: parser_method, ...}. Fill by using the
+# @rest_parser(format) function decorator
+rest_parsers = {}
+
+def rest_parser(format):
+    '''Function decorator, use this to mark a function as the parser for REST as
+    returned by Flickr.
+    '''
+
+    def decorate_parser(method):
+        rest_parsers[format] = method
+        return method
+
+    return decorate_parser
 
 class FlickrAPI:
     """Encapsulates Flickr functionality.
@@ -126,7 +140,8 @@ class FlickrAPI:
         
         fail_on_error
             If False, errors won't be checked by the FlickrAPI module.
-            True by default, of course.
+            Deprecated, don't use this parameter and just handle the FlickrError
+            exceptions.
         
         username
             Used to identify the appropriate authentication token for a
@@ -143,6 +158,10 @@ class FlickrAPI:
         self.fail_on_error = fail_on_error
         
         self.__handler_cache = {}
+
+        if not self.fail_on_error:
+            LOG.warn("fail_on_error=False has been deprecated. Remove this"
+                     "parameter and just handle the FlickrError exceptions.")
 
         if token:
             # Use a memory-only token cache
@@ -177,6 +196,23 @@ class FlickrAPI:
             return name[7:].replace('.', '_')
 
         return [tr(m.text) for m in rsp.methods[0].method]
+
+    @rest_parser('xmlnode')
+    def parse_xmlnode(self, rest_xml):
+        '''Parses a REST XML response from Flickr into an XMLNode object.'''
+
+        rsp = XMLNode.parse(rest_xml, store_xml=True)
+        if rsp['stat'] == 'ok' or not self.fail_on_error:
+            return rsp
+        
+        err = rsp.err[0]
+        raise FlickrError(u'Error: %(code)s: %(msg)s' % err)
+
+    @rest_parser('etree')
+    def parse_etree(self, rest_xml):
+        '''Parses a REST XML response from Flickr into an ElementTree object.'''
+
+        raise FlickrError('ETree format not yet implemented')
 
     def sign(self, dictionary):
         """Calculate the flickr signature for a set of params.
@@ -219,7 +255,9 @@ class FlickrAPI:
 
             flickr.auth_getFrob(api_key="AAAAAA")
             xmlnode = flickr.photos_getInfo(photo_id='1234')
+            xmlnode = flickr.photos_getInfo(photo_id='1234', format='xmlnode')
             json = flickr.photos_getInfo(photo_id='1234', format='json')
+            etree = flickr.photos_getInfo(photo_id='1234', format='etree')
         """
 
         # Refuse to act as a proxy for unimplemented special methods
@@ -231,12 +269,8 @@ class FlickrAPI:
         if method in self.__handler_cache:
             return self.__handler_cache[method]
         
-        url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_rest_form
-
         def handler(**args):
             '''Dynamically created handler for a Flickr API call'''
-
-            explicit_format = 'format' in args
 
             if self.token_cache.token and not self.secret:
                 raise ValueError("Auth tokens cannot be used without "
@@ -246,37 +280,58 @@ class FlickrAPI:
             defaults = {'method': method,
                         'auth_token': self.token_cache.token,
                         'api_key': self.api_key,
-                        'format': 'rest'}
+                        'format': 'xmlnode'}
 
             for key, default_value in defaults.iteritems():
+                # Set the default if the parameter wasn't passed
                 if key not in args:
                     args[key] = default_value
                 # You are able to remove a default by assigning None
                 if key in args and args[key] is None:
                     del args[key]
 
-            LOG.debug("Calling %s(%s)" % (method, args))
+            # Find the parser, and set the format to rest if we're supposed to
+            # parse it.
+            format = args['format']
+            if format in rest_parsers:
+                args['format'] = 'rest'
+                parser = rest_parsers[format]
+            else:
+                parser = None
 
-            post_data = self.encode_and_sign(args)
+            data = self.__flickr_call(**args)
 
-            flicksocket = urllib.urlopen(url, post_data)
-            data = flicksocket.read()
-            flicksocket.close()
-
-            # Return the raw response when the user requested
-            # a specific format.
-            if explicit_format:
+            # Parse if we found a parser
+            if parser:
+                return parser(self, data)
+            else:
                 return data
-            
-            result = XMLNode.parse(data, True)
-            if self.fail_on_error:
-                FlickrAPI.test_failure(result, True)
-
-            return result
 
         handler.method = method
         self.__handler_cache[method] = handler
         return handler
+    
+    def __flickr_call(self, **kwargs):
+        '''Performs a Flickr API call with the given arguments. The method name
+        itself should be passed as the 'method' parameter.
+        
+        Returns the unparsed data from Flickr::
+
+            data = self.__flickr_call(method='flickr.photos.getInfo',
+                photo_id='123', format='rest')
+        '''
+
+        LOG.debug("Calling %s" % kwargs)
+
+        post_data = self.encode_and_sign(kwargs)
+
+        url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_rest_form
+        flicksocket = urllib.urlopen(url, post_data)
+        reply = flicksocket.read()
+        flicksocket.close()
+
+        return reply
+
     
     def auth_url(self, perms, frob):
         """Return the authorization URL to get a token.
@@ -312,7 +367,6 @@ class FlickrAPI:
 
         return "http://%s%s?%s" % (FlickrAPI.flickr_host, \
             FlickrAPI.flickr_auth_form, encoded)
-        
 
     def upload(self, filename, callback=None, **arg):
         """Upload a file to flickr.
@@ -463,6 +517,10 @@ class FlickrAPI:
     @classmethod
     def test_failure(cls, rsp, exception_on_error=True):
         """Exit app if the rsp XMLNode indicates failure."""
+
+        LOG.warn("FlickrAPI.test_failure has been deprecated and will be "
+                 "removed in FlickrAPI version 1.2.")
+
         if rsp['stat'] != "fail":
             return
         
@@ -474,13 +532,23 @@ class FlickrAPI:
 
     @classmethod
     def get_printable_error(cls, rsp):
-        """Return a printed error message string."""
+        """Return a printed error message string of an XMLNode Flickr response."""
+
+        LOG.warn("FlickrAPI.get_printable_error has been deprecated "
+                 "and will be removed in FlickrAPI version 1.2.")
+
         return "%s: error %s: %s" % (rsp.name, \
             cls.get_rsp_error_code(rsp), cls.get_rsp_error_msg(rsp))
 
     @classmethod
     def get_rsp_error_code(cls, rsp):
-        """Return the error code of a response, or 0 if no error."""
+        """Return the error code of an XMLNode Flickr response, or 0 if no
+        error.
+        """
+
+        LOG.warn("FlickrAPI.get_rsp_error_code has been deprecated and will be "
+                 "removed in FlickrAPI version 1.2.")
+
         if rsp['stat'] == "fail":
             return int(rsp.err[0]['code'])
 
@@ -488,7 +556,13 @@ class FlickrAPI:
 
     @classmethod
     def get_rsp_error_msg(cls, rsp):
-        """Return the error message of a response, or "Success" if no error."""
+        """Return the error message of an XMLNode Flickr response, or "Success"
+        if no error.
+        """
+
+        LOG.warn("FlickrAPI.get_rsp_error_msg has been deprecated and will be "
+                 "removed in FlickrAPI version 1.2.")
+
         if rsp['stat'] == "fail":
             return rsp.err[0]['msg']
 

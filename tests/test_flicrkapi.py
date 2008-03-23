@@ -10,6 +10,7 @@ import sys
 import urllib
 import StringIO
 import exceptions
+
 from pymock import PyMockTestCase
 
 # Make sure the flickrapi module from the source distribution is used
@@ -148,6 +149,24 @@ class FlickrApiTest(SuperTest):
                           self.f.upload, 'photo.jpg', foo='bar')
         
 
+class FormatsTest(SuperTest):
+    '''Tests the different parsed formats.'''
+
+#   def test_etree_format(self):
+#       '''Test ETree format'''
+#
+#       etree = self.f_noauth.photos_getInfo(photo_id=u'2333478006',
+#                   format='etree')
+#       self.assertNotEqual(None, etree.find('photo'))
+        
+    def test_xmlnode_format(self):
+        '''Test XMLNode format'''
+
+        node = self.f_noauth.photos_getInfo(photo_id=u'2333478006',
+                    format='xmlnode')
+        print node.xml
+        self.assertNotEqual(None, node.photo[0])
+        
 class SigningTest(SuperTest):
     '''Tests the signing of different arguments.'''
 
