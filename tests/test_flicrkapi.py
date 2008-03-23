@@ -85,6 +85,8 @@ class SuperTest(PyMockTestCase):
     
 class FlickrApiTest(SuperTest):
     def test_repr(self):
+        '''Class name and API key should be in repr output'''
+
         r = repr(self.f)
         self.assertTrue('FlickrAPI' in r)
         self.assertTrue(key in r)
@@ -113,22 +115,11 @@ class FlickrApiTest(SuperTest):
                        flickrapi.FlickrAPI.flickr_auth_form, args,
                        url)
         
-        
     def test_simple_search(self):
         '''Test simple Flickr search'''
         
         # We expect to be able to find kittens
         rst = self.f.photos_search(tags='kitten')
-        self.assertTrue(rst.photos[0]['total'] > 0)
-
-    def test_explicit_format(self):
-        '''Test explicitly requesting a certain format'''
-        
-        xml = self.f.photos_search(tags='kitten', format='rest')
-        self.assertTrue(isinstance(xml, basestring))
-        
-        # Try to parse it
-        rst = flickrapi.XMLNode.parse(xml, False)
         self.assertTrue(rst.photos[0]['total'] > 0)
     
     def test_token_constructor(self):
@@ -144,7 +135,6 @@ class FlickrApiTest(SuperTest):
         
         # But not in the on-disk token cache
         self.assertNotEqual(token, flickrapi.TokenCache(key))              
-
 
     def test_auth_token_without_secret(self):
         '''Auth tokens without secrets are meaningless'''
@@ -171,7 +161,29 @@ class FlickrApiTest(SuperTest):
     def test_upload_illegal_arg(self):
         self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
                           self.f.upload, 'photo.jpg', foo='bar')
+
+    def test_public_only(self):
+        '''Tests that public_only FlickrAPI uses SimpleTokenCache'''
+
+        token_disk = '123-abc-disk'
+        token_mem = '123-abc-mem'
+
+        # Create a non-public-only instance, and set the on-disk token
+        flickr = flickrapi.FlickrAPI(key, secret)
+        flickr.token_cache.token = token_disk
         
+        flickr = flickrapi.FlickrAPI(key, secret, public_only=True)
+
+        # The token shouldn't be set
+        self.assertEqual(None, flickr.token_cache.token)
+
+        # Now set it
+        flickr.token_cache.token = token_mem
+        
+        # It should not be in the on-disk token cache, only in memory
+        self.assertEqual(token_disk, flickrapi.TokenCache(key).token)
+        self.assertNotEqual(token_mem, flickrapi.TokenCache(key).token)
+
 class FormatsTest(SuperTest):
     '''Tests the different parsed formats.'''
 
@@ -211,6 +223,16 @@ class FormatsTest(SuperTest):
         f = flickrapi.FlickrAPI(key, format='etree')
         etree = f.photos_getInfo(photo_id=u'2333478006')
         self.assertEqual('xml.etree.ElementTree', etree.__module__)
+
+    def test_explicit_format(self):
+        '''Test explicitly requesting a certain format'''
+        
+        xml = self.f.photos_search(tags='kitten', format='rest')
+        self.assertTrue(isinstance(xml, basestring))
+        
+        # Try to parse it
+        rst = flickrapi.XMLNode.parse(xml, False)
+        self.assertTrue(rst.photos[0]['total'] > 0)
 
 class SigningTest(SuperTest):
     '''Tests the signing of different arguments.'''

@@ -16,6 +16,11 @@ class SimpleTokenCache(object):
     def __init__(self):
         self.token = None
 
+    def forget(self):
+        '''Removes the cached token'''
+
+        self.token = None
+
 class TokenCache(object):
     '''On-disk persistent token cache for a single application.
     
