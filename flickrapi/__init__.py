@@ -79,6 +79,23 @@ def make_utf8(dictionary):
     
     return result
         
+def debug(method):
+    '''Method decorator for debugging method calls.
+
+    Using this automatically sets the log level to DEBUG.
+    '''
+
+    LOG.setLevel(logging.DEBUG)
+
+    def debugged(*args, **kwargs):
+        LOG.debug("Call: %s(%s, %s)" % (method.__name__, args,
+            kwargs))
+        result = method(*args, **kwargs)
+        LOG.debug("\tResult: %s" % result)
+        return result
+
+    return debugged
+
 
 class FlickrAPI:
     """Encapsulates Flickr functionality.
@@ -141,7 +158,26 @@ class FlickrAPI:
 
         return '[FlickrAPI for key "%s"]' % self.api_key
     __str__ = __repr__
-    
+
+    def trait_names(self):
+        '''Returns a list of method names as supported by the Flickr
+        API. Used for tab completion in IPython.
+        '''
+
+        rsp = self.reflection_getMethods()
+
+        def tr(name):
+            '''Translates Flickr names to something that can be called
+            here.
+
+            >>> tr(u'flickr.photos.getInfo')
+            u'photos_getInfo'
+            '''
+            
+            return name[7:].replace('.', '_')
+
+        return [tr(m.text) for m in rsp.methods[0].method]
+
     def sign(self, dictionary):
         """Calculate the flickr signature for a set of params.
         
@@ -187,7 +223,7 @@ class FlickrAPI:
         """
 
         # Refuse to act as a proxy for unimplemented special methods
-        if attrib.startswith('__'):
+        if attrib.startswith('_'):
             raise AttributeError("No such attribute '%s'" % attrib)
 
         # Construct the method name and see if it's cached
