@@ -2,7 +2,7 @@
 Python FlickrAPI
 ======================================================================
 
-:Version: 1.0
+:Version: 1.1
 :Author: Sybren Stüvel
 
 .. contents::
@@ -64,18 +64,19 @@ There is a simple naming scheme here. If the flickr function is called
 ``flickr.photosets.getList`` just call ``photosets_getList`` on your
 ``flickr`` object. In other words: replace the dots with underscores.
 
-Return values - XMLNodes
+Parsing the return value
 ----------------------------------------------------------------------
 
-Flickr sends back XML when you call a function. This XML is parsed
-into ``XMLNode`` objects. Attributes in the XML are converted to
-dictionary keys with unicode values. Subelements are stored in
-properties.
+Flickr sends back XML when you call a function. This XML is parsed and
+returned to you. There are two parsers available: XMLNode and
+ElementTree.
 
-Here is a simple example of the result of above ``sets =
-flickr.photosets_getList(...)`` call.
+XMLNode is the default parser. ElementTree was introduced in version
+1.1, and will be the default starting in version 1.2.
 
-Here is an example of an XML reply::
+In the following sections, we'll use a ``sets =
+flickr.photosets_getList(...)`` call and assume this was the response
+XML::
 
     <rsp stat='ok'>
         <photosets cancreate="1">
@@ -92,33 +93,76 @@ Here is an example of an XML reply::
         </photosets>
     </rsp>
 
-The ``sets`` variable will be structured as such::
+Response parser: XMLNode
+----------------------------------------------------------------------
+
+The XMLNode objects are quite simple. Attributes in the XML are
+converted to dictionary keys with unicode values. Subelements are
+stored in properties.
+
+We assume you did ``sets = flickr.photosets_getList(...)``. The
+``sets`` variable will be structured as such::
 
     sets['stat'] = 'ok'
     sets.photosets[0]['cancreate'] = u'1'
     sets.photosets[0].photoset = < a list of XMLNode objects >
 
-    sets.photosets[0].photoset[0]['id'] = u'5'
-    sets.photosets[0].photoset[0]['primary'] = u'2483'
-    sets.photosets[0].photoset[0]['secret'] = u'abcdef'
-    sets.photosets[0].photoset[0]['server'] = u'8'
-    sets.photosets[0].photoset[0]['photos'] = u'4'
-    sets.photosets[0].photoset[0].title[0].text = u'Test'
-    sets.photosets[0].photoset[0].description[0].text = u'foo'
+    set0 = sets.photosets[0].photoset[0]
+    set0['id'] = u'5'
+    set0['primary'] = u'2483'
+    set0['secret'] = u'abcdef'
+    set0['server'] = u'8'
+    set0['photos'] = u'4'
+    set0.title[0].text = u'Test'
+    set0.description[0].text = u'foo'
 
-    sets.photosets[0].photoset[1]['id'] = u'4'
-    sets.photosets[0].photoset[1]['primary'] = u'1234'
-    sets.photosets[0].photoset[1]['secret'] = u'832659'
-    sets.photosets[0].photoset[1]['server'] = u'3'
-    sets.photosets[0].photoset[1]['photos'] = u'12'
-    sets.photosets[0].photoset[1].title[0].text = u'My Set'
-    sets.photosets[0].photoset[1].description[0].text = u'bar'
+    set1 = sets.photosets[0].photoset[1]
+    set1['id'] = u'4'
+    set1['primary'] = u'1234'
+    set1['secret'] = u'832659'
+    set1['server'] = u'3'
+    set1['photos'] = u'12'
+    set1.title[0].text = u'My Set'
+    set1.description[0].text = u'bar'
 
 Every ``XMLNode`` also has a ``name`` property. The content of this
 property is left as an exercise for the reader.
 
-Future versions of the Python Flickr API might remove this ``XMLNode``
-class and offer a DOM interface to the returned XML instead.
+In version 1.2 of the Python Flickr API this XMLNode parser will no
+longer be the default parser, in favour of the ElementTree parser.
+
+Response parser: ElementTree
+----------------------------------------------------------------------
+
+The XMLNode parser has some drawbacks. A better one is Python's
+standard ElementTree_. If you create the ``FlickrAPI`` instance like
+this, you'll use ElementTree::
+
+
+    flickr = flickrapi.FlickrAPI(api_key, format='etree')
+
+The ElementTree documentation is quite clear, but to make things even
+easier, here are some examples using the same call and response XML as
+in the XMLNode example::
+
+    sets = flickr.photosets_getList(user_id='73509078@N00')
+
+    sets.attrib['stat'] = 'ok'
+    sets.find('photosets').attrib['cancreate'] = '1'
+
+    set0 = sets.find('photosets').findall('photoset')[0]
+    set0.attrib = {'id': '5',
+                   'photos': '4',
+                   'primary': '2483',
+                   'secret': 'abcdef',
+                   'server': '8'}
+    set0.find('title').text = 'Test'
+    set0.find('description').text = 'foo'
+
+    ... and similar for set1 ...
+
+ElementTree is a more mature, better thought out XML parsing
+framework. *In version 1.2, this will become the default parser*.
 
 Erroneous calls
 ----------------------------------------------------------------------
@@ -131,9 +175,10 @@ The old behaviour of the Python Flickr API was to simply return the
 error code in the XML. However, this is deprecated behaviour as we
 strive to notice an error condition as soon as possible. Checking the
 return value of every call is not Pythonic. For backward compatibility
-you can pass ``fail_on_error=False`` to the ``FlickrAPI`` constructor.
+you can pass ``fail_on_error=False`` to the ``FlickrAPI`` constructor,
+but this behaviour is deprecated and will be removed in version 1.2.
 
-Other response formats
+Unparsed response formats
 ----------------------------------------------------------------------
 
 Flickr supports different response formats, such as JSON and XML-RPC.
@@ -142,6 +187,7 @@ If you want, you can use such a different response format. Just add a
 won't parse that format for you, though, so you just get the raw
 response::
 
+  >>> f = flickrapi.FlickrAPI(api_key)
   >>> f.test_echo(boo='baah', format='json')
   'jsonFlickrApi({"format":{"_content":"json"},
     "auth_token":{"_content":"xxxxx"},
@@ -151,13 +197,22 @@ response::
     "method":{"_content":"flickr.test.echo"},
     "stat":"ok"})'
 
-You will always get the raw response when you pass the ``format``
-parameter. This means that you'll get unparsed XML with
-``format="rest"``.
+If you want all your calls in a certain format, you can also use the
+``format`` constructor parameter::
 
-Note that by using the ``format`` parameter the FlickrAPI won't parse
-the result, hence it won't be able to check whether a method call
-succeeded or not.
+  >>> f = flickrapi.FlickrAPI(api_key, format='json')
+  >>> f.test_echo(boo='baah')
+  'jsonFlickrApi({"format":{"_content":"json"},
+    "auth_token":{"_content":"xxxxx"},
+    "boo":{"_content":"baah"},
+    "api_sig":{"_content":"xxx"},
+    "api_key":{"_content":"xxx"},
+    "method":{"_content":"flickr.test.echo"},
+    "stat":"ok"})'
+
+If you use an unparsed format, FlickrAPI won't check for errors. Any
+format not described in the "Response parser" sections is considered
+to be unparsed.
 
 Authentication
 ======================================================================
@@ -457,3 +512,4 @@ Links
     http://www.flickr.com/services/api/auth.howto.web.html
 .. _Django: http://www.djangoproject.com/
 .. _`PEP 318`: http://www.python.org/dev/peps/pep-0318/
+.. _`ElementTree`: http://docs.python.org/lib/module-xml.etree.ElementTree.html
