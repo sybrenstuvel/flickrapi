@@ -222,6 +222,14 @@ class CachingTest(SuperTest):
 
         self.assertEqual(faked_value, info)
 
+    def test_cache_constructor_parameter(self):
+        '''Tests that a cache is created when requested.'''
+
+        f = flickrapi.FlickrAPI(key, cache=True)
+        self.assertNotEqual(None, f.cache, "Cache should not be None")
+
+    # Test list of non-cacheable method calls
+
 class FormatsTest(SuperTest):
     '''Tests the different parsed formats.'''
 

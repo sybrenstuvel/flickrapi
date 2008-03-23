@@ -129,7 +129,7 @@ class FlickrAPI:
     flickr_replace_form = "/services/replace/"
 
     def __init__(self, api_key, secret=None, fail_on_error=None, username=None,
-            token=None, format='xmlnode', store_token=True):
+            token=None, format='xmlnode', store_token=True, cache=False):
         """Construct a new FlickrAPI instance for a given API key
         and secret.
         
@@ -162,6 +162,14 @@ class FlickrAPI:
             Disables the on-disk token cache if set to False (default is True).
             Use this to ensure that tokens aren't read nor written to disk, for
             example in web applications that store tokens in cookies.
+
+        cache
+            Enables in-memory caching of FlickrAPI calls - set to ``True`` to
+            use. If you don't want to use the default settings, you can
+            instantiate a cache yourself too:
+
+            >>> f = FlickrAPI(api_key='123')
+            >>> f.cache = SimpleCache(timeout=5, max_entries=100)
         """
         
         if fail_on_error is not None:
@@ -174,7 +182,6 @@ class FlickrAPI:
         self.secret = secret
         self.fail_on_error = fail_on_error
         self.default_format = format
-        self.cache = None
         
         self.__handler_cache = {}
 
@@ -188,6 +195,11 @@ class FlickrAPI:
         else:
             # Use a real token cache
             self.token_cache = TokenCache(api_key, username)
+
+        if cache:
+            self.cache = SimpleCache()
+        else:
+            self.cache = None
 
     def __repr__(self):
         '''Returns a string representation of this object.'''
