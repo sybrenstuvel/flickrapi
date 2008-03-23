@@ -192,7 +192,7 @@ class FlickrAPI:
         API. Used for tab completion in IPython.
         '''
 
-        rsp = self.reflection_getMethods()
+        rsp = self.reflection_getMethods(format='etree')
 
         def tr(name):
             '''Translates Flickr names to something that can be called
@@ -204,7 +204,7 @@ class FlickrAPI:
             
             return name[7:].replace('.', '_')
 
-        return [tr(m.text) for m in rsp.methods[0].method]
+        return [tr(m.text) for m in rsp.getiterator('method')]
 
     @rest_parser('xmlnode')
     def parse_xmlnode(self, rest_xml):
