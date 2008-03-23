@@ -10,6 +10,7 @@ import sys
 import urllib
 import StringIO
 import exceptions
+import logging
 
 from pymock import PyMockTestCase
 
@@ -17,6 +18,7 @@ from pymock import PyMockTestCase
 sys.path.insert(0, '..')
 
 import flickrapi
+flickrapi.set_log_level(logging.FATAL)
 
 print "Testing FlickrAPI version %s" % flickrapi.__version__
 
@@ -28,6 +30,9 @@ U_UML_UTF8 = U_UML_UNICODE.encode('utf-8')
 
 key = 'ecd01ab8f00faf13e1f8801586e126fd'
 secret = '2ee3f558fd79f292'
+
+logging.basicConfig()
+LOG = logging.getLogger(__name__)
 
 class SuperTest(PyMockTestCase):
     '''Superclass for unittests, provides useful methods.'''
@@ -148,16 +153,38 @@ class FlickrApiTest(SuperTest):
         self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
                           self.f.upload, 'photo.jpg', foo='bar')
         
+def python_version(major, minor, micro):
+    '''Function decorator, skips calling the function when the python version
+    is older than the given version.
+    '''
+
+    current_version = sys.version_info[0:3]
+
+    def just_pass(*args, **kwargs):
+        pass
+
+    def decorator(method):
+        if current_version < (major, minor, micro):
+            LOG.warn('Skipping %s, Python version %s.%s.%s too old' %
+                    ((method.func_name, ) + current_version))
+            return just_pass
+        return method
+
+    return decorator
+
+
 class FormatsTest(SuperTest):
     '''Tests the different parsed formats.'''
 
+    @python_version(2, 5, 0)
     def test_etree_format_happy(self):
         '''Test ETree format'''
- 
+
         etree = self.f_noauth.photos_getInfo(photo_id=u'2333478006',
                     format='etree')
         self.assertEqual('xml.etree.ElementTree', etree.__module__)
 
+    @python_version(2, 5, 0)
     def test_etree_format_error(self):
         '''Test ETree format in error conditions'''
  
@@ -171,12 +198,14 @@ class FormatsTest(SuperTest):
                     format='xmlnode')
         self.assertNotEqual(None, node.photo[0])
 
+    @python_version(2, 5, 0)
     def test_etree_format_error(self):
         '''Test ETree format in error conditions'''
  
         self.assertRaises(flickrapi.exceptions.FlickrError,
                 self.f_noauth.photos_getInfo, format='xmlnode')
         
+    @python_version(2, 5, 0)
     def test_etree_default_format(self):
         '''Test setting the default format to etree'''
 
