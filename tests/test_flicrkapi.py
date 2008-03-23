@@ -148,24 +148,34 @@ class FlickrApiTest(SuperTest):
         self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
                           self.f.upload, 'photo.jpg', foo='bar')
         
-
 class FormatsTest(SuperTest):
     '''Tests the different parsed formats.'''
 
-#   def test_etree_format(self):
-#       '''Test ETree format'''
-#
-#       etree = self.f_noauth.photos_getInfo(photo_id=u'2333478006',
-#                   format='etree')
-#       self.assertNotEqual(None, etree.find('photo'))
-        
+    def test_etree_format_happy(self):
+        '''Test ETree format'''
+ 
+        etree = self.f_noauth.photos_getInfo(photo_id=u'2333478006',
+                    format='etree')
+        self.assertNotEqual(None, etree.find('photo'))
+
+    def test_etree_format_error(self):
+        '''Test ETree format in error conditions'''
+ 
+        self.assertRaises(flickrapi.exceptions.FlickrError,
+                self.f_noauth.photos_getInfo, format='etree')
+
     def test_xmlnode_format(self):
         '''Test XMLNode format'''
 
         node = self.f_noauth.photos_getInfo(photo_id=u'2333478006',
                     format='xmlnode')
-        print node.xml
         self.assertNotEqual(None, node.photo[0])
+
+    def test_etree_format_error(self):
+        '''Test ETree format in error conditions'''
+ 
+        self.assertRaises(flickrapi.exceptions.FlickrError,
+                self.f_noauth.photos_getInfo, format='xmlnode')
         
 class SigningTest(SuperTest):
     '''Tests the signing of different arguments.'''

@@ -212,7 +212,16 @@ class FlickrAPI:
     def parse_etree(self, rest_xml):
         '''Parses a REST XML response from Flickr into an ElementTree object.'''
 
-        raise FlickrError('ETree format not yet implemented')
+        # Only import it here, to maintain Python 2.4 compatibility
+        import xml.etree.ElementTree
+
+        rsp = xml.etree.ElementTree.fromstring(rest_xml)
+        if rsp.attrib['stat'] == 'ok' or not self.fail_on_error:
+            return rsp
+        
+        err = rsp.find('err')
+        raise FlickrError(u'Error: %s: %s' % (
+            err.attrib['code'], err.attrib['msg']))
 
     def sign(self, dictionary):
         """Calculate the flickr signature for a set of params.
