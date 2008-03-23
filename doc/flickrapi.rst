@@ -342,6 +342,11 @@ since
     B. the tokens are stored in cookies, so there is no need to store
        them in another place.
 
+Another way of preventing the storage of tokens is to pass
+``store_token=False`` as the constructor parameter. Use this if you
+want to be absolutely sure that the FlickrAPI instance doesn't use any
+previously stored tokens, nor that it will store new tokens.
+
 Example using Django
 ----------------------------------------------------------------------
 
@@ -370,8 +375,9 @@ Here is a simple example in Django_::
              token = None
              log.info('No token in session')
 
-         f = flickrapi.FlickrAPI(settings.FLICKR_API_KEY,
-                 settings.FLICKR_API_SECRET, token=token)
+        f = flickrapi.FlickrAPI(settings.FLICKR_API_KEY,
+                settings.FLICKR_API_SECRET, token=token,
+                store_token=False)
 
          if token:
              # We have a token, but it might not be valid
@@ -398,8 +404,8 @@ Here is a simple example in Django_::
  def callback(request):
      log.info('We got a callback from Flickr, store the token')
 
-     f = flickrapi.FlickrAPI(settings.FLICKR_API_KEY,
-             settings.FLICKR_API_SECRET)
+    f = flickrapi.FlickrAPI(settings.FLICKR_API_KEY,
+            settings.FLICKR_API_SECRET, store_token=False)
 
      frob = request.GET['frob']
      token = f.get_token(frob)
@@ -419,7 +425,6 @@ The ``callback`` view should be called when the user is sent to the
 callback URL as defined in your Flickr API key. The key and secret
 should be configured in your settings.py, in the properties
 ``FLICKR_API_KEY`` and ``FLICKR_API_SECRET``.
-
 
 Uploading or replacing images
 ======================================================================

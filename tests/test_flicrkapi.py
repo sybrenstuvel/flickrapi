@@ -162,8 +162,8 @@ class FlickrApiTest(SuperTest):
         self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
                           self.f.upload, 'photo.jpg', foo='bar')
 
-    def test_public_only(self):
-        '''Tests that public_only FlickrAPI uses SimpleTokenCache'''
+    def test_store_token(self):
+        '''Tests that store_token=False FlickrAPI uses SimpleTokenCache'''
 
         token_disk = '123-abc-disk'
         token_mem = '123-abc-mem'
@@ -172,7 +172,7 @@ class FlickrApiTest(SuperTest):
         flickr = flickrapi.FlickrAPI(key, secret)
         flickr.token_cache.token = token_disk
         
-        flickr = flickrapi.FlickrAPI(key, secret, public_only=True)
+        flickr = flickrapi.FlickrAPI(key, secret, store_token=False)
 
         # The token shouldn't be set
         self.assertEqual(None, flickr.token_cache.token)
