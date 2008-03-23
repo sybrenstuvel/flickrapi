@@ -167,8 +167,8 @@ in the XMLNode example::
     | set0.attrib['photos']         | u'4'      |
     | set0.title[0].text            | u'Test'   |
     | set0.description[0].text      | u'foo'    |
-    | set0.find('title').text       | 'Test'
-    | set0.find('description').text | 'foo'
+    | set0.find('title').text       | 'Test'    |
+    | set0.find('description').text | 'foo'     |
     +-------------------------------+-----------+
 
     ... and similar for set1 ...
