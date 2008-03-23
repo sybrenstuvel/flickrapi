@@ -7,6 +7,7 @@ runtests
 UPGRADING
 flickrapi/exceptions.py
 flickrapi/__init__.py
+flickrapi/cache.py
 flickrapi/multipart.py
 flickrapi/reportinghttp.py
 flickrapi/tokencache.py
@@ -16,6 +17,7 @@ doc/flickrapi.rst
 doc/GNUmakefile
 doc/html4css1.css
 tests/test_flicrkapi.py
+tests/test_cache.py
 tests/test_multipart.py
 tests/test_tokencache.py
 tests/test_xmlnode.py

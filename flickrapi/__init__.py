@@ -55,6 +55,7 @@ from flickrapi.tokencache import TokenCache, SimpleTokenCache
 from flickrapi.xmlnode import XMLNode
 from flickrapi.multipart import Part, Multipart, FilePart
 from flickrapi.exceptions import IllegalArgumentException, FlickrError
+from flickrapi.cache import SimpleCache
 from flickrapi import reportinghttp
 
 logging.basicConfig()
