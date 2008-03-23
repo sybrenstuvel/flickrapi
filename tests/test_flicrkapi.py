@@ -184,6 +184,44 @@ class FlickrApiTest(SuperTest):
         self.assertEqual(token_disk, flickrapi.TokenCache(key).token)
         self.assertNotEqual(token_mem, flickrapi.TokenCache(key).token)
 
+class CachingTest(SuperTest):
+    '''Tests that the caching framework works'''
+
+    def test_cache_write(self):
+        '''tests that the call result is written to cache'''
+
+        photo_id = '2333478006'
+        cache_key = ('api_key=%s'
+                     '&photo_id=%s'
+                     '&method=flickr.photos.getInfo'
+                     '&format=rest' % (key, photo_id))
+        
+        f = flickrapi.FlickrAPI(key, store_token=False, format='rest')
+        f.cache = flickrapi.SimpleCache()
+        self.assertEqual(0, len(f.cache))
+
+        info = f.photos_getInfo(photo_id=photo_id)
+
+        self.assertEqual(info, f.cache.get(cache_key))
+
+    def test_cache_read(self):
+        '''Tests that cached data is returned if available'''
+
+        photo_id = '2333478006'
+        cache_key = ('api_key=%s'
+                     '&photo_id=%s'
+                     '&method=flickr.photos.getInfo'
+                     '&format=rest' % (key, photo_id))
+        faked_value = "FAKED_VALUE"
+        
+        f = flickrapi.FlickrAPI(key, store_token=False, format='rest')
+        f.cache = flickrapi.SimpleCache()
+        f.cache.set(cache_key, faked_value)
+
+        info = f.photos_getInfo(photo_id=photo_id)
+
+        self.assertEqual(faked_value, info)
+
 class FormatsTest(SuperTest):
     '''Tests the different parsed formats.'''
 

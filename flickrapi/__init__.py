@@ -174,6 +174,7 @@ class FlickrAPI:
         self.secret = secret
         self.fail_on_error = fail_on_error
         self.default_format = format
+        self.cache = None
         
         self.__handler_cache = {}
 
@@ -351,10 +352,18 @@ class FlickrAPI:
 
         post_data = self.encode_and_sign(kwargs)
 
+        # Return value from cache if available
+        if self.cache and post_data in self.cache:
+            return self.cache.get(post_data)
+
         url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_rest_form
         flicksocket = urllib.urlopen(url, post_data)
         reply = flicksocket.read()
         flicksocket.close()
+
+        # Store in cache, if we have one
+        if self.cache is not None:
+            self.cache.set(post_data, reply)
 
         return reply
 
