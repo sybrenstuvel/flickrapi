@@ -34,6 +34,25 @@ secret = '2ee3f558fd79f292'
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
 
+def python_version(major, minor, micro):
+    '''Function decorator, skips calling the function when the python version
+    is older than the given version.
+    '''
+
+    current_version = sys.version_info[0:3]
+
+    def just_pass(*args, **kwargs):
+        pass
+
+    def decorator(method):
+        if current_version < (major, minor, micro):
+            LOG.warn('Skipping %s, Python version %s.%s.%s too old' %
+                    ((method.func_name, ) + current_version))
+            return just_pass
+        return method
+
+    return decorator
+
 class SuperTest(PyMockTestCase):
     '''Superclass for unittests, provides useful methods.'''
     
@@ -153,26 +172,6 @@ class FlickrApiTest(SuperTest):
         self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
                           self.f.upload, 'photo.jpg', foo='bar')
         
-def python_version(major, minor, micro):
-    '''Function decorator, skips calling the function when the python version
-    is older than the given version.
-    '''
-
-    current_version = sys.version_info[0:3]
-
-    def just_pass(*args, **kwargs):
-        pass
-
-    def decorator(method):
-        if current_version < (major, minor, micro):
-            LOG.warn('Skipping %s, Python version %s.%s.%s too old' %
-                    ((method.func_name, ) + current_version))
-            return just_pass
-        return method
-
-    return decorator
-
-
 class FormatsTest(SuperTest):
     '''Tests the different parsed formats.'''
 
