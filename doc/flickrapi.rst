@@ -342,6 +342,9 @@ since
     B. the tokens are stored in cookies, so there is no need to store
        them in another place.
 
+Preventing usage of on-disk token cache
+----------------------------------------------------------------------
+
 Another way of preventing the storage of tokens is to pass
 ``store_token=False`` as the constructor parameter. Use this if you
 want to be absolutely sure that the FlickrAPI instance doesn't use any
