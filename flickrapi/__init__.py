@@ -127,20 +127,20 @@ class FlickrAPI:
     flickr_upload_form = "/services/upload/"
     flickr_replace_form = "/services/replace/"
 
-    def __init__(self, api_key, secret=None, fail_on_error=True,
-                 username=None, token=None):
+    def __init__(self, api_key, secret=None, fail_on_error=None,
+                 username=None, token=None, format='xmlnode'):
         """Construct a new FlickrAPI instance for a given API key
         and secret.
         
         api_key
-            The API key as obtained from Flickr
+            The API key as obtained from Flickr.
         
         secret
-            The secret belonging to the API key
+            The secret belonging to the API key.
         
         fail_on_error
             If False, errors won't be checked by the FlickrAPI module.
-            Deprecated, don't use this parameter and just handle the FlickrError
+            Deprecated, don't use this parameter, just handle the FlickrError
             exceptions.
         
         username
@@ -149,19 +149,28 @@ class FlickrAPI:
         
         token
             If you already have an authentication token, you can give
-            it here. It won't be stored on disk by the FlickrAPI instance
+            it here. It won't be stored on disk by the FlickrAPI instance.
+
+        format
+            The response format. Use either "xmlnode" or "etree" to get a parsed
+            response, or use any response format supported by Flickr to get an
+            unparsed response from method calls. It's also possible to pass the
+            ``format`` parameter on individual calls.
         
         """
         
+        if fail_on_error is not None:
+            LOG.warn("fail_on_error has been deprecated. Remove this "
+                     "parameter and just handle the FlickrError exceptions.")
+        else:
+            fail_on_error = True
+
         self.api_key = api_key
         self.secret = secret
         self.fail_on_error = fail_on_error
+        self.default_format = format
         
         self.__handler_cache = {}
-
-        if not self.fail_on_error:
-            LOG.warn("fail_on_error=False has been deprecated. Remove this"
-                     "parameter and just handle the FlickrError exceptions.")
 
         if token:
             # Use a memory-only token cache
@@ -289,7 +298,7 @@ class FlickrAPI:
             defaults = {'method': method,
                         'auth_token': self.token_cache.token,
                         'api_key': self.api_key,
-                        'format': 'xmlnode'}
+                        'format': self.default_format}
 
             for key, default_value in defaults.iteritems():
                 # Set the default if the parameter wasn't passed

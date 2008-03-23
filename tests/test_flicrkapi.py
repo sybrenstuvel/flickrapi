@@ -156,7 +156,7 @@ class FormatsTest(SuperTest):
  
         etree = self.f_noauth.photos_getInfo(photo_id=u'2333478006',
                     format='etree')
-        self.assertNotEqual(None, etree.find('photo'))
+        self.assertEqual('xml.etree.ElementTree', etree.__module__)
 
     def test_etree_format_error(self):
         '''Test ETree format in error conditions'''
@@ -177,6 +177,13 @@ class FormatsTest(SuperTest):
         self.assertRaises(flickrapi.exceptions.FlickrError,
                 self.f_noauth.photos_getInfo, format='xmlnode')
         
+    def test_etree_default_format(self):
+        '''Test setting the default format to etree'''
+
+        f = flickrapi.FlickrAPI(key, format='etree')
+        etree = f.photos_getInfo(photo_id=u'2333478006')
+        self.assertEqual('xml.etree.ElementTree', etree.__module__)
+
 class SigningTest(SuperTest):
     '''Tests the signing of different arguments.'''
 
