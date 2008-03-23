@@ -13,22 +13,27 @@ __all__ = ('XMLNode', )
 class XMLNode:
     """XMLNode -- generic class for holding an XML node
 
-    xml_str = '''<xml foo="32">
-    <name bar="10">Name0</name>
-    <name bar="11" baz="12">Name1</name>
-    </xml>'''
-
-    f = XMLNode.parse(xml_str)
-
-    print f.name              # xml
-    print f['foo']            # 32
-    print f.name              # [<name XMLNode>, <name XMLNode>]
-    print f.name[0].name      # name
-    print f.name[0]["bar"]    # 10
-    print f.name[0].text      # Name0
-    print f.name[1].name      # name
-    print f.name[1]["bar"]    # 11
-    print f.name[1]["baz"]    # 12
+    >>> xml_str = '''<xml foo="32">
+    ... <taggy bar="10">Name0</taggy>
+    ... <taggy bar="11" baz="12">Name1</taggy>
+    ... </xml>'''
+    >>> f = XMLNode.parse(xml_str)
+    >>> f.name
+    u'xml'
+    >>> f['foo']
+    u'32'
+    >>> f.taggy[0].name
+    u'taggy'
+    >>> f.taggy[0]["bar"]
+    u'10'
+    >>> f.taggy[0].text
+    u'Name0'
+    >>> f.taggy[1].name
+    u'taggy'
+    >>> f.taggy[1]["bar"]
+    u'11'
+    >>> f.taggy[1]["baz"]
+    u'12'
 
     """
 

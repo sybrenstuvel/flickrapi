@@ -47,6 +47,29 @@ xml = '''<?xml version="1.0" encoding="utf-8"?>
 </rsp>
 '''
 
+group_info_xml = '''<?xml version="1.0" encoding="utf-8"?>
+<rsp stat="ok">
+  <group id="51035612836@N01" iconserver="1" iconfarm="1" lang="en-us" ispoolmoderated="1">
+    <name>Flickr
+API</name>
+    <description>A Flickr group for Flickr API projects.
+
+Driving awareness of the Flickr API, projects that use it and
+those incredible ideas that programmatically exposed systems produce.
+Think Google API + Amazon API + Flickr API with a bit of GMail thrown
+in.
+
+The developers of Flickr rightly pointed out they want to
+keep technical discussions directly related to the API on the mailing
+list.</description>
+    <members>5180</members>
+    <privacy>3</privacy>
+    <throttle count="3" mode="day"/>
+  </group>
+</rsp>
+'''
+
+
 class TestXMLNode(unittest.TestCase):
     
     def setUp(self):
@@ -67,21 +90,7 @@ class TestXMLNode(unittest.TestCase):
         self.assertEqual(self.doc.photo[0].comments[0].name, u'comments')
         self.assertEqual(self.doc.photo[0].owner[0]['username'], u"Sybren Stüvel")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def testGroupInfoXml(self):
+        '''This XML exposed a bug in 1.0, should parse okay now.'''
+ 
+        XMLNode.parse(group_info_xml)
