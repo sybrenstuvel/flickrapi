@@ -67,9 +67,10 @@ class XMLNode:
             if a.nodeType == xml.dom.Node.ELEMENT_NODE:
 
                 child = XMLNode()
-                try:
-                    getattr(this_node, a.nodeName)
-                except AttributeError:
+                # Ugly fix for an ugly bug. If an XML element <name />
+                # exists, it now overwrites the 'name' attribute
+                # storing the XML element name.
+                if not hasattr(this_node, a.nodeName) or a.nodeName == 'name':
                     setattr(this_node, a.nodeName, [])
 
                 # add the child node as an attrib to this node
