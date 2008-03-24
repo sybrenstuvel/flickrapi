@@ -555,11 +555,7 @@ class FlickrAPI:
             response = urllib2.urlopen(request)
         rspXML = response.read()
 
-        result = XMLNode.parse(rspXML)
-        if self.fail_on_error:
-            FlickrAPI.test_failure(result, True)
-
-        return result
+        return self.parse_xmlnode(rspXML)
 
     @classmethod
     def test_failure(cls, rsp, exception_on_error=True):
