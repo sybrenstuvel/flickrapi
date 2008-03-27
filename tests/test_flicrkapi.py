@@ -19,6 +19,7 @@ sys.path.insert(0, '..')
 
 import flickrapi
 flickrapi.set_log_level(logging.FATAL)
+#flickrapi.set_log_level(logging.DEBUG)
 
 print "Testing FlickrAPI version %s" % flickrapi.__version__
 
@@ -183,6 +184,41 @@ class FlickrApiTest(SuperTest):
         # It should not be in the on-disk token cache, only in memory
         self.assertEqual(token_disk, flickrapi.TokenCache(key).token)
         self.assertNotEqual(token_mem, flickrapi.TokenCache(key).token)
+
+    def test_wrap_in_parser(self):
+        '''Tests wrap_in_parser'''
+
+        test = {'wrapped': False}
+
+        def to_wrap(format, test_param):
+            self.assertEqual('rest', format)
+            self.assertEqual('test_value', test_param)
+            test['wrapped'] = True
+
+            return '<rst stat="ok"><element photo_id="5" /></rst>'
+
+        rst = self.f._FlickrAPI__wrap_in_parser(to_wrap, parse_format='xmlnode',
+                format='xmlnode', test_param='test_value')
+        self.assertEqual('5', rst.element[0]['photo_id'])
+        self.assertTrue(test['wrapped'],
+                        'Expected wrapped function to be called')
+
+    def test_wrap_in_parser_no_format(self):
+        '''Tests wrap_in_parser without a format in the wrapped arguments'''
+
+        test = {'wrapped': False}
+
+        def to_wrap(test_param):
+            self.assertEqual('test_value', test_param)
+            test['wrapped'] = True
+
+            return '<rst stat="ok"><element photo_id="5" /></rst>'
+
+        rst = self.f._FlickrAPI__wrap_in_parser(to_wrap, parse_format='xmlnode',
+                test_param='test_value')
+        self.assertEqual('5', rst.element[0]['photo_id'])
+        self.assertTrue(test['wrapped'],
+                        'Expected wrapped function to be called')
 
 class CachingTest(SuperTest):
     '''Tests that the caching framework works'''

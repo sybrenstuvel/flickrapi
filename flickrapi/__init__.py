@@ -321,35 +321,43 @@ class FlickrAPI:
                         'api_key': self.api_key,
                         'format': self.default_format}
 
-            for key, default_value in defaults.iteritems():
-                # Set the default if the parameter wasn't passed
-                if key not in args:
-                    args[key] = default_value
-                # You are able to remove a default by assigning None
-                if key in args and args[key] is None:
-                    del args[key]
+            args = self.__supply_defaults(args, defaults)
 
-            # Find the parser, and set the format to rest if we're supposed to
-            # parse it.
-            format = args['format']
-            if format in rest_parsers:
-                args['format'] = 'rest'
-                parser = rest_parsers[format]
-            else:
-                parser = None
-
-            data = self.__flickr_call(**args)
-
-            # Parse if we found a parser
-            if parser:
-                return parser(self, data)
-            else:
-                return data
+            return self.__wrap_in_parser(self.__flickr_call,
+                    parse_format=args['format'], **args)
 
         handler.method = method
         self.__handler_cache[method] = handler
         return handler
     
+    def __supply_defaults(self, args, defaults):
+        '''Returns a new dictionary containing ``args``, augmented with defaults
+        from ``defaults``.
+
+        Defaults can be overridden, or completely removed by setting the
+        appropriate value in ``args`` to ``None``.
+
+        >>> f = FlickrAPI('123')
+        >>> f._FlickrAPI__supply_defaults(
+        ...  {'foo': 'bar', 'baz': None, 'token': None},
+        ...  {'baz': 'foobar', 'room': 'door'})
+        {'foo': 'bar', 'room': 'door'}
+        '''
+
+        result = args.copy()
+        for key, default_value in defaults.iteritems():
+            # Set the default if the parameter wasn't passed
+            if key not in args:
+                result[key] = default_value
+
+        for key, value in result.copy().iteritems():
+            # You are able to remove a default by assigning None, and we can't
+            # pass None to Flickr anyway.
+            if result[key] is None:
+                del result[key]
+        
+        return result
+
     def __flickr_call(self, **kwargs):
         '''Performs a Flickr API call with the given arguments. The method name
         itself should be passed as the 'method' parameter.
@@ -378,8 +386,32 @@ class FlickrAPI:
             self.cache.set(post_data, reply)
 
         return reply
-
     
+    def __wrap_in_parser(self, wrapped_method, parse_format, *args, **kwargs):
+        '''Wraps a method call in a parser.
+
+        The parser will be looked up by the ``parse_format`` specifier. If there
+        is a parser and ``kwargs['format']`` is set, it's set to ``rest``, and
+        the response of the method is parsed before it's returned.
+        '''
+
+        # Find the parser, and set the format to rest if we're supposed to
+        # parse it.
+        if parse_format in rest_parsers and 'format' in kwargs:
+            kwargs['format'] = 'rest'
+
+        LOG.debug('Wrapping call %s(self, %s, %s)' % (wrapped_method, args,
+            kwargs))
+        data = wrapped_method(*args, **kwargs)
+
+        # Just return if we have no parser
+        if parse_format not in rest_parsers:
+            return data
+
+        # Return the parsed data
+        parser = rest_parsers[parse_format]
+        return parser(self, data)
+
     def auth_url(self, perms, frob):
         """Return the authorization URL to get a token.
 
@@ -730,3 +762,9 @@ def set_log_level(level):
 
     LOG.setLevel(level)
     flickrapi.tokencache.LOG.setLevel(level)
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
+
