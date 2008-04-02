@@ -11,7 +11,7 @@ See `the FlickrAPI homepage`_ for more info.
 __version__ = '1.1-beta0'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
         'XMLNode', 'set_log_level', '__version__')
-__author__ = u'Sybren Stüvel'
+__author__ = u'Sybren St\u00fcvel'.encode('utf-8')
 
 # Copyright (c) 2007 by the respective coders, see
 # http://flickrapi.sf.net/
