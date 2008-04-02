@@ -7,7 +7,7 @@ this file, which contains code only parsable by 2.4+.
 
 __author__ = u'Sybren Stüvel'
 
-from distutils.core import setup, Distribution
+from setuptools import setup, Distribution
 import os
 import sys
 
