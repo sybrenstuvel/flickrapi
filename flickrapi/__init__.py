@@ -373,7 +373,7 @@ class FlickrAPI:
         post_data = self.encode_and_sign(kwargs)
 
         # Return value from cache if available
-        if self.cache and post_data in self.cache:
+        if self.cache and self.cache.get(post_data):
             return self.cache.get(post_data)
 
         url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_rest_form
