@@ -12,8 +12,6 @@ import StringIO
 import exceptions
 import logging
 
-from pymock import PyMockTestCase
-
 # Make sure the flickrapi module from the source distribution is used
 sys.path.insert(0, '..')
 
@@ -54,7 +52,7 @@ def python_version(major, minor, micro):
 
     return decorator
 
-class SuperTest(PyMockTestCase):
+class SuperTest(unittest.TestCase):
     '''Superclass for unittests, provides useful methods.'''
     
     def setUp(self):

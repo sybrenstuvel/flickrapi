@@ -11,7 +11,7 @@ See `the FlickrAPI homepage`_ for more info.
 __version__ = '1.1-beta0'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
         'XMLNode', 'set_log_level', '__version__')
-__author__ = u'Sybren Stüvel'
+__author__ = u'Sybren St\u00fcvel'.encode('utf-8')
 
 # Copyright (c) 2007 by the respective coders, see
 # http://flickrapi.sf.net/
@@ -373,7 +373,7 @@ class FlickrAPI:
         post_data = self.encode_and_sign(kwargs)
 
         # Return value from cache if available
-        if self.cache and post_data in self.cache:
+        if self.cache and self.cache.get(post_data):
             return self.cache.get(post_data)
 
         url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_rest_form
@@ -763,6 +763,7 @@ def set_log_level(level):
 
 
 if __name__ == "__main__":
+    print "Running doctests"
     import doctest
     doctest.testmod()
-
+    print "Tests OK"

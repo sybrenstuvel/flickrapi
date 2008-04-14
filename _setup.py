@@ -7,7 +7,7 @@ this file, which contains code only parsable by 2.4+.
 
 __author__ = u'Sybren Stüvel'
 
-from distutils.core import setup, Distribution
+from setuptools import setup, Distribution
 import os
 import sys
 
@@ -46,9 +46,9 @@ data = {
     'name': 'flickrapi', 
     'version': __version__, 
     'url': 'http://flickrapi.sourceforge.net/', 
-    'author': u'Beej Jorgensen and Sybren Stuvel', 
+    'author': u'Beej Jorgensen and Sybren Stüvel'.encode('utf-8'), 
     'author_email': 'beej@beej.us', 
-    'maintainer': u'Sybren Stuvel',
+    'maintainer': u'Sybren Stüvel'.encode('utf-8'),
     'maintainer_email': 'sybren@stuvel.eu',
     'description': 'The official Python interface to the Flickr API', 
     'long_description': 'The easiest to use, most complete, and '

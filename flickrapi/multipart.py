@@ -8,12 +8,13 @@ import base64
 class Part(object):
     '''A single part of the multipart data.
     
-    >>> #doctest: +ELLIPSIS
-    >>> Part({'name': 'headline'}, 'Nice Photo') 
+    >>> Part({'name': 'headline'}, 'Nice Photo')
+    ... # doctest: +ELLIPSIS
     <flickrapi.multipart.Part object at 0x...>
-    
+
     >>> image = file('tests/photo.jpg')
     >>> Part({'name': 'photo', 'filename': image}, image.read(), 'image/jpeg')
+    ... # doctest: +ELLIPSIS
     <flickrapi.multipart.Part object at 0x...>
     '''
     
@@ -25,7 +26,8 @@ class Part(object):
     def render(self):
         '''Renders this part -> List of Strings'''
         
-        parameters = ['%s="%s"' % (k, v) for k, v in self.parameters.iteritems()]
+        parameters = ['%s="%s"' % (k, v)
+                      for k, v in self.parameters.iteritems()]
         
         lines = ['Content-Disposition: form-data; %s' % '; '.join(parameters)]
         
@@ -46,8 +48,9 @@ class FilePart(Part):
     
     This example has the same semantics as the second Part example:
 
-    >>> #doctest: +ELLIPSIS
     >>> FilePart({'name': 'photo'}, 'tests/photo.jpg', 'image/jpeg')
+    ... #doctest: +ELLIPSIS
+    <flickrapi.multipart.FilePart object at 0x...>
     '''
     
     def __init__(self, parameters, filename, content_type):
@@ -94,4 +97,5 @@ class Multipart(object):
     def header(self):
         '''Returns the top-level HTTP header of this multipart'''
         
-        return ("Content-Type", "multipart/form-data; boundary=%s" % self.boundary)
+        return ("Content-Type",
+                "multipart/form-data; boundary=%s" % self.boundary)
