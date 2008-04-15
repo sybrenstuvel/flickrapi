@@ -3,6 +3,7 @@ MANIFEST
 README
 setup.py
 _setup.py
+ez_setup.py
 runtests
 UPGRADING
 flickrapi/exceptions.py
