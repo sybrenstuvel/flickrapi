@@ -13,7 +13,11 @@ import threading
 import time
 
 class SimpleCache(object):
-    '''Simple response cache for FlickrAPI calls.'''
+    '''Simple response cache for FlickrAPI calls.
+    
+    This stores max 50 entries, timing them out after 120 seconds:
+    >>> cache = SimpleCache(timeout=120, max_entries=50)
+    '''
 
     def __init__(self, timeout=300, max_entries=200):
         self.storage = {}
