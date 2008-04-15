@@ -289,9 +289,8 @@ class FormatsTest(SuperTest):
                     format='xmlnode')
         self.assertNotEqual(None, node.photo[0])
 
-    @python_version(2, 5, 0)
-    def test_etree_format_error(self):
-        '''Test ETree format in error conditions'''
+    def test_xmlnode_format_error(self):
+        '''Test XMLNode format in error conditions'''
  
         self.assertRaises(flickrapi.exceptions.FlickrError,
                 self.f_noauth.photos_getInfo, format='xmlnode')
@@ -517,6 +516,7 @@ class ClassMethodTest(SuperTest):
                           self.fail_rsp, True)
 
         flickrapi.FlickrAPI.test_failure(self.fail_rsp, False)
+
 
     def test_get_rsp_error_code(self):
         code = flickrapi.FlickrAPI.get_rsp_error_code(self.fail_rsp)
