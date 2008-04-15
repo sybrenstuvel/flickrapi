@@ -5,4 +5,3 @@
 ^dist/
 ^doc/flickrapi.html$
 ^.coverage$
-^flickrapi.egg-info/
