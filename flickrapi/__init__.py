@@ -711,7 +711,6 @@ class FlickrAPI:
             # get the frob
             LOG.debug("Getting frob for new token")
             rsp = self.auth_getFrob(auth_token=None, format='xmlnode')
-            self.test_failure(rsp)
 
             frob = rsp.frob[0].text
 
@@ -740,7 +739,6 @@ class FlickrAPI:
         
         # get a token
         rsp = self.auth_getToken(frob=frob, auth_token=None, format='xmlnode')
-        self.test_failure(rsp)
 
         token = rsp.auth[0].token[0].text
         LOG.debug("get_token: new token '%s'" % token)
