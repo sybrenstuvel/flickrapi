@@ -447,7 +447,7 @@ class FlickrAPI:
         return "http://%s%s?%s" % (FlickrAPI.flickr_host, \
             FlickrAPI.flickr_auth_form, encoded)
 
-    def upload(self, filename, callback=None, **arg):
+    def upload(self, filename, callback=None, **kwargs):
         """Upload a file to flickr.
 
         Be extra careful you spell the parameters correctly, or you will
@@ -474,6 +474,11 @@ class FlickrAPI:
         is_family
             "1" or "0" whether family can see the photo while it's
             marked as private
+        content_type
+            Set to "1" for Photo, "2" for Screenshot, or "3" for Other.
+        hidden
+            Set to "1" to keep the photo in global search results, "2" to hide
+            from public searches.
 
         The callback method should take two parameters:
         def callback(progress, done)
@@ -488,36 +493,26 @@ class FlickrAPI:
         if not filename:
             raise IllegalArgumentException("filename must be specified")
         
-        # verify key names
-        required_params = ('api_key', 'auth_token', 'api_sig')
-        optional_params = ('title', 'description', 'tags', 'is_public', 
-                           'is_friend', 'is_family')
-        possible_args = required_params + optional_params
-        
-        for a in arg.keys():
-            if a not in possible_args:
-                raise IllegalArgumentException("Unknown parameter "
-                        "'%s' sent to FlickrAPI.upload" % a)
+        if not self.token_cache.token:
+            raise IllegalArgumentException("Authentication is required")
 
+        # Update the arguments with the ones the user won't have to supply
         arguments = {'auth_token': self.token_cache.token,
                      'api_key': self.api_key}
-        arguments.update(arg)
+        arguments.update(kwargs)
 
         # Convert to UTF-8 if an argument is an Unicode string
-        arg = make_utf8(arguments)
+        kwargs = make_utf8(arguments)
         
         if self.secret:
-            arg["api_sig"] = self.sign(arg)
+            kwargs["api_sig"] = self.sign(kwargs)
         url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_upload_form
 
         # construct POST data
         body = Multipart()
 
-        for a in required_params + optional_params:
-            if a not in arg:
-                continue
-            
-            part = Part({'name': a}, arg[a])
+        for arg, value in kwargs.iteritems():
+            part = Part({'name': arg}, value)
             body.attach(part)
 
         filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
@@ -685,6 +680,8 @@ class FlickrAPI:
             (token, frob) = flickr.get_token_part_one(perms='write')
             if not token: raw_input("Press ENTER after you authorized this program")
             flickr.get_token_part_two((token, frob))
+
+        Also take a look at ``authenticate_console(perms)``.
         """
         
         # see if we have a saved token
@@ -747,6 +744,17 @@ class FlickrAPI:
         self.token_cache.token = token
 
         return token
+
+    def authenticate_console(self, perms='read'):
+        '''Performs the authentication, assuming a console program.
+
+        Gets the token, if needed starts the browser and waits for the user to
+        press ENTER before continuing.
+        '''
+
+        (token, frob) = self.get_token_part_one(perms)
+        if not token: raw_input("Press ENTER after you authorized this program")
+        self.get_token_part_two((token, frob))
 
 def set_log_level(level):
     '''Sets the log level of the logger used by the FlickrAPI module.

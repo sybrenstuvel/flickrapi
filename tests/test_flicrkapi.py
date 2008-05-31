@@ -11,6 +11,7 @@ import urllib
 import StringIO
 import exceptions
 import logging
+import pkg_resources
 
 # Make sure the flickrapi module from the source distribution is used
 sys.path.insert(0, '..')
@@ -60,9 +61,9 @@ class SuperTest(unittest.TestCase):
         self.f = flickrapi.FlickrAPI(key, secret)
         self.f_noauth = flickrapi.FlickrAPI(key)
 
-        # Remove any unwanted tokens
+        # Remove/prevent any unwanted tokens
         self.f.token_cache.forget()
-        self.f_noauth.token_cache.forget()
+        self.f_noauth.token_cache = flickrapi.tokencache.SimpleTokenCache()
 
     def assertUrl(self, expected_protocol, expected_host, expected_path,
                   expected_query_arguments, actual_url):
@@ -157,9 +158,19 @@ class FlickrApiTest(SuperTest):
         self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
                           self.f.upload, None)
 
-    def test_upload_illegal_arg(self):
-        self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
-                          self.f.upload, 'photo.jpg', foo='bar')
+    def test_upload(self):
+        photo = pkg_resources.resource_filename(__name__, 'photo.jpg')
+
+        self.f.token_cache.username = 'unittest-upload'
+        sys.stderr.write("If your browser starts, press ENTER after "
+                "authentication")
+        self.f.authenticate_console(perms='delete')
+        result = self.f.upload(photo, is_public='0', content_type='2')
+
+        # Now remove the photo from the stream again
+        photo_id = result.photoid[0].text
+        self.f.photos_delete(photo_id=photo_id)
+
 
     def test_store_token(self):
         '''Tests that store_token=False FlickrAPI uses SimpleTokenCache'''
@@ -444,11 +455,11 @@ class DynamicMethodTest(SuperTest):
         # Restore original urllib
         flickrapi.urllib = urllib
     
-    def testUnicodeArgs(self):
+    def test_unicode_args(self):
         '''Tests whether Unicode arguments are properly handled.
         
         Tests using sets, since the order of the URL-encoded arguments
-        can't be ensured.
+        can't be ensured. The order isn't important anyway.
         '''
         
         # Plain ASCII should work
