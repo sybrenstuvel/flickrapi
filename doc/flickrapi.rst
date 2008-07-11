@@ -2,7 +2,7 @@
 Python FlickrAPI
 ======================================================================
 
-:Version: 1.1
+:Version: 1.2
 :Author: Sybren Stüvel
 
 .. contents::
@@ -17,6 +17,12 @@ some way or another. The possibilities are limitless. This document
 describes how to use the Flickr API in your Python programs using the
 `Python Flickr API interface`_.
 
+This documentation does not specify what each Flickr API function
+does, nor what it returns. The `Flickr API documentation`_ is the
+source for that information, and will most likely be more up-to-date
+than this document could be. Since the Python Flickr API uses dynamic
+methods and introspection, you can call new Flickr methods as soon as
+they become available.
 
 Concepts
 ----------------------------------------------------------------------
@@ -68,11 +74,9 @@ Parsing the return value
 ----------------------------------------------------------------------
 
 Flickr sends back XML when you call a function. This XML is parsed and
-returned to you. There are two parsers available: XMLNode and
-ElementTree.
-
-XMLNode is the default parser. ElementTree was introduced in version
-1.1, and will be the default starting in version 1.2.
+returned to you. There are two parsers available: ElementTree and
+XMLNode. ElementTree was introduced in version 1.1, and replaced
+XMLNode as the default parser as of version 1.2.
 
 In the following sections, we'll use a ``sets =
 flickr.photosets_getList(...)`` call and assume this was the response
@@ -92,6 +96,82 @@ XML::
             </photoset>
         </photosets>
     </rsp>
+
+Response parser: ElementTree
+----------------------------------------------------------------------
+
+The old XMLNode parser had some drawbacks. A better one is Python's
+standard ElementTree_. If you create the ``FlickrAPI`` instance like
+this, you'll use ElementTree::
+
+    flickr = flickrapi.FlickrAPI(api_key)
+
+or explicitly::
+
+    flickr = flickrapi.FlickrAPI(api_key, format='etree')
+
+The `ElementTree documentation`_ is quite clear, but to make things
+even easier, here are some examples using the same call and response
+XML as in the XMLNode example::
+
+    sets = flickr.photosets_getList(user_id='73509078@N00')
+
+    sets.attrib['stat'] => 'ok'
+    sets.find('photosets').attrib['cancreate'] => '1'
+
+    set0 = sets.find('photosets').findall('photoset')[0]
+
+    +-------------------------------+-----------+
+    | variable                      | value     |
+    +-------------------------------+-----------+
+    | set0.attrib['id']             | u'5'      |
+    | set0.attrib['primary']        | u'2483'   |
+    | set0.attrib['secret']         | u'abcdef' |
+    | set0.attrib['server']         | u'8'      |
+    | set0.attrib['photos']         | u'4'      |
+    | set0.title[0].text            | u'Test'   |
+    | set0.description[0].text      | u'foo'    |
+    | set0.find('title').text       | 'Test'    |
+    | set0.find('description').text | 'foo'     |
+    +-------------------------------+-----------+
+
+    ... and similar for set1 ...
+
+ElementTree is a more mature, better thought out XML parsing
+framework. It has several advantages over the old XMLNode parser:
+
+    #. As a standard XML representation, ElementTree will be easier to
+       plug into existing software.
+
+    #. Easier to iterate over elements. For example, to list all
+       "title" elements, you only need to do
+       ``sets.getiterator('title')``.
+
+    #. Developed by the Python team, which means it's subject to more
+       rigorous testing and has a wider audience than the Python
+       Flickr API module. This will result in a higher quality and
+       less bugs.
+
+ElementTree in Python 2.4
+----------------------------------------------------------------------
+
+Python 2.5 comes shipped with ElementTree. To get it running on Python
+2.4 you'll have to install ElementTree yourself. The easiest way is to
+get setuptools and then just type::
+
+    easy_install elementtree
+    easy_install flickrapi
+
+That'll get you both ElementTree and the latest version of the Python
+Flickr API.
+
+Another method is to get the Python FlickrAPI source and run::
+
+    python setup.py install
+    easy_install elementtree
+
+As a last resort, you can `download ElementTree`_ and install it
+manually.
 
 Response parser: XMLNode
 ----------------------------------------------------------------------
@@ -133,63 +213,9 @@ We assume you did ``sets = flickr.photosets_getList(...)``. The
 Every ``XMLNode`` also has a ``name`` property. The content of this
 property is left as an exercise for the reader.
 
-In version 1.2 of the Python Flickr API this XMLNode parser will no
-longer be the default parser, in favour of the ElementTree parser.
-
-Response parser: ElementTree
-----------------------------------------------------------------------
-
-The XMLNode parser has some drawbacks. A better one is Python's
-standard ElementTree_. If you create the ``FlickrAPI`` instance like
-this, you'll use ElementTree::
-
-
-    flickr = flickrapi.FlickrAPI(api_key, format='etree')
-
-The ElementTree documentation is quite clear, but to make things even
-easier, here are some examples using the same call and response XML as
-in the XMLNode example::
-
-    sets = flickr.photosets_getList(user_id='73509078@N00')
-
-    sets.attrib['stat'] = 'ok'
-    sets.find('photosets').attrib['cancreate'] = '1'
-
-    set0 = sets.find('photosets').findall('photoset')[0]
-
-    +-------------------------------+-----------+
-    | variable                      | value     |
-    +-------------------------------+-----------+
-    | set0.attrib['id']             | u'5'      |
-    | set0.attrib['primary']        | u'2483'   |
-    | set0.attrib['secret']         | u'abcdef' |
-    | set0.attrib['server']         | u'8'      |
-    | set0.attrib['photos']         | u'4'      |
-    | set0.title[0].text            | u'Test'   |
-    | set0.description[0].text      | u'foo'    |
-    | set0.find('title').text       | 'Test'    |
-    | set0.find('description').text | 'foo'     |
-    +-------------------------------+-----------+
-
-    ... and similar for set1 ...
-
-ElementTree is a more mature, better thought out XML parsing
-framework. In version 1.2, this will become the default parser. It
-might require a bit more typing, but the ElementTree has several
-advantages:
-
-    #. As a standard XML representation, ElementTree will be easier to
-       plug into existing software.
-
-    #. Easier to iterate over elements. For example, to list all
-       "title" elements, you only need to do
-       ``sets.getiterator('title')``.
-
-    #. Developed by the Python team, which means it's subject to more
-       rigorous testing and has a wider audience than the Python
-       Flickr API module. This will result in a higher quality and
-       less bugs.
-
+As of version 1.2 of the Python Flickr API this XMLNode parser is no
+longer the default parser, in favour of the ElementTree parser.
+XMLNode is still supported, though.
 
 Erroneous calls
 ----------------------------------------------------------------------
@@ -482,7 +508,9 @@ The ``flickr.upload(...)`` method has the following parameters:
                 print "At %s%%" % progress
 
         flickr.upload(filename='test.jpg', callback=func)
-    
+``format``
+    The response format. This *must* be either ``rest`` or one of the
+    parsed formats ``etree`` / ``xmlnode``.
 
 flickr.replace(...)
 ----------------------------------------------------------------------
@@ -495,6 +523,10 @@ The ``flickr.replace(...)`` method has the following parameters:
 ``photo_id``
     The identifier of the photo that is to be replaced. Do not use
     this when uploading a new photo.
+
+``format``
+    The response format. This *must* be either ``rest`` or one of the
+    parsed formats ``etree`` / ``xmlnode``.
 
 Only the image itself is replaced, not the other data (title, tags,
 comments, etc.).
@@ -588,4 +620,6 @@ Links
 .. _Django: http://www.djangoproject.com/
 .. _`PEP 318`: http://www.python.org/dev/peps/pep-0318/
 .. _`ElementTree`: http://docs.python.org/lib/module-xml.etree.ElementTree.html
+.. _`ElementTree documentation`: http://docs.python.org/lib/module-xml.etree.ElementTree.html
 .. _`Django low-level cache API`: http://www.djangoproject.com/documentation/cache/#the-low-level-cache-api
+.. _`download ElementTree`: http://effbot.org/downloads/#elementtree

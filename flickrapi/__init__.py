@@ -129,7 +129,7 @@ class FlickrAPI:
     flickr_replace_form = "/services/replace/"
 
     def __init__(self, api_key, secret=None, fail_on_error=None, username=None,
-            token=None, format='xmlnode', store_token=True, cache=False):
+            token=None, format='etree', store_token=True, cache=False):
         """Construct a new FlickrAPI instance for a given API key
         and secret.
         
@@ -213,7 +213,10 @@ class FlickrAPI:
         API. Used for tab completion in IPython.
         '''
 
-        rsp = self.reflection_getMethods(format='etree')
+        try:
+            rsp = self.reflection_getMethods(format='etree')
+        except FlickrError:
+            return None
 
         def tr(name):
             '''Translates Flickr names to something that can be called
@@ -242,10 +245,19 @@ class FlickrAPI:
     def parse_etree(self, rest_xml):
         '''Parses a REST XML response from Flickr into an ElementTree object.'''
 
-        # Only import it here, to maintain Python 2.4 compatibility
-        import xml.etree.ElementTree
+        try:
+            import xml.etree.ElementTree
+            ElementTree = xml.etree.ElementTree
+        except ImportError:
+            # For Python 2.4 compatibility:
+            try:
+                import elementtree.ElementTree
+                ElementTree = elementtree.ElementTree
+            except ImportError:
+                raise ImportError("You need to install "
+                    "ElementTree for using the etree format")
 
-        rsp = xml.etree.ElementTree.fromstring(rest_xml)
+        rsp = ElementTree.fromstring(rest_xml)
         if rsp.attrib['stat'] == 'ok' or not self.fail_on_error:
             return rsp
         
@@ -293,10 +305,10 @@ class FlickrAPI:
         Example::
 
             flickr.auth_getFrob(api_key="AAAAAA")
-            xmlnode = flickr.photos_getInfo(photo_id='1234')
+            etree = flickr.photos_getInfo(photo_id='1234')
+            etree = flickr.photos_getInfo(photo_id='1234', format='etree')
             xmlnode = flickr.photos_getInfo(photo_id='1234', format='xmlnode')
             json = flickr.photos_getInfo(photo_id='1234', format='json')
-            etree = flickr.photos_getInfo(photo_id='1234', format='etree')
         """
 
         # Refuse to act as a proxy for unimplemented special methods
@@ -447,6 +459,29 @@ class FlickrAPI:
         return "http://%s%s?%s" % (FlickrAPI.flickr_host, \
             FlickrAPI.flickr_auth_form, encoded)
 
+    def __extract_upload_response_format(self, kwargs):
+        '''Returns the response format given in kwargs['format'], or
+        the default format if there is no such key.
+
+        If kwargs contains 'format', it is removed from kwargs.
+
+        If the format isn't compatible with Flickr's upload response
+        type, a FlickrError exception is raised.
+        '''
+
+        # Figure out the response format
+        format = kwargs.get('format', self.default_format)
+        if format not in rest_parsers and format != 'rest':
+            raise FlickrError('Format %s not supported for uploading '
+                              'photos' % format)
+
+        # The format shouldn't be used in the request to Flickr.
+        if 'format' in kwargs:
+            del kwargs['format']
+
+        return format
+
+
     def upload(self, filename, callback=None, **kwargs):
         """Upload a file to flickr.
 
@@ -477,11 +512,14 @@ class FlickrAPI:
         content_type
             Set to "1" for Photo, "2" for Screenshot, or "3" for Other.
         hidden
-            Set to "1" to keep the photo in global search results, "2" to hide
-            from public searches.
+            Set to "1" to keep the photo in global search results, "2"
+            to hide from public searches.
+        format
+            The response format. You can only choose between the
+            parsed responses or 'rest' for plain REST.
 
         The callback method should take two parameters:
-        def callback(progress, done)
+        ``def callback(progress, done)``
         
         Progress is a number between 0 and 100, and done is a boolean
         that's true only when the upload is done.
@@ -495,6 +533,9 @@ class FlickrAPI:
         
         if not self.token_cache.token:
             raise IllegalArgumentException("Authentication is required")
+
+        # Figure out the response format
+        format = self.__extract_upload_response_format(kwargs)
 
         # Update the arguments with the ones the user won't have to supply
         arguments = {'auth_token': self.token_cache.token,
@@ -518,7 +559,8 @@ class FlickrAPI:
         filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
         body.attach(filepart)
 
-        return self.__send_multipart(url, body, callback)
+        return self.__wrap_in_parser(self.__send_multipart, format,
+                url, body, callback)
     
     def replace(self, filename, photo_id):
         """Replace an existing photo.
@@ -545,7 +587,9 @@ class FlickrAPI:
         
         if self.secret:
             args["api_sig"] = self.sign(args)
-        url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_replace_form
+        url = "http://" \
+              + FlickrAPI.flickr_host \
+              + FlickrAPI.flickr_replace_form
 
         # construct POST data
         body = Multipart()
@@ -561,12 +605,14 @@ class FlickrAPI:
         filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
         body.attach(filepart)
 
-        return self.__send_multipart(url, body)
+        # return self.__send_multipart(url, body)
+        return self.__wrap_in_parser(self.__send_multipart, format,
+                url, body, callback)
 
     def __send_multipart(self, url, body, progress_callback=None):
         '''Sends a Multipart object to an URL.
         
-        Returns the resulting XML from Flickr.
+        Returns the resulting unparsed XML from Flickr.
         '''
 
         LOG.debug("Uploading to %s" % url)
@@ -580,63 +626,7 @@ class FlickrAPI:
             response = reportinghttp.urlopen(request, progress_callback)
         else:
             response = urllib2.urlopen(request)
-        rspXML = response.read()
-
-        return self.parse_xmlnode(rspXML)
-
-    @classmethod
-    def test_failure(cls, rsp, exception_on_error=True):
-        """Exit app if the rsp XMLNode indicates failure."""
-
-        LOG.warn("FlickrAPI.test_failure has been deprecated and will be "
-                 "removed in FlickrAPI version 1.2.")
-
-        if rsp['stat'] != "fail":
-            return
-        
-        message = cls.get_printable_error(rsp)
-        LOG.error(message)
-        
-        if exception_on_error:
-            raise FlickrError(message)
-
-    @classmethod
-    def get_printable_error(cls, rsp):
-        """Return a printed error message string of an XMLNode Flickr response."""
-
-        LOG.warn("FlickrAPI.get_printable_error has been deprecated "
-                 "and will be removed in FlickrAPI version 1.2.")
-
-        return "%s: error %s: %s" % (rsp.name, \
-            cls.get_rsp_error_code(rsp), cls.get_rsp_error_msg(rsp))
-
-    @classmethod
-    def get_rsp_error_code(cls, rsp):
-        """Return the error code of an XMLNode Flickr response, or 0 if no
-        error.
-        """
-
-        LOG.warn("FlickrAPI.get_rsp_error_code has been deprecated and will be "
-                 "removed in FlickrAPI version 1.2.")
-
-        if rsp['stat'] == "fail":
-            return int(rsp.err[0]['code'])
-
-        return 0
-
-    @classmethod
-    def get_rsp_error_msg(cls, rsp):
-        """Return the error message of an XMLNode Flickr response, or "Success"
-        if no error.
-        """
-
-        LOG.warn("FlickrAPI.get_rsp_error_msg has been deprecated and will be "
-                 "removed in FlickrAPI version 1.2.")
-
-        if rsp['stat'] == "fail":
-            return rsp.err[0]['msg']
-
-        return "Success"
+        return response.read()
 
     def validate_frob(self, frob, perms):
         '''Lets the user validate the frob by launching a browser to

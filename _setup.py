@@ -68,6 +68,10 @@ data = {
         'Topic :: Multimedia :: Graphics',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
+    'extras_require': {
+        'ElementTree':  ["elementtree>=1.2.6"],
+    }
+
     'distclass': OurDistribution
 }
 

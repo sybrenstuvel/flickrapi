@@ -34,24 +34,18 @@ secret = '2ee3f558fd79f292'
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
 
-def python_version(major, minor, micro):
-    '''Function decorator, skips calling the function when the python version
-    is older than the given version.
-    '''
+def etree_package():
+    '''Returns the name of the ElementTree package for the given
+    Python version.'''
 
     current_version = sys.version_info[0:3]
+    if current_version < (2, 5, 0):
+        # For Python 2.4 and earlier, we assume ElementTree was
+        # downloaded and installed from pypi.
+        return 'elementtree.ElementTree'
 
-    def just_pass(*args, **kwargs):
-        pass
+    return 'xml.etree.ElementTree'
 
-    def decorator(method):
-        if current_version < (major, minor, micro):
-            LOG.warn('Skipping %s, Python version %s.%s.%s too old' %
-                    ((method.func_name, ) + current_version))
-            return just_pass
-        return method
-
-    return decorator
 
 class SuperTest(unittest.TestCase):
     '''Superclass for unittests, provides useful methods.'''
@@ -119,8 +113,8 @@ class FlickrApiTest(SuperTest):
         '''Test simple Flickr search'''
         
         # We expect to be able to find kittens
-        rst = self.f.photos_search(tags='kitten')
-        self.assertTrue(rst.photos[0]['total'] > 0)
+        result = self.f.photos_search(tags='kitten')
+        self.assertTrue(result.find('photos').attrib['total'] > 0)
     
     def test_token_constructor(self):
         '''Test passing a token to the constructor'''
@@ -168,7 +162,7 @@ class FlickrApiTest(SuperTest):
         result = self.f.upload(photo, is_public='0', content_type='2')
 
         # Now remove the photo from the stream again
-        photo_id = result.photoid[0].text
+        photo_id = result.find('photoid').text
         self.f.photos_delete(photo_id=photo_id)
 
 
@@ -278,20 +272,32 @@ class CachingTest(SuperTest):
 class FormatsTest(SuperTest):
     '''Tests the different parsed formats.'''
 
-    @python_version(2, 5, 0)
+    def test_default_format(self):
+        '''Test that the default format is etree'''
+
+        f = flickrapi.FlickrAPI(key)
+        etree = f.photos_getInfo(photo_id=u'2333478006')
+        self.assertEqual(etree_package(), etree.__module__)
+
     def test_etree_format_happy(self):
         '''Test ETree format'''
 
         etree = self.f_noauth.photos_getInfo(photo_id=u'2333478006',
                     format='etree')
-        self.assertEqual('xml.etree.ElementTree', etree.__module__)
+        self.assertEqual(etree_package(), etree.__module__)
 
-    @python_version(2, 5, 0)
     def test_etree_format_error(self):
         '''Test ETree format in error conditions'''
  
         self.assertRaises(flickrapi.exceptions.FlickrError,
                 self.f_noauth.photos_getInfo, format='etree')
+
+    def test_etree_default_format(self):
+        '''Test setting the default format to etree'''
+
+        f = flickrapi.FlickrAPI(key, format='etree')
+        etree = f.photos_getInfo(photo_id=u'2333478006')
+        self.assertEqual(etree_package(), etree.__module__)
 
     def test_xmlnode_format(self):
         '''Test XMLNode format'''
@@ -306,16 +312,8 @@ class FormatsTest(SuperTest):
         self.assertRaises(flickrapi.exceptions.FlickrError,
                 self.f_noauth.photos_getInfo, format='xmlnode')
         
-    @python_version(2, 5, 0)
-    def test_etree_default_format(self):
-        '''Test setting the default format to etree'''
-
-        f = flickrapi.FlickrAPI(key, format='etree')
-        etree = f.photos_getInfo(photo_id=u'2333478006')
-        self.assertEqual('xml.etree.ElementTree', etree.__module__)
-
     def test_explicit_format(self):
-        '''Test explicitly requesting a certain format'''
+        '''Test explicitly requesting a certain unparsed format'''
         
         xml = self.f.photos_search(tags='kitten', format='rest')
         self.assertTrue(isinstance(xml, basestring))
@@ -505,43 +503,5 @@ class DynamicMethodTest(SuperTest):
         self.assertTrue(callable(method))
         self.assertEquals('flickr.photos.setMeta', method.method)
         
-class ClassMethodTest(SuperTest):
-    '''Tests the @classmethod methods'''
-
-    fail_rsp = flickrapi.XMLNode.parse(
-        '''<rsp stat="fail">
-            <err code='412' msg='Expected error, just testing' />
-           </rsp>''')
-
-    good_rsp = flickrapi.XMLNode.parse(
-        '''<rsp stat="ok">
-            <err code='433' msg='Not an error' />
-           </rsp>''')
-
-    def test_failure(self):
-        self.assertRaises(flickrapi.FlickrError,
-                          flickrapi.FlickrAPI.test_failure, self.fail_rsp)
-
-        self.assertRaises(flickrapi.FlickrError,
-                          flickrapi.FlickrAPI.test_failure,
-                          self.fail_rsp, True)
-
-        flickrapi.FlickrAPI.test_failure(self.fail_rsp, False)
-
-
-    def test_get_rsp_error_code(self):
-        code = flickrapi.FlickrAPI.get_rsp_error_code(self.fail_rsp)
-        self.assertEqual(412, code)
-        
-        code = flickrapi.FlickrAPI.get_rsp_error_code(self.good_rsp)
-        self.assertEqual(0, code)
-    
-    def test_get_rsp_error_msg(self):
-        msg = flickrapi.FlickrAPI.get_rsp_error_msg(self.fail_rsp)
-        self.assertEqual(u'Expected error, just testing', msg)
-
-        msg = flickrapi.FlickrAPI.get_rsp_error_msg(self.good_rsp)
-        self.assertEqual(u'Success', msg)
-
 if __name__ == '__main__':
     unittest.main()
