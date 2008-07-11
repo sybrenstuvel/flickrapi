@@ -1,6 +1,27 @@
 Upgrading from previous versions
 =================================
 
+From 1.1
+---------------------------------
+
+Some methods have been deprecated in version 1.1, which are now
+removed. Those are the class methods:
+
+    - test_failure
+    - get_printable_error
+    - get_rsp_error_code
+    - get_rsp_error_msg
+
+The default parser format has been changed from XMLNode to
+ElementTree. Either convert your code to use the new ElementTree
+parser, or pass the ``format='xmlnode'`` parameter to the FlickrAPI
+constructor.
+
+The upload and replace methods now use the format parameter, so if you
+use ElementTree as the parser, you'll now also get an ElementTree
+response from uploading and replacing photos. To keep the old
+behaviour you can pass ``format='xmlnode'`` to those methods.
+
 From 0.15
 ---------------------------------
 
