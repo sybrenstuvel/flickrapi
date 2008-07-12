@@ -55,8 +55,8 @@ Calling API functions
 
 You start by creating a FlickrAPI object with your API key. This key
 can be obtained at `Flickr Services`_. Once you have that key, the
-cool stuff can begin. Calling a Flickr function is very easy. Here
-are some examples::
+cool stuff can begin. Calling a Flickr function is very easy. Here are
+some examples::
 
     import flickrapi
 
