@@ -246,13 +246,11 @@ class FlickrAPI:
         '''Parses a REST XML response from Flickr into an ElementTree object.'''
 
         try:
-            import xml.etree.ElementTree
-            ElementTree = xml.etree.ElementTree
+            import xml.etree.ElementTree as ElementTree
         except ImportError:
             # For Python 2.4 compatibility:
             try:
-                import elementtree.ElementTree
-                ElementTree = elementtree.ElementTree
+                import elementtree.ElementTree as ElementTree
             except ImportError:
                 raise ImportError("You need to install "
                     "ElementTree for using the etree format")
