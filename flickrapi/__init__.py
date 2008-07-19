@@ -560,7 +560,7 @@ class FlickrAPI:
         return self.__wrap_in_parser(self.__send_multipart, format,
                 url, body, callback)
     
-    def replace(self, filename, photo_id):
+    def replace(self, filename, photo_id, callback=None, format=None):
         """Replace an existing photo.
 
         Supported parameters:
@@ -569,6 +569,15 @@ class FlickrAPI:
             name of a file to upload
         photo_id
             the ID of the photo to replace
+        callback
+            method that gets progress reports
+        format
+            The response format. You can only choose between the parsed
+            responses or 'rest' for plain REST. Defaults to the format passed to
+            the constructor.
+
+        The callback parameter has the same semantics as described in the
+        ``upload`` function.
         """
         
         if not filename:
@@ -588,6 +597,9 @@ class FlickrAPI:
         url = "http://" \
               + FlickrAPI.flickr_host \
               + FlickrAPI.flickr_replace_form
+
+        if not format:
+            format = self.default_format
 
         # construct POST data
         body = Multipart()
