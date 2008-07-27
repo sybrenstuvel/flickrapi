@@ -13,3 +13,8 @@ class FlickrError(Exception):
     More specific details will be included in the exception message
     when thrown.
     '''
+
+class CancelUpload(Exception):
+    '''Raise this exception in an upload/replace callback function to
+    abort the upload.
+    '''

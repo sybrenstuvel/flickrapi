@@ -54,7 +54,7 @@ import webbrowser
 from flickrapi.tokencache import TokenCache, SimpleTokenCache
 from flickrapi.xmlnode import XMLNode
 from flickrapi.multipart import Part, Multipart, FilePart
-from flickrapi.exceptions import IllegalArgumentException, FlickrError
+from flickrapi.exceptions import *
 from flickrapi.cache import SimpleCache
 from flickrapi import reportinghttp
 
@@ -479,7 +479,6 @@ class FlickrAPI:
 
         return format
 
-
     def upload(self, filename, callback=None, **kwargs):
         """Upload a file to flickr.
 
@@ -521,14 +520,48 @@ class FlickrAPI:
         
         Progress is a number between 0 and 100, and done is a boolean
         that's true only when the upload is done.
-        
-        For now, the callback gets a 'done' twice, once for the HTTP
-        headers, once for the body.
         """
+
+        return self.__upload_to_form(FlickrAPI.flickr_upload_form,
+                filename, callback, **kwargs)
+    
+    def replace(self, filename, photo_id, callback=None, **kwargs):
+        """Replace an existing photo.
+
+        Supported parameters:
+
+        filename
+            name of a file to upload
+        photo_id
+            the ID of the photo to replace
+        callback
+            method that gets progress reports
+        format
+            The response format. You can only choose between the
+            parsed responses or 'rest' for plain REST. Defaults to the
+            format passed to the constructor.
+
+        The callback parameter has the same semantics as described in the
+        ``upload`` function.
+        """
+        
+        if not photo_id:
+            raise IllegalArgumentException("photo_id must be specified")
+
+        kwargs['photo_id'] = photo_id
+        return self.__upload_to_form( FlickrAPI.flickr_replace_form,
+                filename, callback, **kwargs)
+        
+    def __upload_to_form(self, form_url, filename, callback, **kwargs):
+        '''Uploads a photo - can be used to either upload a new photo
+        or replace an existing one.
+
+        form_url must be either ``FlickrAPI.flickr_replace_form`` or
+        ``FlickrAPI.flickr_upload_form``.
+        '''
 
         if not filename:
             raise IllegalArgumentException("filename must be specified")
-        
         if not self.token_cache.token:
             raise IllegalArgumentException("Authentication is required")
 
@@ -545,7 +578,7 @@ class FlickrAPI:
         
         if self.secret:
             kwargs["api_sig"] = self.sign(kwargs)
-        url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_upload_form
+        url = "http://%s%s" % (FlickrAPI.flickr_host, form_url)
 
         # construct POST data
         body = Multipart()
@@ -557,65 +590,6 @@ class FlickrAPI:
         filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
         body.attach(filepart)
 
-        return self.__wrap_in_parser(self.__send_multipart, format,
-                url, body, callback)
-    
-    def replace(self, filename, photo_id, callback=None, format=None):
-        """Replace an existing photo.
-
-        Supported parameters:
-
-        filename
-            name of a file to upload
-        photo_id
-            the ID of the photo to replace
-        callback
-            method that gets progress reports
-        format
-            The response format. You can only choose between the parsed
-            responses or 'rest' for plain REST. Defaults to the format passed to
-            the constructor.
-
-        The callback parameter has the same semantics as described in the
-        ``upload`` function.
-        """
-        
-        if not filename:
-            raise IllegalArgumentException("filename must be specified")
-        if not photo_id:
-            raise IllegalArgumentException("photo_id must be specified")
-
-        args = {'filename': filename,
-                'photo_id': photo_id,
-                'auth_token': self.token_cache.token,
-                'api_key': self.api_key}
-
-        args = make_utf8(args)
-        
-        if self.secret:
-            args["api_sig"] = self.sign(args)
-        url = "http://" \
-              + FlickrAPI.flickr_host \
-              + FlickrAPI.flickr_replace_form
-
-        if not format:
-            format = self.default_format
-
-        # construct POST data
-        body = Multipart()
-
-        for arg, value in args.iteritems():
-            # No part for the filename
-            if value == 'filename':
-                continue
-            
-            part = Part({'name': arg}, value)
-            body.attach(part)
-
-        filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
-        body.attach(filepart)
-
-        # return self.__send_multipart(url, body)
         return self.__wrap_in_parser(self.__send_multipart, format,
                 url, body, callback)
 
@@ -632,10 +606,25 @@ class FlickrAPI:
         (header, value) = body.header()
         request.add_header(header, value)
         
-        if progress_callback:
-            response = reportinghttp.urlopen(request, progress_callback)
-        else:
+        if not progress_callback:
+            # Just use urllib2 if there is no progress callback
+            # function
             response = urllib2.urlopen(request)
+            return response.read()
+
+        def __upload_callback(percentage, done, seen_header=[False]):
+            '''Filters out the progress report on the HTTP header'''
+
+            # Call the user's progress callback when we've filtered
+            # out the HTTP header
+            if seen_header[0]:
+                return progress_callback(percentage, done)            
+            
+            # Remember the first time we hit 'done'.
+            if done:
+                seen_header[0] = True
+
+        response = reportinghttp.urlopen(request, __upload_callback)
         return response.read()
 
     def validate_frob(self, frob, perms):
