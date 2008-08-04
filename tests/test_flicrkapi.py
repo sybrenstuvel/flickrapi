@@ -165,6 +165,25 @@ class FlickrApiTest(SuperTest):
         photo_id = result.find('photoid').text
         self.f.photos_delete(photo_id=photo_id)
 
+    def test_cancel_upload(self):
+        photo = pkg_resources.resource_filename(__name__, 'photo.jpg')
+
+        self.f.token_cache.username = 'unittest-upload'
+        sys.stderr.write("If your browser starts, press ENTER after "
+                "authentication")
+        self.f.authenticate_console(perms='delete')
+
+        def callback(progress, done):
+            '''Callback that immediately cancels the upload'''
+            raise flickrapi.CancelUpload()
+
+        try:
+            self.f.upload(photo, callback=callback,
+                is_public='0', content_type='2')
+            self.fail("Expected exception not thrown")
+        except flickrapi.CancelUpload, e:
+            pass # Expected
+
     def test_store_token(self):
         '''Tests that store_token=False FlickrAPI uses SimpleTokenCache'''
 
