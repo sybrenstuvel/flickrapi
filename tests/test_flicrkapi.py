@@ -165,7 +165,6 @@ class FlickrApiTest(SuperTest):
         photo_id = result.find('photoid').text
         self.f.photos_delete(photo_id=photo_id)
 
-
     def test_store_token(self):
         '''Tests that store_token=False FlickrAPI uses SimpleTokenCache'''
 
