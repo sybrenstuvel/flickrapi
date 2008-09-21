@@ -70,8 +70,7 @@ data = {
     ],
     'extras_require': {
         'ElementTree':  ["elementtree>=1.2.6"],
-    }
-
+    },
     'distclass': OurDistribution
 }
 

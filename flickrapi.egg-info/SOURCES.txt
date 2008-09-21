@@ -20,6 +20,7 @@ flickrapi/xmlnode.py
 flickrapi.egg-info/PKG-INFO
 flickrapi.egg-info/SOURCES.txt
 flickrapi.egg-info/dependency_links.txt
+flickrapi.egg-info/requires.txt
 flickrapi.egg-info/top_level.txt
 tests/test_cache.py
 tests/test_flicrkapi.py
