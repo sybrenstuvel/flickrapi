@@ -5,7 +5,7 @@
 
 See `the FlickrAPI homepage`_ for more info.
 
-.. _`the FlickrAPI homepage`: http://flickrapi.sf.net/
+.. _`the FlickrAPI homepage`: http://www.stuvel.eu/projects/flickrapi
 '''
 
 __version__ = '1.2'
@@ -14,7 +14,7 @@ __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
 __author__ = u'Sybren St\u00fcvel'.encode('utf-8')
 
 # Copyright (c) 2007 by the respective coders, see
-# http://flickrapi.sf.net/
+# http://www.stuvel.eu/projects/flickrapi
 #
 # This code is subject to the Python licence, as can be read on
 # http://www.python.org/download/releases/2.5.2/license/
