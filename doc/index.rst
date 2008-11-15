@@ -611,7 +611,7 @@ Links
 .. _`Flickr API documentation`: http://www.flickr.com/services/api/
 .. _`Flickr API`: http://www.flickr.com/services/api
 .. _`Flickr`: http://www.flickr.com/
-.. _`Python Flickr API interface`: http://flickrapi.sourceforge.net/
+.. _`Python Flickr API interface`: http://www.stuvel.eu/projects/flickrapi
 .. _`Docutils`: http://docutils.sourceforge.net/
 .. _`User Authentication`:
     http://www.flickr.com/services/api/misc.userauth.html

@@ -1,4 +1,4 @@
-all: flickrapi.html
+all: index.html
 
 
 %.html: %.rst documentation.css html4css1.css
@@ -7,7 +7,7 @@ all: flickrapi.html
 clean:
 	rm -f flickrapi.html
 
-upload: flickrapi.html
-	rsync -va documentation.css flickrapi.html html4css1.css flickrapi.sf.net:/home/groups/f/fl/flickrapi/htdocs
+upload: index.html
+	rsync -va documentation.css index.html html4css1.css ../../www.stuvel.eu/htdocs/projects/flickrapi/documentation/
 
 .PHONY: clean upload
