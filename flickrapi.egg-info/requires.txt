@@ -1,0 +1,4 @@
+hachoir-parser>=1.2.1
+
+[ElementTree]
+elementtree>=1.2.6

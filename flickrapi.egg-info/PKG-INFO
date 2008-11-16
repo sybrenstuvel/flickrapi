@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: flickrapi
-Version: 1.2
+Version: 1.3-beta0
 Summary: The official Python interface to the Flickr API
 Home-page: http://flickrapi.sourceforge.net/
 Author: Sybren A. Stuvel
