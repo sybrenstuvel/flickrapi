@@ -4,4 +4,5 @@
 ^build/
 ^dist/
 ^doc/index.html$
+^doc/apidoc/
 ^.coverage$

@@ -3,9 +3,12 @@
 
 '''A FlickrAPI interface.
 
+The main functionality can be found in the FlickrAPI_ class.
+
 See `the FlickrAPI homepage`_ for more info.
 
-.. _`the FlickrAPI homepage`: http://www.stuvel.eu/projects/flickrapi
+.. _`the FlickrAPI homepage`: http://stuvel.eu/projects/flickrapi
+.. _FlickrAPI: flickrapi.FlickrAPI-class.html
 '''
 
 __version__ = '1.3-beta0'
@@ -97,13 +100,13 @@ def debug(method):
 
     return debugged
 
+
 # REST parsers, {format: parser_method, ...}. Fill by using the
 # @rest_parser(format) function decorator
 rest_parsers = {}
-
 def rest_parser(format):
-    '''Function decorator, use this to mark a function as the parser for REST as
-    returned by Flickr.
+    '''Method decorator, use this to mark a function as the parser for
+    REST as returned by Flickr.
     '''
 
     def decorate_parser(method):
@@ -112,7 +115,27 @@ def rest_parser(format):
 
     return decorate_parser
 
-class FlickrAPI:
+def require_format(required_format):
+    '''Method decorator, raises a ValueError when the decorated method
+    is called if the default format is not set to ``required_format``.
+    '''
+
+    def decorator(method):
+        def decorated(self, *args, **kwargs):
+            # If everything is okay, call the method
+            if self.default_format == required_format:
+                return method(self, *args, **kwargs)
+
+            # Otherwise raise an exception
+            msg = 'Function %s requires that you use ' \
+                  'ElementTree ("etree") as the communication format, ' \
+                  'while the current format is set to "%s".'
+            raise ValueError(msg % (method.func_name, self.default_format))
+
+        return decorated
+    return decorator
+
+class FlickrAPI(object):
     """Encapsulates Flickr functionality.
     
     Example usage::
@@ -744,6 +767,43 @@ class FlickrAPI:
         (token, frob) = self.get_token_part_one(perms)
         if not token: raw_input("Press ENTER after you authorized this program")
         self.get_token_part_two((token, frob))
+
+    @require_format('etree')
+    def walk_set(self, photoset_id, per_page=50, **kwargs):
+        '''walk_set(self, photoset_id, per_page=50, ...) -> generator, yields each photo in a single set.
+
+        ``photoset_id``: the photoset ID
+
+        ``per_page``: the number of photos that are fetched in one
+        call to Flickr.
+
+        Other arguments can be passed, as documented in the
+        `flickr.photosets.getPhotos`_ API call in the Flickr API
+        documentation, except for ``page`` because all pages will be
+        returned eventually.
+
+        .. _`flickr.photosets.getPhotos`:
+            http://www.flickr.com/services/api/flickr.photosets.getPhotos.html
+        
+        Uses the ElementTree format, incompatible with other formats.
+        '''
+
+        page = 0
+        total = 1 # We don't know that yet, update when needed
+        while page < total:
+            # Fetch a single page of photos
+            rsp = self.photosets_getPhotos(photoset_id=photoset_id,
+                    per_page=per_page, page=page, **kwargs)
+            phset = rsp.find('photoset')
+            total = int(phset.get('pages'))
+            photos = phset.findall('photo')
+
+            # Yield each photo
+            for photo in photos:
+                yield photo
+
+            # Ready to get the next page
+            page += 1
 
 def set_log_level(level):
     '''Sets the log level of the logger used by the FlickrAPI module.
