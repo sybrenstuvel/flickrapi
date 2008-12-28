@@ -68,7 +68,6 @@ data = {
         'Topic :: Multimedia :: Graphics',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    'install_requires': ['hachoir-parser>=1.2.1'],
     'extras_require': {
         'ElementTree':  ["elementtree>=1.2.6"],
     },
