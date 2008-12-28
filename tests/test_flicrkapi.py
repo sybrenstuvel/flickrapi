@@ -535,5 +535,19 @@ class WalkerTest(SuperTest):
         # event)
         self.assertEquals(24, len(list(gen)))
 
+    def test_walk(self):
+        # Check that we get a generator
+        gen = self.f.walk(tag_mode='all',
+                tags='sybren,365,threesixtyfive,me',
+                min_taken_date='2008-08-20',
+                max_taken_date='2008-08-30', per_page=8)
+        self.assertEquals(types.GeneratorType, type(gen))
+
+        # very unlikely that this result will ever change
+        ids = [p.get('id') for p in gen]
+        self.assertEquals(['2824831549', '2807789315', '2807789039',
+            '2807772503', '2807771401', '2807773797', '2808618120',
+            '2808616234', '2808591736'], ids)
+
 if __name__ == '__main__':
     unittest.main()

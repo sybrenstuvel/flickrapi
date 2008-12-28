@@ -3,12 +3,12 @@
 
 '''A FlickrAPI interface.
 
-The main functionality can be found in the FlickrAPI_ class.
+The main functionality can be found in the `flickrapi.FlickrAPI`
+class.
 
 See `the FlickrAPI homepage`_ for more info.
 
 .. _`the FlickrAPI homepage`: http://stuvel.eu/projects/flickrapi
-.. _FlickrAPI: flickrapi.FlickrAPI-class.html
 '''
 
 __version__ = '1.3-beta0'
@@ -769,34 +769,29 @@ class FlickrAPI(object):
         self.get_token_part_two((token, frob))
 
     @require_format('etree')
-    def walk_set(self, photoset_id, per_page=50, **kwargs):
-        '''walk_set(self, photoset_id, per_page=50, ...) -> generator, yields each photo in a single set.
-
-        ``photoset_id``: the photoset ID
-
-        ``per_page``: the number of photos that are fetched in one
-        call to Flickr.
-
-        Other arguments can be passed, as documented in the
-        `flickr.photosets.getPhotos`_ API call in the Flickr API
-        documentation, except for ``page`` because all pages will be
-        returned eventually.
-
-        .. _`flickr.photosets.getPhotos`:
-            http://www.flickr.com/services/api/flickr.photosets.getPhotos.html
+    def __data_walker(self, method, **params):
+        '''Calls 'method' with page=0, page=1 etc. until the total
+        number of pages has been visited. Yields the photos
+        returned.
         
-        Uses the ElementTree format, incompatible with other formats.
+        Assumes that ``method(page=n, **params).findall('*/photos')``
+        results in a list of photos, and that the toplevel element of
+        the result contains a 'pages' attribute with the total number
+        of pages.
         '''
 
-        page = 0
+        page = 1
         total = 1 # We don't know that yet, update when needed
-        while page < total:
+        while page <= total:
             # Fetch a single page of photos
-            rsp = self.photosets_getPhotos(photoset_id=photoset_id,
-                    per_page=per_page, page=page, **kwargs)
-            phset = rsp.find('photoset')
-            total = int(phset.get('pages'))
-            photos = phset.findall('photo')
+            LOG.debug('Calling %s(page=%i of %i, %s)' %
+                    (method.func_name, page, total, params))
+            rsp = method(page=page, **params)
+
+            photoset = rsp.getchildren()[0]
+            total = int(photoset.get('pages'))
+
+            photos = rsp.findall('*/photo')
 
             # Yield each photo
             for photo in photos:
@@ -804,6 +799,50 @@ class FlickrAPI(object):
 
             # Ready to get the next page
             page += 1
+
+    @require_format('etree')
+    def walk_set(self, photoset_id, per_page=50, **kwargs):
+        '''walk_set(self, photoset_id, per_page=50, ...) -> \
+                generator, yields each photo in a single set.
+
+        :Parameters:
+            photoset_id
+                the photoset ID
+            per_page
+                the number of photos that are fetched in one call to
+                Flickr.
+
+        Other arguments can be passed, as documented in the
+        flickr.photosets.getPhotos_ API call in the Flickr API
+        documentation, except for ``page`` because all pages will be
+        returned eventually.
+
+        .. _flickr.photosets.getPhotos:
+            http://www.flickr.com/services/api/flickr.photosets.getPhotos.html
+        
+        Uses the ElementTree format, incompatible with other formats.
+        '''
+
+        return self.__data_walker(self.photosets_getPhotos,
+                photoset_id=photoset_id, per_page=per_page, **kwargs)
+
+    @require_format('etree')
+    def walk(self, per_page=50, **kwargs):
+        '''walk(self, user_id=..., tags=..., ...) -> generator, \
+                yields each photo in a search query result
+
+        Accepts the same parameters as flickr.photos.search_ API call,
+        except for ``page`` because all pages will be returned
+        eventually.
+
+        .. _flickr.photos.search:
+            http://www.flickr.com/services/api/flickr.photos.search.html
+
+        Also see `walk_set`.
+        '''
+
+        return self.__data_walker(self.photos_search,
+                per_page=per_page, **kwargs)
 
 def set_log_level(level):
     '''Sets the log level of the logger used by the FlickrAPI module.
