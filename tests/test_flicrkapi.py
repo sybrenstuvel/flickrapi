@@ -527,7 +527,7 @@ class WalkerTest(SuperTest):
 
     def test_walk_set(self):
         # Check that we get a generator
-        gen = self.f.walk_set('72157611690250298')
+        gen = self.f.walk_set('72157611690250298', per_page=8)
         self.assertEquals(types.GeneratorType, type(gen))
 
         # I happen to know that that set contains 24 photos, and it is
