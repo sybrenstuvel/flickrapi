@@ -12,6 +12,7 @@ import StringIO
 import exceptions
 import logging
 import pkg_resources
+import types
 
 # Make sure the flickrapi module from the source distribution is used
 sys.path.insert(0, '..')
@@ -520,6 +521,19 @@ class DynamicMethodTest(SuperTest):
         method = self.f.photos_setMeta
         self.assertTrue(callable(method))
         self.assertEquals('flickr.photos.setMeta', method.method)
-        
+
+class WalkerTest(SuperTest):
+    '''Tests walk* functions.'''
+
+    def test_walk_set(self):
+        # Check that we get a generator
+        gen = self.f.walk_set('72157611690250298')
+        self.assertEquals(types.GeneratorType, type(gen))
+
+        # I happen to know that that set contains 24 photos, and it is
+        # very unlikely that this will ever change (photos of a past
+        # event)
+        self.assertEquals(24, len(list(gen)))
+
 if __name__ == '__main__':
     unittest.main()
