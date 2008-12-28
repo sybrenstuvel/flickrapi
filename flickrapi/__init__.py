@@ -112,7 +112,7 @@ def rest_parser(format):
 
     return decorate_parser
 
-class FlickrAPI:
+class FlickrAPI(object):
     """Encapsulates Flickr functionality.
     
     Example usage::

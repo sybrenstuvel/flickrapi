@@ -507,7 +507,7 @@ class DynamicMethodTest(SuperTest):
         starting with __.
         '''
         
-        self.assertRaises(AttributeError, self.f, '__get_photos')
+        self.assertRaises(AttributeError, getattr, self.f, '__get_photos')
 
     def test_get_dynamic_method(self):
         
