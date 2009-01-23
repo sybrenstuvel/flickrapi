@@ -45,7 +45,6 @@ __author__ = u'Sybren St\u00fcvel'.encode('utf-8')
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import sys
-import md5
 import urllib
 import urllib2
 import mimetools
@@ -305,8 +304,14 @@ class FlickrAPI(object):
                         "argument %s (%r) should have been UTF-8 by now"
                         % (key, datum))
             data.append(datum)
-        
-        md5_hash = md5.new()
+        try:
+            # To replace md5, deprecated in Python 2.5
+            import hashlib
+            md5_hash = hashlib.md5()
+        except ImportError:
+            # Fallback to md5 to ensure 2.4 compatibility
+            import md5
+            md5_hash = md5.new()
         md5_hash.update(''.join(data))
         return md5_hash.hexdigest()
 
