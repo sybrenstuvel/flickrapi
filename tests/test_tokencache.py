@@ -84,30 +84,53 @@ class TestCache(unittest.TestCase):
         self.assertEquals(None, cache.token)
 
     def test_create_dir(self):
+        '''Tests that the token cache can automatically create its
+        storage directory.
+        '''
+
         token_path = self.target_path()
         tokendir = os.path.dirname(token_path)
         
         # Move token dir to a temporary dir
         tempdir = None
-        if os.path.exists(tokendir):
-            tempdir = '%s-DO-NOT-EXIST' % tokendir
-            if os.path.exists(tempdir):
-                raise Exception("Tempdir %s exists, please remove" % tempdir)
-            os.rename(tokendir, tempdir)
-        
-        self.assertFalse(os.path.exists(tokendir))
-        
+        try:
+            if os.path.exists(tokendir):
+                tempdir = '%s-DO-NOT-EXIST' % tokendir
+                if os.path.exists(tempdir):
+                    raise Exception("Tempdir %s exists, please remove" % tempdir)
+                os.rename(tokendir, tempdir)
+            
+            self.assertFalse(os.path.exists(tokendir))
+            
+            cache = flickrapi.TokenCache(self.api_key)
+            cache.token = 'x'
+            
+            self.assertTrue(os.path.exists(tokendir))
+
+            os.unlink(os.path.join(tokendir, 'auth.token'))
+            os.rmdir(tokendir)
+        finally:
+            if tempdir:
+                os.rename(tempdir, tokendir)
+
+    def test_alternate_dir(self):
+        '''Tests that the token cache has a configurable storage
+        directory.
+        '''
+
         cache = flickrapi.TokenCache(self.api_key)
+        cache.path = '/tmp/flicktokens'
         cache.token = 'x'
         
-        self.assertTrue(os.path.exists(tokendir))
+        tokendir = os.path.join(cache.path, self.api_key)
+        tokenfile = os.path.join(tokendir, 'auth.token')
+        self.assertTrue(os.path.exists(tokenfile))
 
-        os.unlink(os.path.join(tokendir, 'auth.token'))
+        # Clean up
+        os.unlink(tokenfile)
         os.rmdir(tokendir)
+        os.rmdir(cache.path)
         
-        if tempdir:
-            os.rename(tempdir, tokendir)
-
     def test_multi_user(self):
         token = 'xyz'
         username = u'Sybren Stüvel'

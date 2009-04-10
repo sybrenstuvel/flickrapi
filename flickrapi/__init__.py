@@ -53,6 +53,10 @@ import logging
 import copy
 import webbrowser
 
+# Smartly import hashlib and fall back on md5
+try: from hashlib import md5
+except ImportError: from md5 import md5
+
 from flickrapi.tokencache import TokenCache, SimpleTokenCache
 from flickrapi.xmlnode import XMLNode
 from flickrapi.multipart import Part, Multipart, FilePart
@@ -304,15 +308,7 @@ class FlickrAPI(object):
                         "argument %s (%r) should have been UTF-8 by now"
                         % (key, datum))
             data.append(datum)
-        try:
-            # To replace md5, deprecated in Python 2.5
-            import hashlib
-            md5_hash = hashlib.md5()
-        except ImportError:
-            # Fallback to md5 to ensure 2.4 compatibility
-            import md5
-            md5_hash = md5.new()
-        md5_hash.update(''.join(data))
+        md5_hash = md5(''.join(data))
         return md5_hash.hexdigest()
 
     def encode_and_sign(self, dictionary):

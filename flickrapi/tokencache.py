@@ -28,17 +28,18 @@ class TokenCache(object):
     application multiple users are supported, with a single
     token per user.
     '''
-    
+
     def __init__(self, api_key, username=None):
         '''Creates a new token cache instance'''
         
         self.api_key = api_key
         self.username = username        
         self.memory = {}
+        self.path = os.path.join("~", ".flickr")
         
     def __get_cached_token_path(self):
         """Return the directory holding the app data."""
-        return os.path.expanduser(os.path.join("~", ".flickr", self.api_key))
+        return os.path.expanduser(os.path.join(self.path, self.api_key))
 
     def __get_cached_token_filename(self):
         """Return the full pathname of the cached token file."""
