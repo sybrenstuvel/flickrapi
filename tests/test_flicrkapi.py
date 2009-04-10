@@ -540,14 +540,15 @@ class WalkerTest(SuperTest):
         gen = self.f.walk(tag_mode='all',
                 tags='sybren,365,threesixtyfive,me',
                 min_taken_date='2008-08-20',
-                max_taken_date='2008-08-30', per_page=8)
+                max_taken_date='2008-08-30', per_page=8,
+                sort='date-taken-desc')
         self.assertEquals(types.GeneratorType, type(gen))
 
         # very unlikely that this result will ever change
         ids = [p.get('id') for p in gen]
         self.assertEquals(['2824831549', '2807789315', '2807789039',
-            '2807772503', '2807771401', '2807773797', '2808618120',
-            '2808616234', '2808591736'], ids)
+            '2807773797', '2807772503', '2807771401', '2808616234',
+            '2808618120', '2808591736'], ids)
 
 if __name__ == '__main__':
     unittest.main()
