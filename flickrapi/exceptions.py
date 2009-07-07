@@ -18,3 +18,9 @@ class CancelUpload(Exception):
     '''Raise this exception in an upload/replace callback function to
     abort the upload.
     '''
+
+class LockingError(Exception):
+    '''Raised when TokenCache cannot acquire a lock within the timeout
+    period, or when a lock release is attempted when the lock does not
+    belong to this process.
+    '''
