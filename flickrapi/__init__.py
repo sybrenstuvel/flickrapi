@@ -155,8 +155,9 @@ class FlickrAPI(object):
     flickr_upload_form = "/services/upload/"
     flickr_replace_form = "/services/replace/"
 
-    def __init__(self, api_key, secret=None, fail_on_error=None, username=None,
-            token=None, format='etree', store_token=True, cache=False):
+    def __init__(self, api_key, secret=None, username=None,
+            token=None, format='etree', store_token=True,
+            cache=False):
         """Construct a new FlickrAPI instance for a given API key
         and secret.
         
@@ -165,11 +166,6 @@ class FlickrAPI(object):
         
         secret
             The secret belonging to the API key.
-        
-        fail_on_error
-            If False, errors won't be checked by the FlickrAPI module.
-            Deprecated, don't use this parameter, just handle the FlickrError
-            exceptions.
         
         username
             Used to identify the appropriate authentication token for a
@@ -199,15 +195,8 @@ class FlickrAPI(object):
             >>> f.cache = SimpleCache(timeout=5, max_entries=100)
         """
         
-        if fail_on_error is not None:
-            LOG.warn("fail_on_error has been deprecated. Remove this "
-                     "parameter and just handle the FlickrError exceptions.")
-        else:
-            fail_on_error = True
-
         self.api_key = api_key
         self.secret = secret
-        self.fail_on_error = fail_on_error
         self.default_format = format
         
         self.__handler_cache = {}
@@ -262,7 +251,7 @@ class FlickrAPI(object):
         '''Parses a REST XML response from Flickr into an XMLNode object.'''
 
         rsp = XMLNode.parse(rest_xml, store_xml=True)
-        if rsp['stat'] == 'ok' or not self.fail_on_error:
+        if rsp['stat'] == 'ok':
             return rsp
         
         err = rsp.err[0]
@@ -283,12 +272,11 @@ class FlickrAPI(object):
                     "ElementTree for using the etree format")
 
         rsp = ElementTree.fromstring(rest_xml)
-        if rsp.attrib['stat'] == 'ok' or not self.fail_on_error:
+        if rsp.attrib['stat'] == 'ok':
             return rsp
         
         err = rsp.find('err')
-        raise FlickrError(u'Error: %s: %s' % (
-            err.attrib['code'], err.attrib['msg']))
+        raise FlickrError(u'Error: %(code)s: %(msg)s' % err.attrib)
 
     def sign(self, dictionary):
         """Calculate the flickr signature for a set of params.

@@ -2,7 +2,7 @@
 Python FlickrAPI
 ======================================================================
 
-:Version: 1.2
+:Version: 1.3
 :Author: Sybren Stüvel
 
 .. contents::
@@ -225,11 +225,10 @@ description of the error. In this case, a ``FlickrError`` exception
 will be thrown.
 
 The old behaviour of the Python Flickr API was to simply return the
-error code in the XML. However, this is deprecated behaviour as we
-strive to notice an error condition as soon as possible. Checking the
-return value of every call is not Pythonic. For backward compatibility
-you can pass ``fail_on_error=False`` to the ``FlickrAPI`` constructor,
-but this behaviour is deprecated and will be removed in version 1.2.
+error code in the XML not raising any exception. It was possible to
+pass ``fail_on_error=False`` to the ``FlickrAPI`` constructor to get
+this behaviour, but this was deprecated in version 1.1 and has been
+removed in version 1.3.
 
 Unparsed response formats
 ----------------------------------------------------------------------
@@ -395,7 +394,6 @@ the ``FlickrAPI`` instance::
     (token, frob) = flickr.get_token_part_one(perms='write')
     if not token: raw_input("Press ENTER after you authorized this program")
     flickr.get_token_part_two((token, frob))
- 
 
 Example using Django
 ----------------------------------------------------------------------
