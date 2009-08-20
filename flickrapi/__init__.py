@@ -57,7 +57,8 @@ import webbrowser
 try: from hashlib import md5
 except ImportError: from md5 import md5
 
-from flickrapi.tokencache import TokenCache, SimpleTokenCache
+from flickrapi.tokencache import TokenCache, SimpleTokenCache, \
+        LockingTokenCache
 from flickrapi.xmlnode import XMLNode
 from flickrapi.multipart import Part, Multipart, FilePart
 from flickrapi.exceptions import *

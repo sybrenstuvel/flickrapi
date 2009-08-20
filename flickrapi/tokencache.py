@@ -233,7 +233,7 @@ class LockingTokenCache(TokenCache):
         def locker(self, *args, **kwargs):
             self.acquire()
             try:
-                method(self, *args, **kwargs)
+                return method(self, *args, **kwargs)
             finally:
                 self.release()
 

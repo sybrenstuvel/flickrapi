@@ -11,7 +11,8 @@ sys.path.insert(0, '..')
 
 import flickrapi
 
-class TestCache(unittest.TestCase):
+class AbstractCacheTest(unittest.TestCase):
+    '''Superclass for testing TokenCache objects.'''
 
     def setUp(self):
         '''Set the API key and remove the cache'''
@@ -37,7 +38,9 @@ class TestCache(unittest.TestCase):
 
         return os.path.expanduser(os.path.join(
             "~", ".flickr", self.api_key, filename))
-    
+
+class TestCache(AbstractCacheTest):
+
     def test_set_get(self):
         token = 'xyz'
         
@@ -152,3 +155,24 @@ class TestCache(unittest.TestCase):
         self.assertEquals(None, cache.token)
         
         self.remove_token(username)
+
+class TestLockingTokenCache(AbstractCacheTest):
+    
+    def test_set_get(self):
+        token = 'xyz'
+        
+        cache = flickrapi.LockingTokenCache(self.api_key)
+        cache.token = token
+
+        self.assertTrue(os.path.exists(self.target_path()),
+                        'Token path should exist')
+        
+        # Inspect the contents of the token
+        contents = file(self.target_path()).read()
+        self.assertEquals(token, contents.strip())        
+        self.assertEquals(token, cache.token)
+
+        # Check that the lock is gone after the operations.
+        lock = cache.get_lock_name()
+        self.assertFalse(os.path.exists(lock),
+                         'Lock should have been removed')
