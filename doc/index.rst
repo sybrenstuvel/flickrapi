@@ -394,6 +394,33 @@ the ``FlickrAPI`` instance::
     (token, frob) = flickr.get_token_part_one(perms='write')
     if not token: raw_input("Press ENTER after you authorized this program")
     flickr.get_token_part_two((token, frob))
+ 
+Multiple processes using the same key
+----------------------------------------------------------------------
+
+By default the token is stored on the filesystem in
+``somepath/<authentication key>/auth.token``. When multiple
+processes use the same authentication key a race condition can occur
+where the authentication token is removed. To circumvent this, use the
+``LockingTokenCache`` instead::
+
+    from flickrapi import FlickrAPI
+    from flickrapi.tokencache import LockingTokenCache
+    
+    flickr = flickrapi.FlickrAPI(api_key, secret)
+    
+    flickr.token_cache = LockingTokenCache(api_key)
+    # -- or --
+    flickr.token_cache = LockingTokenCache(api_key, username)
+
+This cache ensures that only one process at the time can use the token
+cache. It does not forsee in multi-threading.
+
+As the locking mechanism causes additional disk I/O and performs more
+checks, it is slower than the regular cache. Since not that many
+people use the same key in parallel on one machine (or a shared
+filesystem on which the token is stored) the default token cache does
+not use locking.
 
 Example using Django
 ----------------------------------------------------------------------
