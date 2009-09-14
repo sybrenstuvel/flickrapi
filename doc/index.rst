@@ -312,6 +312,24 @@ Once this step is done, we can continue to store the token in the
 cache and remember it for future API calls. This is what
 ``flickr.get_token_part_two(...)`` does.
 
+Authentication callback
+----------------------------------------------------------------------
+
+By default a webbrowser is started to let the user perform the
+authentication. However, this may not be appropriate or even possible
+in your application. If you want to alter this functionality, use the
+``auth_callback`` parameter when calling ``get_token_part_one(...)``.
+The function will be passed the frob and the requested permission::
+
+    def auth(frob, perms):
+        print 'Please give us permission %s' % perms
+
+    (token, frob) = flickr.get_token_part_one(perms='write', auth)
+
+Of course this example isn't useful, but it shows how to use the
+callback. If you just want to wrap the browser startup with some code,
+call ``flickr.validate_frob(frob, perms)`` from your callback.
+
 Authenticating web applications
 ----------------------------------------------------------------------
 

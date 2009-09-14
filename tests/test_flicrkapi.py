@@ -97,7 +97,51 @@ class FlickrApiTest(SuperTest):
         self.assertUrl('http', flickrapi.FlickrAPI.flickr_host, 
                        flickrapi.FlickrAPI.flickr_auth_form, args, 
                        url)
-        
+
+    def test_auth_callback(self):
+        '''Test auth_callback argument in get_token_part_one().'''
+
+        # make sure this test is made without a valid token in the cache        
+        self.f.token_cache.forget()
+
+        test = {'called': False,
+                'frob': None}
+
+        def callback(frob, perms):
+            test['called'] = True
+            test['frob'] = frob
+
+            self.assertEqual(perms, 'read')
+            self.assertTrue(frob, 'Expected to get a frob')
+
+        (token, frob) = self.f.get_token_part_one(perms="read",auth_callback=callback)
+
+        # The token shouldn't be set
+        self.assertEqual(None, token, "Expected token to be None")
+
+        # The callback function should have been called
+        self.assertTrue(test['called'],
+                        'Expected callback function to be called')
+        self.assertEqual(frob, test['frob'],
+            'Expected same frob returned and passed in callback')
+
+    def test_auth_callback_false(self):
+        '''Test auth_callback argument in get_token_part_one().'''
+
+        # make sure this test is made without a valid token in the cache        
+        self.f.token_cache.forget()
+
+        (token, frob) = self.f.get_token_part_one(perms="read", auth_callback=False)
+
+        # The token shouldn't be set
+        self.assertEqual(None, token, "Expected token to be None")
+
+    def test_auth_callback_invalid(self):
+        '''Test auth_callback argument in get_token_part_one().'''
+
+        self.assertRaises(ValueError, self.f.get_token_part_one,
+                perms="read", auth_callback='cookie')
+
     def test_web_login_url(self):
         '''Test the web login URL.'''
         

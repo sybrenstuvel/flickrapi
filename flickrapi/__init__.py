@@ -648,7 +648,7 @@ class FlickrAPI(object):
         auth_url = self.auth_url(perms, frob)
         webbrowser.open(auth_url, True, True)
         
-    def get_token_part_one(self, perms="read"):
+    def get_token_part_one(self, perms="read", auth_callback=None):
         """Get a token either from the cache, or make a new one from
         the frob.
         
@@ -657,7 +657,8 @@ class FlickrAPI(object):
         the method.
         
         If that fails (or if the token is no longer valid based on
-        flickr.auth.checkToken) a new frob is acquired.  The frob is
+        flickr.auth.checkToken) a new frob is acquired. If an auth_callback 
+        method has been specified it will be called. Otherwise the frob is
         validated by having the user log into flickr (with a browser).
         
         To get a proper token, follow these steps:
@@ -675,8 +676,18 @@ class FlickrAPI(object):
         run.
         
         perms
-            "read", "write", or "delete"           
-        
+            "read", "write", or "delete"
+        auth_callback
+            method to be called if authorization is needed. When not
+            passed, ``self.validate_frob(...)`` is called. You can
+            call this method yourself from the callback method too.
+
+            If authorization should be blocked, pass
+            ``auth_callback=False``.
+      
+            The auth_callback method should take ``(frob, perms)`` as
+            parameters.
+                                   
         An example::
         
             (token, frob) = flickr.get_token_part_one(perms='write')
@@ -685,6 +696,19 @@ class FlickrAPI(object):
 
         Also take a look at ``authenticate_console(perms)``.
         """
+
+        # Check our auth_callback parameter for correctness before we
+        # do anything
+        authenticate = self.validate_frob
+        if auth_callback is not None:
+            if hasattr(auth_callback, '__call__'):
+                # use the provided callback function
+                authenticate = auth_callback
+            elif auth_callback is not False:
+                # Any non-callable non-False value is invalid
+                raise ValueError('Invalid value for auth_callback: %s'
+                        % auth_callback)
+
         
         # see if we have a saved token
         token = self.token_cache.token
@@ -712,9 +736,7 @@ class FlickrAPI(object):
             rsp = self.auth_getFrob(auth_token=None, format='xmlnode')
 
             frob = rsp.frob[0].text
-
-            # validate online
-            self.validate_frob(frob, perms)
+            authenticate(frob, perms)
 
         return (token, frob)
         
@@ -747,14 +769,17 @@ class FlickrAPI(object):
 
         return token
 
-    def authenticate_console(self, perms='read'):
+    def authenticate_console(self, perms='read', auth_callback=None):
         '''Performs the authentication, assuming a console program.
 
         Gets the token, if needed starts the browser and waits for the user to
         press ENTER before continuing.
+
+        See ``get_token_part_one(...)`` for an explanation of the
+        parameters.
         '''
 
-        (token, frob) = self.get_token_part_one(perms)
+        (token, frob) = self.get_token_part_one(perms, auth_callback)
         if not token: raw_input("Press ENTER after you authorized this program")
         self.get_token_part_two((token, frob))
 
