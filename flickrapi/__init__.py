@@ -11,7 +11,7 @@ See `the FlickrAPI homepage`_ for more info.
 .. _`the FlickrAPI homepage`: http://stuvel.eu/projects/flickrapi
 '''
 
-__version__ = '1.3-beta0'
+__version__ = '1.3'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
         'CancelUpload', 'XMLNode', 'set_log_level', '__version__')
 __author__ = u'Sybren St\u00fcvel'.encode('utf-8')
