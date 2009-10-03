@@ -7,7 +7,7 @@ clean:
 	rm -f flickrapi.html
 
 upload: index.html
-	rsync -va documentation.css index.html html4css1.css ../../www.stuvel.eu/htdocs/projects/flickrapi/documentation/
+	rsync -va documentation.css index.html html4css1.css ../../www.stuvel.eu/htdocs/flickrapi/documentation/
 
 apidoc:
 	rm -rf apidoc
