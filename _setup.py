@@ -31,11 +31,11 @@ class OurDistribution(Distribution):
         '''
 
         if command == 'install_data' and docutils:
-            print 'creating doc/flickrapi.html'
+            print 'creating doc/index.html'
             docutils.core.publish_file(writer_name='html',
-                    source=open('doc/flickrapi.rst'),
+                    source=open('doc/index.rst'),
                     source_path='doc',
-                    destination=open('doc/flickrapi.html', 'w'),
+                    destination=open('doc/index.html', 'w'),
                     destination_path='doc',
                     settings_overrides={'stylesheet_path':
                         'doc/documentation.css'}
@@ -83,7 +83,7 @@ if major == 2 and minor < 5:
             if not item: return False
         return True
 
-alldocs = ['doc/flickrapi.html', 'doc/documentation.css', 'doc/html4css1.css']
+alldocs = ['doc/index.html', 'doc/documentation.css', 'doc/html4css1.css']
 
 if docutils or all(os.path.exists(doc) for doc in alldocs):
     # Only include documentation if it can be built, or if it has been
