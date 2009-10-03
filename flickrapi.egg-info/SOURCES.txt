@@ -8,8 +8,8 @@ runtests
 setup.py
 doc/GNUmakefile
 doc/documentation.css
-doc/flickrapi.rst
 doc/html4css1.css
+doc/index.rst
 flickrapi/__init__.py
 flickrapi/cache.py
 flickrapi/exceptions.py
