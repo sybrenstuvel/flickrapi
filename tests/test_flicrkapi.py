@@ -9,7 +9,6 @@ import unittest
 import sys
 import urllib
 import StringIO
-import exceptions
 import logging
 import pkg_resources
 import types
@@ -185,16 +184,16 @@ class FlickrApiTest(SuperTest):
         flickr = flickrapi.FlickrAPI(key)
 
         flickr.token_cache.token = token
-        self.assertRaises(exceptions.ValueError, flickr.photos_search,
+        self.assertRaises(ValueError, flickr.photos_search,
                           tags='kitten')
 
     def test_upload_without_filename(self):
         '''Uploading a file without filename is impossible'''
         
-        self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
+        self.assertRaises(flickrapi.IllegalArgumentException,
                           self.f.upload, '')
         
-        self.assertRaises(flickrapi.exceptions.IllegalArgumentException,
+        self.assertRaises(flickrapi.IllegalArgumentException,
                           self.f.upload, None)
 
     def test_upload(self):
