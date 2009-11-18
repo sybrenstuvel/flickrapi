@@ -73,6 +73,7 @@ data = {
     },
     'distclass': OurDistribution,
     'zip_safe': True,
+    'test_suite': 'tests',
 }
 
 (major, minor) = sys.version_info[:2]
