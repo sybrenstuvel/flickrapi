@@ -57,7 +57,7 @@ data = {
         'access, uploading and replacing photos, and all Flickr API '
         'functions.', 
     'packages': ['flickrapi'],
-    'data_files': [],
+    'data_files': ['LICENSE', 'README', 'UPGRADING'],
     'license': 'Python',
     'classifiers': [
         'Development Status :: 6 - Mature',
