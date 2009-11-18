@@ -47,7 +47,6 @@ __author__ = u'Sybren St\u00fcvel'.encode('utf-8')
 import sys
 import urllib
 import urllib2
-import mimetools
 import os.path
 import logging
 import copy
