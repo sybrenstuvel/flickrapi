@@ -400,7 +400,7 @@ class FlickrAPI(object):
             return self.cache.get(post_data)
 
         url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_rest_form
-        flicksocket = urllib.urlopen(url, post_data)
+        flicksocket = urllib2.urlopen(url, post_data)
         reply = flicksocket.read()
         flicksocket.close()
 
@@ -704,7 +704,9 @@ class FlickrAPI(object):
             if hasattr(auth_callback, '__call__'):
                 # use the provided callback function
                 authenticate = auth_callback
-            elif auth_callback is not False:
+            elif auth_callback is False:
+                authenticate = None
+            else:
                 # Any non-callable non-False value is invalid
                 raise ValueError('Invalid value for auth_callback: %s'
                         % auth_callback)
@@ -731,6 +733,11 @@ class FlickrAPI(object):
 
         # get a new token if we need one
         if not token:
+            # If we can't authenticate, it's all over.
+            if not authenticate:
+                raise FlickrError('Authentication required but '
+                        'blocked using auth_callback=False')
+
             # get the frob
             LOG.debug("Getting frob for new token")
             rsp = self.auth_getFrob(auth_token=None, format='xmlnode')

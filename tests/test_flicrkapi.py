@@ -5,13 +5,15 @@
 Far from complete, but it's a start.
 '''
 
-import unittest
-import sys
-import urllib
-import StringIO
 import logging
 import pkg_resources
+import StringIO
+import sys
 import types
+import unittest
+import urllib
+import urllib2
+import webbrowser
 
 # Make sure the flickrapi module from the source distribution is used
 sys.path.insert(0, '..')
@@ -46,7 +48,6 @@ def etree_package():
 
     return 'xml.etree.ElementTree'
 
-
 class SuperTest(unittest.TestCase):
     '''Superclass for unittests, provides useful methods.'''
     
@@ -58,6 +59,11 @@ class SuperTest(unittest.TestCase):
         # Remove/prevent any unwanted tokens
         self.f.token_cache.forget()
         self.f_noauth.token_cache = flickrapi.tokencache.SimpleTokenCache()
+
+    def print_auth_message(self, frob, perms):
+        sys.stderr.write("Your browser starts, press ENTER after "
+                "authentication")
+        return self.f.validate_frob(frob, perms)
 
     def assertUrl(self, expected_protocol, expected_host, expected_path,
                   expected_query_arguments, actual_url):
@@ -110,10 +116,11 @@ class FlickrApiTest(SuperTest):
             test['called'] = True
             test['frob'] = frob
 
-            self.assertEqual(perms, 'read')
+            self.assertEqual(perms, 'delete')
             self.assertTrue(frob, 'Expected to get a frob')
 
-        (token, frob) = self.f.get_token_part_one(perms="read",auth_callback=callback)
+        (token, frob) = self.f.get_token_part_one(perms="delete",
+                auth_callback=callback)
 
         # The token shouldn't be set
         self.assertEqual(None, token, "Expected token to be None")
@@ -130,10 +137,15 @@ class FlickrApiTest(SuperTest):
         # make sure this test is made without a valid token in the cache        
         self.f.token_cache.forget()
 
-        (token, frob) = self.f.get_token_part_one(perms="read", auth_callback=False)
+        try:
+            # Prevent the webbrowser module from being called.
+            del flickrapi.webbrowser
 
-        # The token shouldn't be set
-        self.assertEqual(None, token, "Expected token to be None")
+            # Check that an exception is raised.
+            self.assertRaises(flickrapi.FlickrError, self.f.get_token_part_one,
+                    perms="read", auth_callback=False)
+        finally:
+            flickrapi.webbrowser = webbrowser
 
     def test_auth_callback_invalid(self):
         '''Test auth_callback argument in get_token_part_one().'''
@@ -158,7 +170,8 @@ class FlickrApiTest(SuperTest):
         
         # We expect to be able to find kittens
         result = self.f.photos_search(tags='kitten')
-        self.assertTrue(result.find('photos').attrib['total'] > 0)
+        total = int(result.find('photos').attrib['total'])
+        self.assertTrue(total > 0)
     
     def test_token_constructor(self):
         '''Test passing a token to the constructor'''
@@ -200,9 +213,7 @@ class FlickrApiTest(SuperTest):
         photo = pkg_resources.resource_filename(__name__, 'photo.jpg')
 
         self.f.token_cache.username = 'unittest-upload'
-        sys.stderr.write("If your browser starts, press ENTER after "
-                "authentication")
-        self.f.authenticate_console(perms='delete')
+        self.f.authenticate_console('delete', self.print_auth_message)
         result = self.f.upload(photo, is_public='0', content_type='2')
 
         # Now remove the photo from the stream again
@@ -213,9 +224,7 @@ class FlickrApiTest(SuperTest):
         photo = pkg_resources.resource_filename(__name__, 'photo.jpg')
 
         self.f.token_cache.username = 'unittest-upload'
-        sys.stderr.write("If your browser starts, press ENTER after "
-                "authentication")
-        self.f.authenticate_console(perms='delete')
+        self.f.authenticate_console('delete', self.print_auth_message)
 
         def callback(progress, done):
             '''Callback that immediately cancels the upload'''
@@ -382,7 +391,7 @@ class FormatsTest(SuperTest):
         
         # Try to parse it
         rst = flickrapi.XMLNode.parse(xml, False)
-        self.assertTrue(rst.photos[0]['total'] > 0)
+        self.assertTrue(int(rst.photos[0]['total']) > 0)
 
 class SigningTest(SuperTest):
     '''Tests the signing of different arguments.'''
@@ -508,12 +517,14 @@ class DynamicMethodTest(SuperTest):
         # Set fake urllib
         self.fake_url_lib = self.FakeUrllib() 
         flickrapi.urllib = self.fake_url_lib
+        flickrapi.urllib2 = self.fake_url_lib
 
     def tearDown(self):
         super(DynamicMethodTest, self).tearDown()
 
         # Restore original urllib
         flickrapi.urllib = urllib
+        flickrapi.urllib2 = urllib2
     
     def test_unicode_args(self):
         '''Tests whether Unicode arguments are properly handled.
@@ -556,13 +567,13 @@ class DynamicMethodTest(SuperTest):
     def test_get_dynamic_method(self):
         
         method = self.f.photos_setMeta
-        self.assertTrue(callable(method))
+        self.assertTrue(hasattr(method, '__call__'))
         self.assertEquals('flickr.photos.setMeta', method.method)
 
         # Test that we can get it again - should come from the cache,
         # but no way to test that.        
         method = self.f.photos_setMeta
-        self.assertTrue(callable(method))
+        self.assertTrue(hasattr(method, '__call__'))
         self.assertEquals('flickr.photos.setMeta', method.method)
 
 class WalkerTest(SuperTest):

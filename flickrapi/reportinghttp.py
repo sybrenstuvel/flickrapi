@@ -32,7 +32,7 @@ class ReportingSocket(object):
         LOG.debug("SENDING: %s..." % bits[0:30])
         total = len(bits)
         sent = 0
-        chunksize = max(self.min_chunksize, total / 100)
+        chunksize = max(self.min_chunksize, total // 100)
         
         while len(bits) > 0:
             send = bits[0:chunksize]
@@ -77,7 +77,7 @@ def set_callback(method):
 
     global progress_callback # IGNORE:W0603
 
-    if not callable(method):
+    if not hasattr(method, '__call__'):
         raise ValueError('Callback method must be callable')
     
     progress_callback = method
