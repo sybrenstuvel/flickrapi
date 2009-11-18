@@ -5,8 +5,8 @@
 Run with "python setup.py install" to install FlickrAPI
 '''
 
-import ez_setup
-ez_setup.use_setuptools()
+import distribute_setup
+distribute_setup.use_setuptools()
 
 import sys
 
