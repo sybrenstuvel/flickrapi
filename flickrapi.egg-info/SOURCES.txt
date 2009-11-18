@@ -3,7 +3,6 @@ MANIFEST
 README
 UPGRADING
 _setup.py
-ez_setup.py
 runtests
 setup.py
 doc/GNUmakefile
@@ -18,7 +17,9 @@ flickrapi/reportinghttp.py
 flickrapi/tokencache.py
 flickrapi/xmlnode.py
 flickrapi.egg-info/PKG-INFO
+flickrapi.egg-info/PKG-INFO.orig
 flickrapi.egg-info/SOURCES.txt
+flickrapi.egg-info/SOURCES.txt.orig
 flickrapi.egg-info/dependency_links.txt
 flickrapi.egg-info/requires.txt
 flickrapi.egg-info/top_level.txt

@@ -103,3 +103,4 @@ class SimpleCache(object):
         '''
 
         return len(self.storage)
+
