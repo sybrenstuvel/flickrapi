@@ -84,7 +84,7 @@ class TokenCache(object):
             os.makedirs(path)
 
         f = open(self.get_cached_token_filename(), "w")
-        print >>f, token
+        f.write(token)
         f.close()
 
     def forget(self):
