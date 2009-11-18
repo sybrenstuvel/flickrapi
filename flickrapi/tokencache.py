@@ -65,7 +65,7 @@ class TokenCache(object):
             return self.memory[self.username]
 
         try:
-            f = file(self.get_cached_token_filename(), "r")
+            f = open(self.get_cached_token_filename(), "r")
             token = f.read()
             f.close()
 
@@ -83,7 +83,7 @@ class TokenCache(object):
         if not os.path.exists(path):
             os.makedirs(path)
 
-        f = file(self.get_cached_token_filename(), "w")
+        f = open(self.get_cached_token_filename(), "w")
         print >>f, token
         f.close()
 

@@ -49,7 +49,7 @@ class TestCache(AbstractCacheTest):
         
         self.assertTrue(os.path.exists(self.target_path()))
         
-        contents = file(self.target_path()).read()
+        contents = open(self.target_path()).read()
         self.assertEquals(token, contents.strip())        
         self.assertEquals(token, cache.token)
     
@@ -146,7 +146,7 @@ class TestCache(AbstractCacheTest):
         self.assertTrue(os.path.exists(self.target_path(username)))
 
         # And that it contains the proper stuff        
-        contents = file(self.target_path(username)).read()
+        contents = open(self.target_path(username)).read()
         self.assertEquals(token, contents.strip())        
         self.assertEquals(token, cache.token)
         
@@ -168,7 +168,7 @@ class TestLockingTokenCache(AbstractCacheTest):
                         'Token path should exist')
         
         # Inspect the contents of the token
-        contents = file(self.target_path()).read()
+        contents = open(self.target_path()).read()
         self.assertEquals(token, contents.strip())        
         self.assertEquals(token, cache.token)
 

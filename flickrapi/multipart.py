@@ -12,7 +12,7 @@ class Part(object):
     ... # doctest: +ELLIPSIS
     <flickrapi.multipart.Part object at 0x...>
 
-    >>> image = file('tests/photo.jpg')
+    >>> image = open('tests/photo.jpg')
     >>> Part({'name': 'photo', 'filename': image}, image.read(), 'image/jpeg')
     ... # doctest: +ELLIPSIS
     <flickrapi.multipart.Part object at 0x...>
