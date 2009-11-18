@@ -71,7 +71,8 @@ data = {
     'extras_require': {
         'ElementTree':  ["elementtree>=1.2.6"],
     },
-    'distclass': OurDistribution
+    'distclass': OurDistribution,
+    'zip_safe': True,
 }
 
 (major, minor) = sys.version_info[:2]
