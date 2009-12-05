@@ -645,7 +645,14 @@ class FlickrAPI(object):
         '''
         
         auth_url = self.auth_url(perms, frob)
-        webbrowser.open(auth_url, True, True)
+        try:
+            browser = webbrowser.get()
+        except webbrowser.Error:
+            if 'BROWSER' not in os.environ:
+                raise
+            browser = webbrowser.GenericBrowser(os.environ['BROWSER'])
+
+        browser.open(auth_url, True, True)
         
     def get_token_part_one(self, perms="read", auth_callback=None):
         """Get a token either from the cache, or make a new one from
