@@ -2,7 +2,7 @@
 Python FlickrAPI
 ======================================================================
 
-:Version: 1.3
+:Version: 1.4
 :Author: Sybren Stüvel
 
 .. contents::
@@ -721,6 +721,24 @@ The photos will always be fetched from the first page onwards. In the
 above example, the first twenty photos will all be fetched, even
 though the title of the first five will be skipped.
 
+Short Flickr URLs
+======================================================================
+
+Flickr supports linking to a photo page using a short url such as
+`http://flic.kr/p/6BTTT6`_. The ``flickrapi.shorturl`` module contains
+functionality for working with those short URLs.
+
+``flickrapi.shorturl.encode(photo ID)``:
+    Returns the short ID for this photo ID
+
+``flickrapi.shorturl.encode(short ID)``:
+    Returns the photo ID for this short ID
+
+``flickrapi.shorturl.url(photo ID)``:
+    Returns the short URL for the given photo ID.
+
+The photo ID, the short ID and the short URL are all unicode strings.
+
 
 Requirements and compatibility
 ======================================================================
@@ -758,3 +776,4 @@ Links
 
 .. _flickr.photosets.getPhotos: http://www.flickr.com/services/api/flickr.photosets.getPhotos.html
 .. _flickr.photos.search: http://www.flickr.com/services/api/flickr.photos.search.html
+.. _`http://flic.kr/p/6BTTT6`: http://flic.kr/p/6BTTT6
