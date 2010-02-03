@@ -4,6 +4,11 @@
 
 Photo IDs can be converted to and from Base58 short IDs, and a short
 URL can be generated from a photo ID.
+
+The implementation of the encoding and decoding functions is based on
+the posts by stevefaeembra and Kohichi on
+http://www.flickr.com/groups/api/discuss/72157616713786392/
+
 '''
 
 __all__ = ['encode', 'decode', 'url', 'SHORT_URL']
