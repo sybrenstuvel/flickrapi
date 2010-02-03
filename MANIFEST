@@ -2,12 +2,13 @@ doc/documentation.css
 doc/flickrapi.rst
 doc/GNUmakefile
 doc/html4css1.css
-ez_setup.py
+distribute_setup.py
 flickrapi/cache.py
 flickrapi/exceptions.py
 flickrapi/__init__.py
 flickrapi/multipart.py
 flickrapi/reportinghttp.py
+flickrapi/shorturl.py
 flickrapi/tokencache.py
 flickrapi/xmlnode.py
 LICENSE
@@ -20,6 +21,7 @@ tests/photo.jpg
 tests/test_cache.py
 tests/test_flicrkapi.py
 tests/test_multipart.py
+tests/test_shorturl.py
 tests/test_tokencache.py
 tests/test_xmlnode.py
 UPGRADING
