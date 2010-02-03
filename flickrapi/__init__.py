@@ -398,7 +398,7 @@ class FlickrAPI(object):
         if self.cache and self.cache.get(post_data):
             return self.cache.get(post_data)
 
-        url = "http://" + FlickrAPI.flickr_host + FlickrAPI.flickr_rest_form
+        url = "http://" + self.flickr_host + self.flickr_rest_form
         flicksocket = urllib2.urlopen(url, post_data)
         reply = flicksocket.read()
         flicksocket.close()
@@ -452,8 +452,8 @@ class FlickrAPI(object):
                     "frob": frob,
                     "perms": perms})
 
-        return "http://%s%s?%s" % (FlickrAPI.flickr_host, \
-            FlickrAPI.flickr_auth_form, encoded)
+        return "http://%s%s?%s" % (self.flickr_host, \
+                self.flickr_auth_form, encoded)
 
     def web_login_url(self, perms):
         '''Returns the web login URL to forward web users to.
@@ -466,8 +466,8 @@ class FlickrAPI(object):
                     "api_key": self.api_key,
                     "perms": perms})
 
-        return "http://%s%s?%s" % (FlickrAPI.flickr_host, \
-            FlickrAPI.flickr_auth_form, encoded)
+        return "http://%s%s?%s" % (self.flickr_host, \
+                self.flickr_auth_form, encoded)
 
     def __extract_upload_response_format(self, kwargs):
         '''Returns the response format given in kwargs['format'], or
@@ -534,7 +534,7 @@ class FlickrAPI(object):
         that's true only when the upload is done.
         """
 
-        return self.__upload_to_form(FlickrAPI.flickr_upload_form,
+        return self.__upload_to_form(self.flickr_upload_form,
                 filename, callback, **kwargs)
     
     def replace(self, filename, photo_id, callback=None, **kwargs):
@@ -561,7 +561,7 @@ class FlickrAPI(object):
             raise IllegalArgumentException("photo_id must be specified")
 
         kwargs['photo_id'] = photo_id
-        return self.__upload_to_form( FlickrAPI.flickr_replace_form,
+        return self.__upload_to_form(self.flickr_replace_form,
                 filename, callback, **kwargs)
         
     def __upload_to_form(self, form_url, filename, callback, **kwargs):
@@ -590,7 +590,7 @@ class FlickrAPI(object):
         
         if self.secret:
             kwargs["api_sig"] = self.sign(kwargs)
-        url = "http://%s%s" % (FlickrAPI.flickr_host, form_url)
+        url = "http://%s%s" % (self.flickr_host, form_url)
 
         # construct POST data
         body = Multipart()
