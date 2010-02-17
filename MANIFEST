@@ -1,7 +1,7 @@
 doc/documentation.css
-doc/flickrapi.rst
 doc/GNUmakefile
 doc/html4css1.css
+doc/index.rst
 distribute_setup.py
 flickrapi/cache.py
 flickrapi/exceptions.py
