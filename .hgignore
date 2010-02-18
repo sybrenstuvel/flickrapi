@@ -7,3 +7,4 @@ dist/
 doc/index.html
 doc/apidoc/
 .coverage
+flickrapi.egg-info/
