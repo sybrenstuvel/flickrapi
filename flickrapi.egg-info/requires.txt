@@ -1,4 +1,0 @@
-
-
-[ElementTree]
-elementtree>=1.2.6
