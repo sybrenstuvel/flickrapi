@@ -15,3 +15,5 @@ To run the unittests, install nose and pymock first using::
     easy_install pymock
 
 then run ``nosetest`` in the top-level directory.
+
+Packaging requires ``easy_install setuptools-hg``
