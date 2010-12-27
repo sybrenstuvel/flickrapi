@@ -261,14 +261,26 @@ class FlickrAPI(object):
         '''Parses a REST XML response from Flickr into an ElementTree object.'''
 
         try:
-            import xml.etree.ElementTree as ElementTree
+            from lxml import etree as ElementTree
+            LOG.info('REST Parser: using lxml.etree')
         except ImportError:
-            # For Python 2.4 compatibility:
             try:
-                import elementtree.ElementTree as ElementTree
+                import xml.etree.cElementTree as ElementTree
+                LOG.info('REST Parser: using xml.etree.cElementTree')
             except ImportError:
-                raise ImportError("You need to install "
-                    "ElementTree for using the etree format")
+                try:
+                    import xml.etree.ElementTree as ElementTree
+                    LOG.info('REST Parser: using xml.etree.ElementTree')
+                except ImportError:
+                    try:
+                        import elementtree.cElementTree as ElementTree
+                        LOG.info('REST Parser: elementtree.cElementTree')
+                    except ImportError:
+                        try:
+                            import elementtree.ElementTree as ElementTree
+                        except ImportError:
+                            raise ImportError("You need to install "
+                                "ElementTree to use the etree format")
 
         rsp = ElementTree.fromstring(rest_xml)
         if rsp.attrib['stat'] == 'ok':
