@@ -796,6 +796,29 @@ class FlickrAPI(object):
         if not token: raw_input("Press ENTER after you authorized this program")
         self.get_token_part_two((token, frob))
 
+
+    def authenticate_mobile(self, auth_url, perms='read'):
+        token = self.token_cache.token
+        if token: 
+            LOG.debug("Trying cached token '%s'" % token) 
+            try: 
+                rsp = self.auth_checkToken(auth_token=token, format='xmlnode') 
+                # see if we have enough permissions 
+                tokenPerms = rsp.auth[0].perms[0].text 
+                if tokenPerms == "read" and perms != "read": token = None 
+                elif tokenPerms == "write" and perms == "delete": token = None 
+            except FlickrError:
+                LOG.debug("Cached token invalid")
+                self.token_cache.forget() 
+                token = None
+            
+        if not token:
+            print "Please go to %s to authorize the application." % auth_url
+            mini_token = raw_input("Enter the authorization code: ")
+            rsp = flickr.auth_getFullToken(mini_token=mini_token, format='xmlnode')
+            token = rsp.auth[0].token[0].text
+            self.token_cache.token = token
+
     @require_format('etree')
     def __data_walker(self, method, **params):
         '''Calls 'method' with page=0, page=1 etc. until the total
