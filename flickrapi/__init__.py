@@ -878,6 +878,32 @@ class FlickrAPI(object):
                 photoset_id=photoset_id, per_page=per_page, **kwargs)
 
     @require_format('etree')
+    def walk_user(self, user_id, per_page=50, **kwargs):
+        '''walk_user(self, user_id, per_page=50, ...) -> \
+                generator, yields each photo in a user's photostream.
+
+        :Parameters:
+            user_id
+                the user ID, or 'me'
+            per_page
+                the number of photos that are fetched in one call to
+                Flickr.
+
+        Other arguments can be passed, as documented in the
+        flickr.people.getPhotos_ API call in the Flickr API
+        documentation, except for ``page`` because all pages will be
+        returned eventually.
+
+        .. _flickr.people.getPhotos:
+            http://www.flickr.com/services/api/flickr.people.getPhotos.html
+        
+        Uses the ElementTree format, incompatible with other formats.
+        '''
+
+        return self.__data_walker(self.people_getPhotos,
+                user_id=user_id, per_page=per_page, **kwargs)
+
+    @require_format('etree')
     def walk(self, per_page=50, **kwargs):
         '''walk(self, user_id=..., tags=..., ...) -> generator, \
                 yields each photo in a search query result
@@ -889,7 +915,7 @@ class FlickrAPI(object):
         .. _flickr.photos.search:
             http://www.flickr.com/services/api/flickr.photos.search.html
 
-        Also see `walk_set`.
+        Also see `walk_set`, `walk_user`.
         '''
 
         return self.__data_walker(self.photos_search,
