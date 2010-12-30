@@ -624,7 +624,7 @@ class FlickrAPI(object):
             response = urllib2.urlopen(request)
             return response.read()
 
-        def __upload_callback(percentage, done, seen_header=[False]):
+        def _upload_callback(percentage, done, seen_header=[False]):
             '''Filters out the progress report on the HTTP header'''
 
             # Call the user's progress callback when we've filtered
@@ -636,7 +636,7 @@ class FlickrAPI(object):
             if done:
                 seen_header[0] = True
 
-        response = reportinghttp.urlopen(request, __upload_callback)
+        response = reportinghttp.urlopen(request, _upload_callback)
         return response.read()
 
     def validate_frob(self, frob, perms):
@@ -797,7 +797,7 @@ class FlickrAPI(object):
         self.get_token_part_two((token, frob))
 
     @require_format('etree')
-    def __data_walker(self, method, **params):
+    def _data_walker(self, method, **params):
         '''Calls 'method' with page=0, page=1 etc. until the total
         number of pages has been visited. Yields the photos
         returned.
@@ -851,7 +851,7 @@ class FlickrAPI(object):
         Uses the ElementTree format, incompatible with other formats.
         '''
 
-        return self.__data_walker(self.photosets_getPhotos,
+        return self._data_walker(self.photosets_getPhotos,
                 photoset_id=photoset_id, per_page=per_page, **kwargs)
 
     @require_format('etree')
@@ -869,7 +869,7 @@ class FlickrAPI(object):
         Also see `walk_set`.
         '''
 
-        return self.__data_walker(self.photos_search,
+        return self._data_walker(self.photos_search,
                 per_page=per_page, **kwargs)
 
 def set_log_level(level):
