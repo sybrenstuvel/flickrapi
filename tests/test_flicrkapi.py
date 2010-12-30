@@ -19,6 +19,7 @@ import webbrowser
 sys.path.insert(0, '..')
 
 import flickrapi
+import flickrapi.contrib
 flickrapi.set_log_level(logging.FATAL)
 #flickrapi.set_log_level(logging.DEBUG)
 
@@ -53,8 +54,14 @@ class SuperTest(unittest.TestCase):
     
     def setUp(self):
         super(SuperTest, self).setUp()
-        self.f = flickrapi.FlickrAPI(key, secret)
-        self.f_noauth = flickrapi.FlickrAPI(key)
+
+        # Reference to the class under test. Makes it easier to switch to one
+        # of the contributed subclasses and run the entire suite.
+        #self.clasz = flickrapi.contrib.PersistentFlickrAPI
+        self.clasz = flickrapi.FlickrAPI
+
+        self.f = self.clasz(key, secret)
+        self.f_noauth = self.clasz(key)
 
         # Remove/prevent any unwanted tokens
         self.f.token_cache.forget()
@@ -99,8 +106,8 @@ class FlickrApiTest(SuperTest):
         
         url = self.f.auth_url(args['perms'], args['frob'])
         
-        self.assertUrl('http', flickrapi.FlickrAPI.flickr_host, 
-                       flickrapi.FlickrAPI.flickr_auth_form, args, 
+        self.assertUrl('http', self.clasz.flickr_host, 
+                       self.clasz.flickr_auth_form, args, 
                        url)
 
     def test_auth_callback(self):
@@ -139,13 +146,13 @@ class FlickrApiTest(SuperTest):
 
         try:
             # Prevent the webbrowser module from being called.
-            del flickrapi.webbrowser
+            del flickrapi.core.webbrowser
 
             # Check that an exception is raised.
             self.assertRaises(flickrapi.FlickrError, self.f.get_token_part_one,
                     perms="read", auth_callback=False)
         finally:
-            flickrapi.webbrowser = webbrowser
+            flickrapi.core.webbrowser = webbrowser
 
     def test_auth_callback_invalid(self):
         '''Test auth_callback argument in get_token_part_one().'''
@@ -161,8 +168,8 @@ class FlickrApiTest(SuperTest):
         
         url = self.f.web_login_url(args['perms'])
         
-        self.assertUrl('http', flickrapi.FlickrAPI.flickr_host,
-                       flickrapi.FlickrAPI.flickr_auth_form, args,
+        self.assertUrl('http', self.clasz.flickr_host,
+                       self.clasz.flickr_auth_form, args,
                        url)
         
     def test_simple_search(self):
@@ -179,7 +186,7 @@ class FlickrApiTest(SuperTest):
         token = '123-abc-def'
         
         # Pass the token
-        flickr = flickrapi.FlickrAPI(key, secret, token=token)
+        flickr = self.clasz(key, secret, token=token)
         
         # It should be in the in-memory token cache now
         self.assertEqual(token, flickr.token_cache.token)
@@ -194,7 +201,7 @@ class FlickrApiTest(SuperTest):
         token = '123-abc-def'
         
         # Create a normal FlickrAPI object
-        flickr = flickrapi.FlickrAPI(key)
+        flickr = self.clasz(key)
 
         flickr.token_cache.token = token
         self.assertRaises(ValueError, flickr.photos_search,
@@ -244,10 +251,10 @@ class FlickrApiTest(SuperTest):
         token_mem = '123-abc-mem'
 
         # Create a non-public-only instance, and set the on-disk token
-        flickr = flickrapi.FlickrAPI(key, secret)
+        flickr = self.clasz(key, secret)
         flickr.token_cache.token = token_disk
         
-        flickr = flickrapi.FlickrAPI(key, secret, store_token=False)
+        flickr = self.clasz(key, secret, store_token=False)
 
         # The token shouldn't be set
         self.assertEqual(None, flickr.token_cache.token)
@@ -294,6 +301,7 @@ class FlickrApiTest(SuperTest):
         self.assertTrue(test['wrapped'],
                         'Expected wrapped function to be called')
 
+
 class CachingTest(SuperTest):
     '''Tests that the caching framework works'''
 
@@ -306,7 +314,7 @@ class CachingTest(SuperTest):
                      '&method=flickr.photos.getInfo'
                      '&format=rest' % (key, photo_id))
         
-        f = flickrapi.FlickrAPI(key, store_token=False, format='rest')
+        f = self.clasz(key, store_token=False, format='rest')
         f.cache = flickrapi.SimpleCache()
         self.assertEqual(0, len(f.cache))
 
@@ -324,7 +332,7 @@ class CachingTest(SuperTest):
                      '&format=rest' % (key, photo_id))
         faked_value = "FAKED_VALUE"
         
-        f = flickrapi.FlickrAPI(key, store_token=False, format='rest')
+        f = self.clasz(key, store_token=False, format='rest')
         f.cache = flickrapi.SimpleCache()
         f.cache.set(cache_key, faked_value)
 
@@ -335,7 +343,7 @@ class CachingTest(SuperTest):
     def test_cache_constructor_parameter(self):
         '''Tests that a cache is created when requested.'''
 
-        f = flickrapi.FlickrAPI(key, cache=True)
+        f = self.clasz(key, cache=True)
         self.assertNotEqual(None, f.cache, "Cache should not be None")
 
     # Test list of non-cacheable method calls
@@ -346,7 +354,7 @@ class FormatsTest(SuperTest):
     def test_default_format(self):
         '''Test that the default format is etree'''
 
-        f = flickrapi.FlickrAPI(key)
+        f = self.clasz(key)
         etree = f.photos_getInfo(photo_id=u'2333478006')
         self.assertEqual(etree_package(), etree.__module__)
 
@@ -366,7 +374,7 @@ class FormatsTest(SuperTest):
     def test_etree_default_format(self):
         '''Test setting the default format to etree'''
 
-        f = flickrapi.FlickrAPI(key, format='etree')
+        f = self.clasz(key, format='etree')
         etree = f.photos_getInfo(photo_id=u'2333478006')
         self.assertEqual(etree_package(), etree.__module__)
 
@@ -478,7 +486,7 @@ class EncodingTest(SuperTest):
 
     def testNoSecret(self):
         
-        no_secret = flickrapi.FlickrAPI(key)
+        no_secret = self.clasz(key)
         data = EURO_UNICODE + U_UML_UNICODE
         encoded = no_secret.encode_and_sign({'abc': data})
         self.assertEqual('abc=%E2%82%AC%C3%BC', encoded)
@@ -516,15 +524,15 @@ class DynamicMethodTest(SuperTest):
 
         # Set fake urllib
         self.fake_url_lib = self.FakeUrllib() 
-        flickrapi.urllib = self.fake_url_lib
-        flickrapi.urllib2 = self.fake_url_lib
+        flickrapi.core.urllib = self.fake_url_lib
+        flickrapi.core.urllib2 = self.fake_url_lib
 
     def tearDown(self):
         super(DynamicMethodTest, self).tearDown()
 
         # Restore original urllib
-        flickrapi.urllib = urllib
-        flickrapi.urllib2 = urllib2
+        flickrapi.core.urllib = urllib
+        flickrapi.core.urllib2 = urllib2
     
     def test_unicode_args(self):
         '''Tests whether Unicode arguments are properly handled.
