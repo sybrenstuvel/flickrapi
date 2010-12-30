@@ -343,16 +343,16 @@ class FlickrAPI(object):
                         'api_key': self.api_key,
                         'format': self.default_format}
 
-            args = self.__supply_defaults(args, defaults)
+            args = self._supply_defaults(args, defaults)
 
-            return self.__wrap_in_parser(self.__flickr_call,
+            return self._wrap_in_parser(self._flickr_call,
                     parse_format=args['format'], **args)
 
         handler.method = method
         self.__handler_cache[method] = handler
         return handler
     
-    def __supply_defaults(self, args, defaults):
+    def _supply_defaults(self, args, defaults):
         '''Returns a new dictionary containing ``args``, augmented with defaults
         from ``defaults``.
 
@@ -360,7 +360,7 @@ class FlickrAPI(object):
         appropriate value in ``args`` to ``None``.
 
         >>> f = FlickrAPI('123')
-        >>> f._FlickrAPI__supply_defaults(
+        >>> f._supply_defaults(
         ...  {'foo': 'bar', 'baz': None, 'token': None},
         ...  {'baz': 'foobar', 'room': 'door'})
         {'foo': 'bar', 'room': 'door'}
@@ -380,13 +380,13 @@ class FlickrAPI(object):
         
         return result
 
-    def __flickr_call(self, **kwargs):
+    def _flickr_call(self, **kwargs):
         '''Performs a Flickr API call with the given arguments. The method name
         itself should be passed as the 'method' parameter.
         
         Returns the unparsed data from Flickr::
 
-            data = self.__flickr_call(method='flickr.photos.getInfo',
+            data = self._flickr_call(method='flickr.photos.getInfo',
                 photo_id='123', format='rest')
         '''
 
@@ -409,7 +409,7 @@ class FlickrAPI(object):
 
         return reply
     
-    def __wrap_in_parser(self, wrapped_method, parse_format, *args, **kwargs):
+    def _wrap_in_parser(self, wrapped_method, parse_format, *args, **kwargs):
         '''Wraps a method call in a parser.
 
         The parser will be looked up by the ``parse_format`` specifier. If there
@@ -602,10 +602,10 @@ class FlickrAPI(object):
         filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
         body.attach(filepart)
 
-        return self.__wrap_in_parser(self.__send_multipart, format,
+        return self._wrap_in_parser(self._send_multipart, format,
                 url, body, callback)
 
-    def __send_multipart(self, url, body, progress_callback=None):
+    def _send_multipart(self, url, body, progress_callback=None):
         '''Sends a Multipart object to an URL.
         
         Returns the resulting unparsed XML from Flickr.

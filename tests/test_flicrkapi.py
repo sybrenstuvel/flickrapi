@@ -271,7 +271,7 @@ class FlickrApiTest(SuperTest):
 
             return '<rst stat="ok"><element photo_id="5" /></rst>'
 
-        rst = self.f._FlickrAPI__wrap_in_parser(to_wrap, parse_format='xmlnode',
+        rst = self.f._wrap_in_parser(to_wrap, parse_format='xmlnode',
                 format='xmlnode', test_param='test_value')
         self.assertEqual('5', rst.element[0]['photo_id'])
         self.assertTrue(test['wrapped'],
@@ -288,7 +288,7 @@ class FlickrApiTest(SuperTest):
 
             return '<rst stat="ok"><element photo_id="5" /></rst>'
 
-        rst = self.f._FlickrAPI__wrap_in_parser(to_wrap, parse_format='xmlnode',
+        rst = self.f._wrap_in_parser(to_wrap, parse_format='xmlnode',
                 test_param='test_value')
         self.assertEqual('5', rst.element[0]['photo_id'])
         self.assertTrue(test['wrapped'],
@@ -593,16 +593,16 @@ class WalkerTest(SuperTest):
         # Check that we get a generator
         gen = self.f.walk(tag_mode='all',
                 tags='sybren,365,threesixtyfive,me',
-                min_taken_date='2008-08-20',
-                max_taken_date='2008-08-30', per_page=8,
+                min_taken_date='2008-08-19',
+                max_taken_date='2008-08-31', per_page=7,
                 sort='date-taken-desc')
         self.assertEquals(types.GeneratorType, type(gen))
 
         # very unlikely that this result will ever change
         ids = [p.get('id') for p in gen]
-        self.assertEquals(['2824831549', '2807789315', '2807789039',
+        self.assertEquals(['2824913799', '2807789315', '2807789039',
             '2807773797', '2807772503', '2807771401', '2808616234',
-            '2808618120', '2808591736'], ids)
+            '2808618120', '2808591736', '2807741221'], ids)
 
 if __name__ == '__main__':
     unittest.main()
