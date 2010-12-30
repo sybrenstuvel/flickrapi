@@ -3,7 +3,7 @@ Python FlickrAPI
 ======================================================================
 
 Most of the info can be found in the 'doc' directory or on
-http://flickrapi.sourceforge.net/
+http://stuvel.eu/flickrapi
 
 To install the Python Flickr API module, run::
 
