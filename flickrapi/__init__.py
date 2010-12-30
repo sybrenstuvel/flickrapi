@@ -398,16 +398,24 @@ class FlickrAPI(object):
         if self.cache and self.cache.get(post_data):
             return self.cache.get(post_data)
 
-        url = "http://" + self.flickr_host + self.flickr_rest_form
-        flicksocket = urllib2.urlopen(url, post_data)
-        reply = flicksocket.read()
-        flicksocket.close()
+        reply = self._http_post(post_data)
 
         # Store in cache, if we have one
         if self.cache is not None:
             self.cache.set(post_data, reply)
 
         return reply
+
+    def _http_post(self, post_data):
+        '''Performs a HTTP POST call to the Flickr REST URL.'''
+
+        url = "http://" + self.flickr_host + self.flickr_rest_form
+        flicksocket = urllib2.urlopen(url, post_data)
+        reply = flicksocket.read()
+        flicksocket.close()
+
+        return reply
+
     
     def _wrap_in_parser(self, wrapped_method, parse_format, *args, **kwargs):
         '''Wraps a method call in a parser.
