@@ -904,6 +904,33 @@ class FlickrAPI(object):
                 user_id=user_id, per_page=per_page, **kwargs)
 
     @require_format('etree')
+    def walk_user_updates(self, min_date, per_page=50, **kwargs):
+        '''walk_user_updates(self, user_id, per_page=50, ...) -> \
+                generator, yields each photo in a user's photostream updated \
+                after ``min_date``
+
+        :Parameters:
+            min_date
+                
+            per_page
+                the number of photos that are fetched in one call to
+                Flickr.
+
+        Other arguments can be passed, as documented in the
+        flickr.photos.recentlyUpdated API call in the Flickr API
+        documentation, except for ``page`` because all pages will be
+        returned eventually.
+
+        .. _flickr.photos.recentlyUpdated:
+            http://www.flickr.com/services/api/flickr.photos.recentlyUpdated.html
+        
+        Uses the ElementTree format, incompatible with other formats.
+        '''
+
+        return self.__data_walker(self.photos_recentlyUpdated,
+                min_date=min_date, per_page=per_page, **kwargs)
+
+    @require_format('etree')
     def walk(self, per_page=50, **kwargs):
         '''walk(self, user_id=..., tags=..., ...) -> generator, \
                 yields each photo in a search query result
