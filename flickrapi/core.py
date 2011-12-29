@@ -4,13 +4,15 @@ This module contains most of the FlickrAPI code. It is well tested and
 documented.
 '''
 
-import copy
+import gzip
 import logging
-import os.path
-import sys
+import os
 import urllib
 import urllib2
 import webbrowser
+
+try: import cStringIO as StringIO
+except ImportError: import StringIO
 
 # Smartly import hashlib and fall back on md5
 try: from hashlib import md5
@@ -371,12 +373,26 @@ class FlickrAPI(object):
         '''Performs a HTTP POST call to the Flickr REST URL.'''
 
         url = "http://" + self.flickr_host + self.flickr_rest_form
-        flicksocket = urllib2.urlopen(url, post_data)
-        reply = flicksocket.read()
-        flicksocket.close()
+        headers = {'Accept-Encoding' : 'gzip' }
+        request = urllib2.Request(url, post_data, headers)
+        
+        # Do the request and read the response
+        flickrsocket = urllib2.urlopen(request, post_data)
 
-        return reply
-
+        try:
+            info = flickrsocket.info()
+            if info.getheader('content-encoding') == 'gzip':
+                # Compressed (gzip) response. Read through a StringIO object, as the GzipFile
+                # class will call fileobj.tell(), which the 'flickrsocket' object doesn't support.
+                # Unfortunately this means we double our memory footprint.
+                io_buffer = StringIO.StringIO(flickrsocket.read())
+                gzipper = gzip.GzipFile(fileobj=io_buffer)
+                return gzipper.read()
+            else:
+                # regular response
+                return flickrsocket.read()
+        finally:
+            flickrsocket.close()
     
     def _wrap_in_parser(self, wrapped_method, parse_format, *args, **kwargs):
         '''Wraps a method call in a parser.
