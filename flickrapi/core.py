@@ -765,7 +765,7 @@ class FlickrAPI(object):
         self.get_token_part_two((token, frob))
 
     @require_format('etree')
-    def _data_walker(self, method, **params):
+    def data_walker(self, method, **params):
         '''Calls 'method' with page=0, page=1 etc. until the total
         number of pages has been visited. Yields the photos
         returned.
@@ -819,7 +819,7 @@ class FlickrAPI(object):
         Uses the ElementTree format, incompatible with other formats.
         '''
 
-        return self._data_walker(self.photosets_getPhotos,
+        return self.data_walker(self.photosets_getPhotos,
                 photoset_id=photoset_id, per_page=per_page, **kwargs)
 
     @require_format('etree')
@@ -837,6 +837,6 @@ class FlickrAPI(object):
         Also see `walk_set`.
         '''
 
-        return self._data_walker(self.photos_search,
+        return self.data_walker(self.photos_search,
                 per_page=per_page, **kwargs)
 
