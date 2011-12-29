@@ -37,17 +37,28 @@ secret = '2ee3f558fd79f292'
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
 
-def etree_package():
-    '''Returns the name of the ElementTree package for the given
-    Python version.'''
+try:
+    from lxml import etree as ElementTree
+    LOG.info('REST Parser: using lxml.etree')
+except ImportError:
+    try:
+        import xml.etree.cElementTree as ElementTree
+        LOG.info('REST Parser: using xml.etree.cElementTree')
+    except ImportError:
+        try:
+            import xml.etree.ElementTree as ElementTree
+            LOG.info('REST Parser: using xml.etree.ElementTree')
+        except ImportError:
+            try:
+                import elementtree.cElementTree as ElementTree
+                LOG.info('REST Parser: elementtree.cElementTree')
+            except ImportError:
+                try:
+                    import elementtree.ElementTree as ElementTree
+                except ImportError:
+                    raise ImportError("You need to install "
+                        "ElementTree to use the etree format")
 
-    current_version = sys.version_info[0:3]
-    if current_version < (2, 5, 0):
-        # For Python 2.4 and earlier, we assume ElementTree was
-        # downloaded and installed from pypi.
-        return 'elementtree.ElementTree'
-
-    return 'xml.etree.ElementTree'
 
 class SuperTest(unittest.TestCase):
     '''Superclass for unittests, provides useful methods.'''
@@ -349,21 +360,25 @@ class CachingTest(SuperTest):
     # Test list of non-cacheable method calls
 
 class FormatsTest(SuperTest):
-    '''Tests the different parsed formats.'''
+    '''Tests the different parsed formats.
+    
+    We have to test ElementTree in a bit of a strange way in order to support all
+    current flavours of (c)ElementTree.
+    '''
 
     def test_default_format(self):
         '''Test that the default format is etree'''
 
         f = self.clasz(key)
         etree = f.photos_getInfo(photo_id=u'2333478006')
-        self.assertEqual(etree_package(), etree.__module__)
+        self.assertEquals(type(etree), type(ElementTree.Element(None)))
 
     def test_etree_format_happy(self):
         '''Test ETree format'''
 
         etree = self.f_noauth.photos_getInfo(photo_id=u'2333478006',
                     format='etree')
-        self.assertEqual(etree_package(), etree.__module__)
+        self.assertEquals(type(etree), type(ElementTree.Element(None)))
 
     def test_etree_format_error(self):
         '''Test ETree format in error conditions'''
@@ -376,7 +391,7 @@ class FormatsTest(SuperTest):
 
         f = self.clasz(key, format='etree')
         etree = f.photos_getInfo(photo_id=u'2333478006')
-        self.assertEqual(etree_package(), etree.__module__)
+        self.assertEquals(type(etree), type(ElementTree.Element(None)))
 
     def test_xmlnode_format(self):
         '''Test XMLNode format'''
