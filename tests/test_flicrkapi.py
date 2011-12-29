@@ -13,6 +13,7 @@ import types
 import unittest
 import urllib
 import urllib2
+import httplib
 import webbrowser
 
 # Make sure the flickrapi module from the source distribution is used
@@ -511,6 +512,10 @@ class DynamicMethodTest(SuperTest):
     
     class FakeUrllib(object):
         '''Fake implementation of URLLib'''
+
+        class Request(object):
+            def __init__(self, *args, **kwargs):
+                pass
     
         def __init__(self):
             self.data = None
@@ -520,8 +525,10 @@ class DynamicMethodTest(SuperTest):
             self.url = url
             self.data = postdata
             
-            return StringIO.StringIO('''<?xml version="1.0" encoding="utf-8"?>
+            headers = httplib.HTTPMessage(StringIO.StringIO())
+            fp = StringIO.StringIO('''<?xml version="1.0" encoding="utf-8"?>
                 <rsp stat="ok"></rsp>''')
+            return urllib.addinfo(fp, headers)
 
         def __getattr__(self, name):
             '''If we don't implement a method, call the original'''
