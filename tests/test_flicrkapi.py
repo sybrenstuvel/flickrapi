@@ -606,11 +606,11 @@ class WalkerTest(SuperTest):
                 sort='date-taken-desc')
         self.assertEquals(types.GeneratorType, type(gen))
 
-        # very unlikely that this result will ever change
+        # very unlikely that this result will ever change. Until it did, of course.
         ids = [p.get('id') for p in gen]
-        self.assertEquals(['2824913799', '2807789315', '2807789039',
-            '2807773797', '2807772503', '2807771401', '2808616234',
-            '2808618120', '2808591736', '2807741221'], ids)
+        self.assertEquals(['2824913799', '2824831549', '2807789315', '2807789039',
+                           '2807773797', '2807772503', '2807771401', '2808616234',
+                           '2808618120', '2808591736', '2807741221'], ids)
 
 if __name__ == '__main__':
     unittest.main()
