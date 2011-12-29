@@ -605,7 +605,13 @@ class FlickrAPI(object):
             if done:
                 seen_header[0] = True
 
-        response = reportinghttp.urlopen(request, _upload_callback)
+        # On Linux we get progress info twice, once for sending the headers
+        # and the second time for sending the actual HTTP body.
+        if os.name.startswith('linux'):
+            response = reportinghttp.urlopen(request, _upload_callback)
+        else:
+            response = reportinghttp.urlopen(request, progress_callback)
+
         return response.read()
 
     def validate_frob(self, frob, perms):
