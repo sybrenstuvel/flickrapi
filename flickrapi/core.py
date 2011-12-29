@@ -214,7 +214,7 @@ class FlickrAPI(object):
             return rsp
         
         err = rsp.err[0]
-        raise FlickrError(u'Error: %(code)s: %(msg)s' % err)
+        raise FlickrError(u'Error: %(code)s: %(msg)s' % err, code=err['code'])
 
     @rest_parser('etree')
     def parse_etree(self, rest_xml):
@@ -235,7 +235,8 @@ class FlickrAPI(object):
             return rsp
         
         err = rsp.find('err')
-        raise FlickrError(u'Error: %(code)s: %(msg)s' % err.attrib)
+        code = err.attrib.get('code', None)
+        raise FlickrError(u'Error: %(code)s: %(msg)s' % err.attrib, code=code)
 
     def sign(self, dictionary):
         """Calculate the flickr signature for a set of params.
