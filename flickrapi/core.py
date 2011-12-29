@@ -880,7 +880,7 @@ class FlickrAPI(object):
         Uses the ElementTree format, incompatible with other formats.
         '''
 
-        return self._data_walker(self.people_getPhotos,
+        return self.data_walker(self.people_getPhotos,
                                  user_id=user_id, per_page=per_page, **kwargs)
 
     @require_format('etree')
@@ -907,7 +907,7 @@ class FlickrAPI(object):
         Uses the ElementTree format, incompatible with other formats.
         '''
 
-        return self._data_walker(self.photos_recentlyUpdated,
+        return self.data_walker(self.photos_recentlyUpdated,
                 min_date=min_date, per_page=per_page, **kwargs)
 
     @require_format('etree')
