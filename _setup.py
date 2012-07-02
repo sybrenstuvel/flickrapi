@@ -68,6 +68,9 @@ data = {
         'Topic :: Multimedia :: Graphics',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
+    'install_require': [
+        'oauth2>=oauth2 1.5.211',
+    ],
     'extras_require': {
         'ElementTree':  ["elementtree>=1.2.6"],
     },

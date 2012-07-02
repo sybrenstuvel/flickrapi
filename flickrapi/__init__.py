@@ -11,7 +11,7 @@ See `the FlickrAPI homepage`_ for more info.
 .. _`the FlickrAPI homepage`: http://stuvel.eu/projects/flickrapi
 '''
 
-__version__ = '1.5-beta0'
+__version__ = '2.0-beta0'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
     'CancelUpload', 'LockingError', 'XMLNode', 'set_log_level', '__version__',
     'SimpleCache', 'TokenCache', 'SimpleTokenCache', 'LockingTokenCache')
