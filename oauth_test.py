@@ -48,7 +48,7 @@ params = {
 	'oauth_timestamp': str(int(time.time())),
 	'oauth_signature_method':"HMAC-SHA1",
 	'oauth_version': "1.0",
-    'oauth_callback': "http://zebra:8000/",
+    'oauth_callback': "http://localhost:8000/",
 	'oauth_nonce': oauth.generate_nonce(),
 	'oauth_consumer_key': keys.apikey
 }
@@ -67,7 +67,7 @@ req['oauth_signature'] = signature
 
 # Make the request to get the oauth_token and the oauth_token_secret
 # I had to directly use the httplib2 here, instead of the oauth library.
-h = httplib2.Http(".cache")
+h = httplib2.Http()
 resp, content = h.request(req.to_url(), "GET")
 
 print content
@@ -144,7 +144,7 @@ signature = oauth.SignatureMethod_HMAC_SHA1().sign(req,consumer,token)
 req['oauth_signature'] = signature
 
 #make the request
-h = httplib2.Http(".cache")
+h = httplib2.Http()
 resp, content = h.request(req.to_url(), "GET")
 
 #parse the response

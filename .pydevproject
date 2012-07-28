@@ -29,12 +29,12 @@
 
   
   
-  <pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 2.5</pydev_property>
+  <pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 2.7</pydev_property>
   
   
   
 
 
 
-<pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">python2</pydev_property>
+<pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">python-flickrapi</pydev_property>
 </pydev_project>
