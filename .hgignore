@@ -2,6 +2,7 @@ syntax:glob
 *.pyc
 *.pyo
 .*.swp
+.cache/
 build/
 dist/
 doc/index.html
