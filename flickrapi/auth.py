@@ -73,7 +73,18 @@ class FlickrAccessToken(oauth.Token):
         
         self.fullname = fullname
         self.username = username
-        self.user_nsid = user_nsid 
+        self.user_nsid = user_nsid
+    
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+    
+    def __unicode__(self):
+        return u'FlickrAccessToken(key=%s, fullname=%s, username=%s, user_nsid=%s)' % (
+                   self.key, self.fullname, self.username, self.user_nsid) 
+
+    def __repr__(self):
+        return str(self)
+
 
 class OAuthFlickrInterface():
     '''Interface object for handling OAuth-authenticated calls to Flickr.'''

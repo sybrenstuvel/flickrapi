@@ -4,14 +4,16 @@
 import os.path
 import logging
 import time
+import sqlite3
 
-from flickrapi.exceptions import LockingError
+from flickrapi.exceptions import LockingError, CacheDatabaseError
+from flickrapi.auth import FlickrAccessToken
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
-__all__ = ('TokenCache', 'SimpleTokenCache')
+__all__ = ('SimpleTokenCache', 'OAuthTokenCache')
 
 class SimpleTokenCache(object):
     '''In-memory token cache.'''
@@ -97,6 +99,108 @@ class TokenCache(object):
             os.unlink(filename)
 
     token = property(get_cached_token, set_cached_token, forget, "The cached token")
+
+class OAuthTokenCache(object):
+    '''TokenCache for OAuth tokens; stores them in a SQLite database.'''
+
+    DB_VERSION = 1
+    
+    # Mapping from (api_key, lookup_key) to FlickrAccessToken object.
+    RAM_CACHE = {}
+
+    def __init__(self, api_key, lookup_key=''):
+        '''Creates a new token cache instance'''
+        
+        self.api_key = api_key
+        self.lookup_key = lookup_key
+        self.path = os.path.expanduser(os.path.join("~", ".flickr"))
+        self.filename = os.path.join(self.path, 'oauth-tokens.sqlite')
+
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+        
+        self.create_table()
+
+    def create_table(self):
+        '''Creates the DB table, if it doesn't exist already.'''
+        
+        db = sqlite3.connect(self.filename)
+        curs = db.cursor()
+        
+        # Check DB version
+        curs.execute('CREATE TABLE IF NOT EXISTS oauth_cache_db_version (version int not null)')
+        curs.execute('select version from oauth_cache_db_version')
+        oauth_cache_db_version = curs.fetchone()
+        if not oauth_cache_db_version:
+            curs.execute('INSERT INTO oauth_cache_db_version (version) values (?)',
+                         str(self.DB_VERSION))
+        elif int(oauth_cache_db_version[0]) != self.DB_VERSION:
+            raise CacheDatabaseError('Unsupported database version %s' %
+                                     oauth_cache_db_version[0])
+        
+        # Create cache table if it doesn't exist already
+        curs.execute('''CREATE TABLE IF NOT EXISTS oauth_tokens (
+                        api_key varchar(64) not null,
+                        lookup_key varchar(32) not null default '',
+                        oauth_token varchar(64) not null,
+                        oauth_token_secret varchar(64) not null,
+                        fullname varchar(255) not null,
+                        username varchar(255) not null,
+                        user_nsid varchar(64) not null,
+                        PRIMARY KEY(api_key, lookup_key))''')
+
+    @property
+    def token(self):
+        '''Return the cached token for this API key, or None if not found.'''
+
+        # Only read the token once
+        if (self.api_key, self.lookup_key) in self.RAM_CACHE:
+            return self.RAM_CACHE[self.api_key, self.lookup_key]
+
+        db = sqlite3.connect(self.filename)
+        curs = db.cursor()
+        curs.execute('''SELECT oauth_token, oauth_token_secret, fullname, username, user_nsid
+                        FROM oauth_tokens WHERE api_key=? and lookup_key=?''',
+                     (self.api_key, self.lookup_key))
+        token_data = curs.fetchone()
+        
+        if token_data is None:
+            return None
+        
+        return FlickrAccessToken(*token_data)
+
+    @token.setter
+    def token(self, token):
+        """Cache a token for later use."""
+
+        assert isinstance(token, FlickrAccessToken)
+
+        # Remember for later use
+        self.RAM_CACHE[self.api_key, self.lookup_key] = token
+
+        db = sqlite3.connect(self.filename)
+        curs = db.cursor()
+        curs.execute('''INSERT OR REPLACE INTO oauth_tokens
+            (api_key, lookup_key, oauth_token, oauth_token_secret, fullname, username, user_nsid)
+            values (?, ?, ?, ?, ?, ?, ?)''',
+            (self.api_key, self.lookup_key, token.key, token.secret, token.fullname, token.username,
+             token.user_nsid)
+        )
+        db.commit()
+
+    @token.deleter
+    def token(self):
+        '''Removes the cached token'''
+
+        # Delete from ram cache
+        if (self.api_key, self.lookup_key) in self.RAM_CACHE:
+            del self.RAM_CACHE[self.api_key, self.lookup_key]
+       
+        db = sqlite3.connect(self.filename)
+        curs = db.cursor()
+        curs.execute('''DELETE FROM oauth_tokens WHERE api_key=? and lookup_key=?''',
+                     (self.api_key, self.lookup_key))
+        db.commit()
 
 class LockingTokenCache(TokenCache):
     '''Locks the token cache when reading or updating it, so that

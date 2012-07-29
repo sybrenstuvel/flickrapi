@@ -32,3 +32,9 @@ class LockingError(Exception):
     period, or when a lock release is attempted when the lock does not
     belong to this process.
     '''
+
+class CacheDatabaseError(FlickrError):
+    '''Raised when the OAuth token cache database is corrupted
+    or otherwise unusable.
+    '''
+    
