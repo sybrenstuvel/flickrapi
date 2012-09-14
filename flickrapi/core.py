@@ -883,7 +883,7 @@ class FlickrAPI(object):
                 photoset_id=photoset_id, per_page=per_page, **kwargs)
 
     @require_format('etree')
-    def walk_user(self, user_id, per_page=50, **kwargs):
+    def walk_user(self, user_id='me', per_page=50, **kwargs):
         '''walk_user(self, user_id, per_page=50, ...) -> \
                 generator, yields each photo in a user's photostream.
 
