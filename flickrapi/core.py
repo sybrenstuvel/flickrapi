@@ -800,15 +800,15 @@ class FlickrAPI(object):
         self.get_token_part_two((token, frob))
 
     @require_format('etree')
-    def data_walker(self, method, **params):
+    def data_walker(self, method, searchstring='*/photos', **params):
         '''Calls 'method' with page=0, page=1 etc. until the total
         number of pages has been visited. Yields the photos
         returned.
         
-        Assumes that ``method(page=n, **params).findall('*/photos')``
-        results in a list of photos, and that the toplevel element of
-        the result contains a 'pages' attribute with the total number
-        of pages.
+        Assumes that ``method(page=n, **params).findall(searchstring)``
+        results in a list of interesting elements (defaulting to photos), 
+        and that the toplevel element of the result contains a 'pages' 
+        attribute with the total number of pages.
         '''
 
         page = 1
@@ -822,7 +822,7 @@ class FlickrAPI(object):
             photoset = rsp.getchildren()[0]
             total = int(photoset.get('pages'))
 
-            photos = rsp.findall('*/photo')
+            photos = rsp.findall(searchstring)
 
             # Yield each photo
             for photo in photos:
@@ -831,6 +831,31 @@ class FlickrAPI(object):
             # Ready to get the next page
             page += 1
 
+    @require_format('etree')
+    def walk_photosets(self, per_page=50, **kwargs):
+        '''walk_photosets(self, per_page=50, ...) -> \
+                generator, yields each photoset belonging to a user.
+    
+        :Parameters:
+            per_page
+                the number of photos that are fetched in one call to
+                Flickr.
+    
+        Other arguments can be passed, as documented in the
+        flickr.photosets.getList_ API call in the Flickr API
+        documentation, except for ``page`` because all pages will be
+        returned eventually.
+    
+        .. _flickr.photosets.getList:
+            http://www.flickr.com/services/api/flickr.photosets.getList.html
+    
+        Uses the ElementTree format, incompatible with other formats.
+        '''
+        
+        return self.data_walker(self.photosets_getList, searchstring='*/photoset',
+                                per_page=per_page, **kwargs)
+
+    
     @require_format('etree')
     def walk_set(self, photoset_id, per_page=50, **kwargs):
         '''walk_set(self, photoset_id, per_page=50, ...) -> \
