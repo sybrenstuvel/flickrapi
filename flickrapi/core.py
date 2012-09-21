@@ -832,13 +832,38 @@ class FlickrAPI(object):
             page += 1
 
     @require_format('etree')
+    def walk_contacts(self, per_page=50, **kwargs):
+        '''walk_contacts(self, per_page=50, ...) -> \
+                generator, yields each contact of the calling user.
+    
+        :Parameters:
+            per_page
+                the number of contacts that are fetched in one call to
+                Flickr.
+    
+        Other arguments can be passed, as documented in the
+        flickr.contacts.getList_ API call in the Flickr API
+        documentation, except for ``page`` because all pages will be
+        returned eventually.
+    
+        .. _flickr.contacts.getList:
+            http://www.flickr.com/services/api/flickr.contacts.getList.html
+    
+        Uses the ElementTree format, incompatible with other formats.
+        '''
+        
+        return self.data_walker(self.contacts_getList, searchstring='*/contact',
+                                per_page=per_page, **kwargs)
+
+    
+    @require_format('etree')
     def walk_photosets(self, per_page=50, **kwargs):
         '''walk_photosets(self, per_page=50, ...) -> \
                 generator, yields each photoset belonging to a user.
     
         :Parameters:
             per_page
-                the number of photos that are fetched in one call to
+                the number of photosets that are fetched in one call to
                 Flickr.
     
         Other arguments can be passed, as documented in the
