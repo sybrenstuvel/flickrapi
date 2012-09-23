@@ -800,7 +800,7 @@ class FlickrAPI(object):
         self.get_token_part_two((token, frob))
 
     @require_format('etree')
-    def data_walker(self, method, searchstring='*/photos', **params):
+    def data_walker(self, method, searchstring='*/photo', **params):
         '''Calls 'method' with page=0, page=1 etc. until the total
         number of pages has been visited. Yields the photos
         returned.
