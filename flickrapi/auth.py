@@ -37,15 +37,25 @@ class OAuthTokenHTTPServer(BaseHTTPServer.HTTPServer):
         
         self.log = logging.getLogger('{}.{}'.format(__name__, self.__class__.__name__))
         
-        # Find a random free port
-        self.local_addr = ('localhost', int(random.uniform(1100, 20000)))
-        self.log.debug('Finding free port starting at %s', self.local_addr)
-        sockutil.find_free_port(self.local_addr)
-        
+        self.local_addr = self.listen_port()
         self.log.info('Creating HTTP server at %s', self.local_addr)
+       
         BaseHTTPServer.HTTPServer.__init__(self, self.local_addr, OAuthTokenHTTPHandler)
 
         self.oauth_verifier = None
+    
+    def listen_port(self):
+        '''Returns the hostname and TCP/IP port number to listen on.
+        
+        By default finds a random free port between 1100 and 20000.
+        '''
+
+        # Find a random free port
+        local_addr = ('localhost', int(random.uniform(1100, 20000)))
+        self.log.debug('Finding free port starting at %s', local_addr)
+        return sockutil.find_free_port(local_addr)
+        
+        return local_addr
     
     def wait_for_oauth_verifier(self):
         '''Starts the HTTP server, waits for the OAuth verifier.'''
