@@ -36,5 +36,5 @@
 
 
 
-<pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">python-flickrapi</pydev_property>
+<pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">flickrapi-py27</pydev_property>
 </pydev_project>
