@@ -73,11 +73,9 @@ class SuperTest(unittest.TestCase):
         self.clasz = flickrapi.FlickrAPI
 
         self.f = self.clasz(key, secret)
-        self.f_noauth = self.clasz(key)
 
         # Remove/prevent any unwanted tokens
         self.f.token_cache.forget()
-        self.f_noauth.token_cache = flickrapi.tokencache.SimpleTokenCache()
 
     def print_auth_message(self, frob, perms):
         sys.stderr.write("Your browser starts, press ENTER after "
@@ -188,7 +186,7 @@ class FlickrApiTest(SuperTest):
         '''Test simple Flickr search'''
         
         # We expect to be able to find kittens
-        result = self.f.photos_search(tags='kitten')
+        result = self.f.photos.search(tags='kitten')
         total = int(result.find('photos').attrib['total'])
         self.assertTrue(total > 0)
     

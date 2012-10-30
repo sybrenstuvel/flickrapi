@@ -24,7 +24,8 @@ from flickrapi.xmlnode import XMLNode
 from flickrapi.multipart import Part, Multipart, FilePart
 from flickrapi.exceptions import *
 from flickrapi.cache import SimpleCache
-from flickrapi import reportinghttp
+from flickrapi.call_builder import CallBuilder
+from flickrapi import reportinghttp, auth
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
@@ -110,13 +111,7 @@ class FlickrAPI(object):
       sets = flickr.photosets_getList(user_id='73509078@N00')
     """
     
-    flickr_host = "api.flickr.com"
-    flickr_rest_form = "/services/rest/"
-    flickr_auth_form = "/services/auth/"
-    flickr_upload_form = "/services/upload/"
-    flickr_replace_form = "/services/replace/"
-
-    def __init__(self, api_key, secret=None, username=None,
+    def __init__(self, api_key, secret, username=None,
             token=None, format='etree', store_token=True,
             cache=False):
         """Construct a new FlickrAPI instance for a given API key
@@ -155,13 +150,16 @@ class FlickrAPI(object):
             >>> f = FlickrAPI(api_key='123')
             >>> f.cache = SimpleCache(timeout=5, max_entries=100)
         """
-        
-        self.api_key = api_key
-        self.secret = secret
+
+        # TODO: create the server just before we need it.
+        self.auth_http_server = auth.OAuthTokenHTTPServer()
+        self.flickr_oauth = auth.OAuthFlickrInterface(api_key, secret)
+
         self.default_format = format
         
         self._handler_cache = {}
 
+        # TODO: what to do with token now we use OAuth?
         if token:
             # Use a memory-only token cache
             self.token_cache = SimpleTokenCache()
@@ -173,6 +171,7 @@ class FlickrAPI(object):
             # Use a real token cache
             self.token_cache = TokenCache(api_key, username)
 
+        # TODO: what to do with cache now we use OAuth?
         if cache:
             self.cache = SimpleCache()
         else:
@@ -181,8 +180,7 @@ class FlickrAPI(object):
     def __repr__(self):
         '''Returns a string representation of this object.'''
 
-
-        return '[FlickrAPI for key "%s"]' % self.api_key
+        return '[FlickrAPI for key "%s"]' % self.flickr_oauth.key
     __str__ = __repr__
 
     def trait_names(self):
@@ -195,17 +193,7 @@ class FlickrAPI(object):
         except FlickrError:
             return None
 
-        def tr(name):
-            '''Translates Flickr names to something that can be called
-            here.
-
-            >>> tr(u'flickr.photos.getInfo')
-            u'photos_getInfo'
-            '''
-            
-            return name[7:].replace('.', '_')
-
-        return [tr(m.text) for m in rsp.getiterator('method')]
+        return [m.text[7:] for m in rsp.getiterator('method')]
 
     @rest_parser('xmlnode')
     def parse_xmlnode(self, rest_xml):
@@ -252,81 +240,34 @@ class FlickrAPI(object):
         code = err.attrib.get('code', None)
         raise FlickrError(u'Error: %(code)s: %(msg)s' % err.attrib, code=code)
 
-    def sign(self, dictionary):
-        """Calculate the flickr signature for a set of params.
-        
-        data
-            a hash of all the params and values to be hashed, e.g.
-            ``{"api_key":"AAAA", "auth_token":"TTTT", "key":
-            u"value".encode('utf-8')}``
+    def __getattr__(self, method_name):
+        '''Returns a CallBuilder for the given method name.'''
 
-        """
+        return CallBuilder(self, method_name='flickr.' + method_name)
 
-        data = [self.secret]
-        for key in sorted(dictionary.keys()):
-            data.append(key)
-            datum = dictionary[key]
-            if isinstance(datum, unicode):
-                raise IllegalArgumentException("No Unicode allowed, "
-                        "argument %s (%r) should have been UTF-8 by now"
-                        % (key, datum))
-            data.append(datum)
-        md5_hash = md5(''.join(data))
-        return md5_hash.hexdigest()
-
-    def encode_and_sign(self, dictionary):
-        '''URL encodes the data in the dictionary, and signs it using the
-        given secret, if a secret was given.
-        '''
-        
-        dictionary = make_utf8(dictionary)
-        if self.secret:
-            dictionary['api_sig'] = self.sign(dictionary)
-        return urllib.urlencode(dictionary)
-        
-    def __getattr__(self, attrib):
+    def do_flickr_call(self, method_name, **kwargs):
         """Handle all the regular Flickr API calls.
         
         Example::
 
-            flickr.auth_getFrob(api_key="AAAAAA")
-            etree = flickr.photos_getInfo(photo_id='1234')
-            etree = flickr.photos_getInfo(photo_id='1234', format='etree')
-            xmlnode = flickr.photos_getInfo(photo_id='1234', format='xmlnode')
-            json = flickr.photos_getInfo(photo_id='1234', format='json')
+            flickr.auth.getFrob(api_key="AAAAAA")
+            etree = flickr.photos.getInfo(photo_id='1234')
+            etree = flickr.photos.getInfo(photo_id='1234', format='etree')
+            xmlnode = flickr.photos.getInfo(photo_id='1234', format='xmlnode')
+            json = flickr.photos.getInfo(photo_id='1234', format='json')
         """
 
-        # Refuse to act as a proxy for unimplemented special methods
-        if attrib.startswith('_'):
-            raise AttributeError("No such attribute '%s'" % attrib)
+        params = kwargs.copy()
 
-        # Construct the method name and see if it's cached
-        method = "flickr." + attrib.replace("_", ".")
-        if method in self._handler_cache:
-            return self._handler_cache[method]
-        
-        def handler(**args):
-            '''Dynamically created handler for a Flickr API call'''
+        # Set some defaults
+        defaults = {'method': method_name,
+                    'nojsoncallback': 1,
+                    'format': self.default_format}
+        params = self._supply_defaults(params, defaults)
 
-            if self.token_cache.token and not self.secret:
-                raise ValueError("Auth tokens cannot be used without "
-                                 "API secret")
+        return self._wrap_in_parser(self._flickr_call,
+                    parse_format=params['format'], **params)
 
-            # Set some defaults
-            defaults = {'method': method,
-                        'auth_token': self.token_cache.token,
-                        'api_key': self.api_key,
-                        'format': self.default_format}
-
-            args = self._supply_defaults(args, defaults)
-
-            return self._wrap_in_parser(self._flickr_call,
-                    parse_format=args['format'], **args)
-
-        handler.method = method
-        self._handler_cache[method] = handler
-        return handler
-    
     def _supply_defaults(self, args, defaults):
         '''Returns a new dictionary containing ``args``, augmented with defaults
         from ``defaults``.
@@ -367,13 +308,12 @@ class FlickrAPI(object):
 
         LOG.debug("Calling %s" % kwargs)
 
-        post_data = self.encode_and_sign(kwargs)
-
         # Return value from cache if available
         if self.cache and self.cache.get(post_data):
             return self.cache.get(post_data)
 
-        reply = self._http_post(post_data)
+        # TODO: parameterize URL
+        reply = self.flickr_oauth.do_request('http://api.flickr.com/services/rest/', kwargs)
 
         # Store in cache, if we have one
         if self.cache is not None:
@@ -381,31 +321,6 @@ class FlickrAPI(object):
 
         return reply
 
-    def _http_post(self, post_data):
-        '''Performs a HTTP POST call to the Flickr REST URL.'''
-
-        url = "http://" + self.flickr_host + self.flickr_rest_form
-        headers = {'Accept-Encoding' : 'gzip' }
-        request = urllib2.Request(url, post_data, headers)
-        
-        # Do the request and read the response
-        flickrsocket = urllib2.urlopen(request, post_data)
-
-        try:
-            info = flickrsocket.info()
-            if info.getheader('content-encoding') == 'gzip':
-                # Compressed (gzip) response. Read through a StringIO object, as the GzipFile
-                # class will call fileobj.tell(), which the 'flickrsocket' object doesn't support.
-                # Unfortunately this means we double our memory footprint.
-                io_buffer = StringIO.StringIO(flickrsocket.read())
-                gzipper = gzip.GzipFile(fileobj=io_buffer)
-                return gzipper.read()
-            else:
-                # regular response
-                return flickrsocket.read()
-        finally:
-            flickrsocket.close()
-    
     def _wrap_in_parser(self, wrapped_method, parse_format, *args, **kwargs):
         '''Wraps a method call in a parser.
 

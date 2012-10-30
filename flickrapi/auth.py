@@ -103,6 +103,11 @@ class OAuthFlickrInterface():
         self.cache_dir = cache_dir
         self.oauth_token = None
 
+    @property
+    def key(self):
+        '''Returns the OAuth key'''
+        return self.consumer.key
+
     def _find_cache_dir(self):
         '''Returns the appropriate directory for the HTTP cache.'''
         
