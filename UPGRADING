@@ -1,6 +1,37 @@
 Upgrading from previous versions
 =================================
 
+From any 1.x release to 2.0:
+---------------------------------
+
+Authentication has been re-written to use OAuth. See the documentation
+on how to use this. Some results are:
+  
+    - The token cache is now based on SQLite3, and contains not only the
+      authentication tokens, but also the user's full name, username
+      and NSID.
+
+    - The authentication callback functionality is gone. I'm not sure
+      how many people still need this now that we've moved to OAuth, so
+      if you want it back, please file an issue at
+      https://bitbucket.org/sybren/flickrapi/issues?status=new&status=open
+
+    - For non-web applications, a local HTTP server is started to receive
+      the verification code. This means that the user does not have to copy
+      and paste the verification code to the application.
+
+Flickr functions can be called with dotted notation. For example:
+    
+    flickr.photos_getInfo(photo_id='123') now becomes:
+    flickr.photos.getInfo(photo_id='123')
+                 ^
+                 | note the change from underscore to dot.
+  
+  For backward compatibility the old underscore-notation still works.
+
+
+
+
 From 1.1
 ---------------------------------
 
