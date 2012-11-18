@@ -13,7 +13,7 @@ import sys
 # Check the Python version
 (major, minor) = sys.version_info[:2]
 
-if (major, minor) < (2, 4):
-    raise SystemExit("Sorry, Python 2.4 or newer required")
+if (major, minor) < (2, 7):
+    raise SystemExit("Sorry, Python 2.7 or newer required")
 
 import _setup
