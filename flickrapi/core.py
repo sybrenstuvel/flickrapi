@@ -349,213 +349,181 @@ class FlickrAPI(object):
     def auth_url(self, perms, frob):
         """Return the authorization URL to get a token.
 
-        This is the URL the app will launch a browser toward if it
-        needs a new token.
-            
-        perms
-            "read", "write", or "delete"
-        frob
-            picked up from an earlier call to FlickrAPI.auth_getFrob()
-
-        """
-
-        encoded = self.encode_and_sign({
-                    "api_key": self.api_key,
-                    "frob": frob,
-                    "perms": perms})
-
-        return "http://%s%s?%s" % (self.flickr_host, \
-                self.flickr_auth_form, encoded)
-
-    def web_login_url(self, perms):
-        '''Returns the web login URL to forward web users to.
-
-        perms
-            "read", "write", or "delete"
-        '''
-        
-        encoded = self.encode_and_sign({
-                    "api_key": self.api_key,
-                    "perms": perms})
-
-        return "http://%s%s?%s" % (self.flickr_host, \
-                self.flickr_auth_form, encoded)
-
-    def __extract_upload_response_format(self, kwargs):
-        '''Returns the response format given in kwargs['format'], or
-        the default format if there is no such key.
-
-        If kwargs contains 'format', it is removed from kwargs.
-
-        If the format isn't compatible with Flickr's upload response
-        type, a FlickrError exception is raised.
-        '''
-
-        # Figure out the response format
-        format = kwargs.get('format', self.default_format)
-        if format not in rest_parsers and format != 'rest':
-            raise FlickrError('Format %s not supported for uploading '
-                              'photos' % format)
-
-        # The format shouldn't be used in the request to Flickr.
-        if 'format' in kwargs:
-            del kwargs['format']
-
-        return format
-
-    def upload(self, filename, callback=None, **kwargs):
-        """Upload a file to flickr.
-
-        Be extra careful you spell the parameters correctly, or you will
-        get a rather cryptic "Invalid Signature" error on the upload!
-
-        Supported parameters:
-
-        filename
-            name of a file to upload
-        callback
-            method that gets progress reports
-        title
-            title of the photo
-        description
-            description a.k.a. caption of the photo
-        tags
-            space-delimited list of tags, ``'''tag1 tag2 "long
-            tag"'''``
-        is_public
-            "1" or "0" for a public resp. private photo
-        is_friend
-            "1" or "0" whether friends can see the photo while it's
-            marked as private
-        is_family
-            "1" or "0" whether family can see the photo while it's
-            marked as private
-        content_type
-            Set to "1" for Photo, "2" for Screenshot, or "3" for Other.
-        hidden
-            Set to "1" to keep the photo in global search results, "2"
-            to hide from public searches.
-        format
-            The response format. You can only choose between the
-            parsed responses or 'rest' for plain REST.
-
-        The callback method should take two parameters:
-        ``def callback(progress, done)``
-        
-        Progress is a number between 0 and 100, and done is a boolean
-        that's true only when the upload is done.
-        """
-
-        return self.__upload_to_form(self.flickr_upload_form,
-                filename, callback, **kwargs)
-    
-    def replace(self, filename, photo_id, callback=None, **kwargs):
-        """Replace an existing photo.
-
-        Supported parameters:
-
-        filename
-            name of a file to upload
-        photo_id
-            the ID of the photo to replace
-        callback
-            method that gets progress reports
-        format
-            The response format. You can only choose between the
-            parsed responses or 'rest' for plain REST. Defaults to the
-            format passed to the constructor.
-
-        The callback parameter has the same semantics as described in the
-        ``upload`` function.
-        """
-        
-        if not photo_id:
-            raise IllegalArgumentException("photo_id must be specified")
-
-        kwargs['photo_id'] = photo_id
-        return self.__upload_to_form(self.flickr_replace_form,
-                filename, callback, **kwargs)
-        
-    def __upload_to_form(self, form_url, filename, callback, **kwargs):
-        '''Uploads a photo - can be used to either upload a new photo
-        or replace an existing one.
-
-        form_url must be either ``FlickrAPI.flickr_replace_form`` or
-        ``FlickrAPI.flickr_upload_form``.
-        '''
-
-        if not filename:
-            raise IllegalArgumentException("filename must be specified")
-        if not self.token_cache.token:
-            raise IllegalArgumentException("Authentication is required")
-
-        # Figure out the response format
-        format = self.__extract_upload_response_format(kwargs)
-
-        # Update the arguments with the ones the user won't have to supply
-        arguments = {'auth_token': self.token_cache.token,
-                     'api_key': self.api_key}
-        arguments.update(kwargs)
-
-        # Convert to UTF-8 if an argument is an Unicode string
-        kwargs = make_utf8(arguments)
-        
-        if self.secret:
-            kwargs["api_sig"] = self.sign(kwargs)
-        url = "http://%s%s" % (self.flickr_host, form_url)
-
-        # construct POST data
-        body = Multipart()
-
-        for arg, value in kwargs.iteritems():
-            part = Part({'name': arg}, value)
-            body.attach(part)
-
-        filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
-        body.attach(filepart)
-
-        return self._wrap_in_parser(self._send_multipart, format,
-                url, body, callback)
-
-    def _send_multipart(self, url, body, progress_callback=None):
-        '''Sends a Multipart object to an URL.
-        
-        Returns the resulting unparsed XML from Flickr.
-        '''
-
-        LOG.debug("Uploading to %s" % url)
-        request = urllib2.Request(url)
-        request.add_data(str(body))
-        
-        (header, value) = body.header()
-        request.add_header(header, value)
-        
-        if not progress_callback:
-            # Just use urllib2 if there is no progress callback
-            # function
-            response = urllib2.urlopen(request)
-            return response.read()
-
-        def _upload_callback(percentage, done, seen_header=[False]):
-            '''Filters out the progress report on the HTTP header'''
-
-            # Call the user's progress callback when we've filtered
-            # out the HTTP header
-            if seen_header[0]:
-                return progress_callback(percentage, done)            
-            
-            # Remember the first time we hit 'done'.
-            if done:
-                seen_header[0] = True
-
-        # On Linux we get progress info twice, once for sending the headers
-        # and the second time for sending the actual HTTP body.
-        if os.name.startswith('linux'):
-            response = reportinghttp.urlopen(request, _upload_callback)
-        else:
-            response = reportinghttp.urlopen(request, progress_callback)
-
-        return response.read()
+#    def __extract_upload_response_format(self, kwargs):
+#        '''Returns the response format given in kwargs['format'], or
+#        the default format if there is no such key.
+#
+#        If kwargs contains 'format', it is removed from kwargs.
+#
+#        If the format isn't compatible with Flickr's upload response
+#        type, a FlickrError exception is raised.
+#        '''
+#
+#        # Figure out the response format
+#        format = kwargs.get('format', self.default_format)
+#        if format not in rest_parsers and format != 'rest':
+#            raise FlickrError('Format %s not supported for uploading '
+#                              'photos' % format)
+#
+#        # The format shouldn't be used in the request to Flickr.
+#        if 'format' in kwargs:
+#            del kwargs['format']
+#
+#        return format
+#
+#    def upload(self, filename, callback=None, **kwargs):
+#        """Upload a file to flickr.
+#
+#        Be extra careful you spell the parameters correctly, or you will
+#        get a rather cryptic "Invalid Signature" error on the upload!
+#
+#        Supported parameters:
+#
+#        filename
+#            name of a file to upload
+#        callback
+#            method that gets progress reports
+#        title
+#            title of the photo
+#        description
+#            description a.k.a. caption of the photo
+#        tags
+#            space-delimited list of tags, ``'''tag1 tag2 "long
+#            tag"'''``
+#        is_public
+#            "1" or "0" for a public resp. private photo
+#        is_friend
+#            "1" or "0" whether friends can see the photo while it's
+#            marked as private
+#        is_family
+#            "1" or "0" whether family can see the photo while it's
+#            marked as private
+#        content_type
+#            Set to "1" for Photo, "2" for Screenshot, or "3" for Other.
+#        hidden
+#            Set to "1" to keep the photo in global search results, "2"
+#            to hide from public searches.
+#        format
+#            The response format. You can only choose between the
+#            parsed responses or 'rest' for plain REST.
+#
+#        The callback method should take two parameters:
+#        ``def callback(progress, done)``
+#        
+#        Progress is a number between 0 and 100, and done is a boolean
+#        that's true only when the upload is done.
+#        """
+#
+#        return self.__upload_to_form(self.flickr_upload_form,
+#                filename, callback, **kwargs)
+#    
+#    def replace(self, filename, photo_id, callback=None, **kwargs):
+#        """Replace an existing photo.
+#
+#        Supported parameters:
+#
+#        filename
+#            name of a file to upload
+#        photo_id
+#            the ID of the photo to replace
+#        callback
+#            method that gets progress reports
+#        format
+#            The response format. You can only choose between the
+#            parsed responses or 'rest' for plain REST. Defaults to the
+#            format passed to the constructor.
+#
+#        The callback parameter has the same semantics as described in the
+#        ``upload`` function.
+#        """
+#        
+#        if not photo_id:
+#            raise IllegalArgumentException("photo_id must be specified")
+#
+#        kwargs['photo_id'] = photo_id
+#        return self.__upload_to_form(self.flickr_replace_form,
+#                filename, callback, **kwargs)
+#        
+#    def __upload_to_form(self, form_url, filename, callback, **kwargs):
+#        '''Uploads a photo - can be used to either upload a new photo
+#        or replace an existing one.
+#
+#        form_url must be either ``FlickrAPI.flickr_replace_form`` or
+#        ``FlickrAPI.flickr_upload_form``.
+#        '''
+#
+#        if not filename:
+#            raise IllegalArgumentException("filename must be specified")
+#        if not self.token_cache.token:
+#            raise IllegalArgumentException("Authentication is required")
+#
+#        # Figure out the response format
+#        format = self.__extract_upload_response_format(kwargs)
+#
+#        # Update the arguments with the ones the user won't have to supply
+#        arguments = {'auth_token': self.token_cache.token,
+#                     'api_key': self.api_key}
+#        arguments.update(kwargs)
+#
+#        # Convert to UTF-8 if an argument is an Unicode string
+#        kwargs = make_utf8(arguments)
+#        
+#        if self.secret:
+#            kwargs["api_sig"] = self.sign(kwargs)
+#        url = "http://%s%s" % (self.flickr_host, form_url)
+#
+#        # construct POST data
+#        body = Multipart()
+#
+#        for arg, value in kwargs.iteritems():
+#            part = Part({'name': arg}, value)
+#            body.attach(part)
+#
+#        filepart = FilePart({'name': 'photo'}, filename, 'image/jpeg')
+#        body.attach(filepart)
+#
+#        return self._wrap_in_parser(self._send_multipart, format,
+#                url, body, callback)
+#
+#    def _send_multipart(self, url, body, progress_callback=None):
+#        '''Sends a Multipart object to an URL.
+#        
+#        Returns the resulting unparsed XML from Flickr.
+#        '''
+#
+#        LOG.debug("Uploading to %s" % url)
+#        request = urllib2.Request(url)
+#        request.add_data(str(body))
+#        
+#        (header, value) = body.header()
+#        request.add_header(header, value)
+#        
+#        if not progress_callback:
+#            # Just use urllib2 if there is no progress callback
+#            # function
+#            response = urllib2.urlopen(request)
+#            return response.read()
+#
+#        def _upload_callback(percentage, done, seen_header=[False]):
+#            '''Filters out the progress report on the HTTP header'''
+#
+#            # Call the user's progress callback when we've filtered
+#            # out the HTTP header
+#            if seen_header[0]:
+#                return progress_callback(percentage, done)            
+#            
+#            # Remember the first time we hit 'done'.
+#            if done:
+#                seen_header[0] = True
+#
+#        # On Linux we get progress info twice, once for sending the headers
+#        # and the second time for sending the actual HTTP body.
+#        if os.name.startswith('linux'):
+#            response = reportinghttp.urlopen(request, _upload_callback)
+#        else:
+#            response = reportinghttp.urlopen(request, progress_callback)
+#
+#        return response.read()
 
     def validate_frob(self, frob, perms):
         '''Lets the user validate the frob by launching a browser to
