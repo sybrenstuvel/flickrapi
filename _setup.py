@@ -5,6 +5,8 @@ contains very simple Python code and checks the Python version, and
 this file, which contains code only parsable by 2.4+.
 '''
 
+from __future__ import print_function
+
 __author__ = 'Sybren A. Stuvel'
 
 from setuptools import setup, Distribution
@@ -16,7 +18,7 @@ try:
 except ImportError:
     docutils = None
 
-from flickrapi import __version__
+__version__ = '2.0-beta0'
 
 # This will be set to True when either the documentation is already
 # there, or if we can build it.
@@ -31,7 +33,7 @@ class OurDistribution(Distribution):
         '''
 
         if command == 'install_data' and docutils:
-            print 'creating doc/index.html'
+            print('creating doc/index.html')
             docutils.core.publish_file(writer_name='html',
                     source=open('doc/index.rst'),
                     source_path='doc',
@@ -45,8 +47,8 @@ class OurDistribution(Distribution):
 data = {
     'name': 'flickrapi', 
     'version': __version__, 
-    'author': 'Beej Jorgensen and Sybren A. Stuvel',
-    'author_email': 'beej@beej.us', 
+    'author': 'Sybren A. Stuvel',
+    'author_email': 'sybren@stuvel.eu', 
     'maintainer': 'Sybren A. Stuvel',
     'maintainer_email': 'sybren@stuvel.eu',
     'url': 'http://stuvel.eu/projects/flickrapi',
@@ -68,8 +70,9 @@ data = {
         'Topic :: Multimedia :: Graphics',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    'install_require': [
-        'oauth2>=oauth2 1.5.211',
+    'install_requires': [
+        'requests==0.14.1', # 0.14.2 has a bug and won't install on Python 3.2
+        'six>=1.2.0'
     ],
     'extras_require': {
         'ElementTree':  ["elementtree>=1.2.6"],
@@ -96,11 +99,11 @@ if docutils or all(os.path.exists(doc) for doc in alldocs):
     data['data_files'].append(('share/doc/flickrapi-%s' % __version__, alldocs))
     documentation_available = True
 else:
-    print "======================================================================="
-    print "WARNING: Unable to import docutils, documentation will not be included"
-    print "Documentation for the latest version can be found at"
-    print "http://flickrapi.sourceforge.net/documentation"
-    print "======================================================================="
-    print
+    print("=======================================================================")
+    print("WARNING: Unable to import docutils, documentation will not be included")
+    print("Documentation for the latest version can be found at")
+    print("http://stuvel.eu/media/flickrapi-docs/documentation/")
+    print("=======================================================================")
+    print()
 
 setup(**data)
