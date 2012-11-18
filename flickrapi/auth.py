@@ -5,7 +5,6 @@ import BaseHTTPServer
 import logging
 import random
 import urlparse
-import time
 import os.path
 import sys
 import webbrowser
@@ -81,6 +80,13 @@ class FlickrAccessToken(object):
     '''
     
     def __init__(self, token, token_secret, fullname, username, user_nsid):
+        
+        assert isinstance(token, six.text_type), 'token should be unicode text'
+        assert isinstance(token_secret, six.text_type), 'token_secret should be unicode text'
+        assert isinstance(fullname, six.text_type), 'fullname should be unicode text'
+        assert isinstance(username, six.text_type), 'username should be unicode text'
+        assert isinstance(user_nsid, six.text_type), 'user_nsid should be unicode text'
+        
         self.token = token
         self.token_secret = token_secret
         self.fullname = fullname
@@ -106,14 +112,13 @@ class OAuthFlickrInterface(object):
     ACCESS_TOKEN_URL = "http://www.flickr.com/services/oauth/access_token"
 
     
-    def __init__(self, api_key, api_secret, cache_dir=None):
+    def __init__(self, api_key, api_secret):
         self.log = logging.getLogger('{}.{}'.format(__name__, self.__class__.__name__))
 
         assert isinstance(api_key, six.text_type), 'api_key must be unicode string'
         assert isinstance(api_secret, six.text_type), 'api_secret must be unicode string'
 
         self.oauth = OAuth1(api_key, api_secret, signature_type='query')
-        self.cache_dir = cache_dir
         self.oauth_token = None
         self.auth_http_server = None
 
@@ -187,7 +192,11 @@ class OAuthFlickrInterface(object):
         
         @param oauth_callback: the URL the user is sent to after granting the token access.
             If the callback is None, a local web server is started on a random port, and the
-            callback will be http://localhost:randomport/ 
+            callback will be http://localhost:randomport/
+            
+            If you do not have a web-app and you also do not want to start a local web server,
+            pass oauth_callback='oob' and have your application accept the verifier from the
+            user instead. 
         '''
         
         if oauth_callback is None:

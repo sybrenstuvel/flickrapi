@@ -101,6 +101,24 @@ def require_format(required_format):
         return decorated
     return decorator
 
+def authenticator(method):
+    '''Method wrapper, assumed the wrapped method has a 'perms' parameter.
+    
+    Only calls the wrapped method if the token cache doesn't contain a valid token.
+    '''
+    
+    @functools.wraps(method)
+    def decorated(self, *args, **kwargs):
+        
+        assert isinstance(self, FlickrAPI)
+        token = self.token_cache.token
+        if not token:
+            method(self, *args, **kwargs)
+    
+    return decorated
+    
+    
+
 class FlickrAPI(object):
     """Encapsulates Flickr functionality.
     
@@ -168,7 +186,7 @@ class FlickrAPI(object):
             self.token_cache = tokencache.SimpleTokenCache()
         else:
             # Use a real token cache
-            self.token_cache = tokencache.OAuthTokenCache(api_key, username)
+            self.token_cache = tokencache.OAuthTokenCache(api_key, username or '')
 
         # TODO: what to do with cache now we use OAuth?
 #        if cache:
@@ -533,6 +551,7 @@ class FlickrAPI(object):
 #
 #        return response.read()
 
+    @authenticator
     def authenticate_console(self, perms='read'):
         '''Performs the authentication/authorization, assuming a console program.
 
@@ -548,8 +567,10 @@ class FlickrAPI(object):
         print()
 
         self.flickr_oauth.verifier = self.auth_http_server.wait_for_oauth_verifier()
-        self.flickr_oauth.get_access_token()
+        token = self.flickr_oauth.get_access_token()
+        self.token_cache.token = token
 
+    @authenticator
     def authenticate_via_browser(self, perms='read'):
         '''Performs the authentication/authorization, assuming a console program.
 
@@ -558,7 +579,8 @@ class FlickrAPI(object):
 
         self.flickr_oauth.get_request_token()
         self.flickr_oauth.auth_via_browser(perms=perms)
-        self.flickr_oauth.get_access_token()
+        token = self.flickr_oauth.get_access_token()
+        self.token_cache.token = token
 
     @require_format('etree')
     def data_walker(self, method, searchstring='*/photo', **params):

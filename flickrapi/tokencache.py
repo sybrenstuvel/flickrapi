@@ -19,12 +19,24 @@ class SimpleTokenCache(object):
     '''In-memory token cache.'''
     
     def __init__(self):
+        self._token = None
+    
+    @property
+    def token(self):
+        return self._token
+    
+    @token.setter
+    def token(self, token):
+        self.token = token
+    
+    @token.deleter
+    def token(self):
         self.token = None
-
+        
     def forget(self):
         '''Removes the cached token'''
 
-        self.token = None
+        del self.token
 
 class TokenCache(object):
     '''On-disk persistent token cache for a single application.
@@ -111,6 +123,8 @@ class OAuthTokenCache(object):
     def __init__(self, api_key, lookup_key=''):
         '''Creates a new token cache instance'''
         
+        assert lookup_key is not None
+        
         self.api_key = api_key
         self.lookup_key = lookup_key
         self.path = os.path.expanduser(os.path.join("~", ".flickr"))
@@ -183,8 +197,9 @@ class OAuthTokenCache(object):
         curs.execute('''INSERT OR REPLACE INTO oauth_tokens
             (api_key, lookup_key, oauth_token, oauth_token_secret, fullname, username, user_nsid)
             values (?, ?, ?, ?, ?, ?, ?)''',
-            (self.api_key, self.lookup_key, token.key, token.secret, token.fullname, token.username,
-             token.user_nsid)
+            (self.api_key, self.lookup_key,
+             token.token, token.token_secret,
+             token.fullname, token.username, token.user_nsid)
         )
         db.commit()
 
