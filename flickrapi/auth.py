@@ -115,6 +115,7 @@ class OAuthFlickrInterface(object):
         self.oauth = OAuth1(api_key, api_secret, signature_type='query')
         self.cache_dir = cache_dir
         self.oauth_token = None
+        self.auth_http_server = None
 
     @property
     def key(self):
@@ -166,14 +167,32 @@ class OAuthFlickrInterface(object):
         
         return {key: value.decode('utf-8') for key, value in urlparse.parse_qsl(data)}
 
-    def get_request_token(self, oauth_callback):
+    def _start_http_server(self):
+        '''Starts the HTTP server, if it wasn't started already.'''
+        
+        if self.auth_http_server is not None: return
+        self.auth_http_server = OAuthTokenHTTPServer()
+
+    def _stop_http_server(self):
+        '''Stops the HTTP server, if one was started.'''
+        
+        if self.auth_http_server is None: return
+        self.auth_http_server = None
+
+    def get_request_token(self, oauth_callback=None):
         '''Requests a new request token.
         
         Updates this OAuthFlickrInterface object to use the request token on the following
         authentication calls.
         
         @param oauth_callback: the URL the user is sent to after granting the token access.
+            If the callback is None, a local web server is started on a random port, and the
+            callback will be http://localhost:randomport/ 
         '''
+        
+        if oauth_callback is None:
+            self._start_http_server()
+            oauth_callback = self.auth_http_server.oauth_callback_url
         
         params = {
             'oauth_callback': oauth_callback,
@@ -207,7 +226,7 @@ class OAuthFlickrInterface(object):
         
         return "%s?oauth_token=%s&perms=read" % (self.AUTHORIZE_URL, self.oauth.client.resource_owner_key)
 
-    def open_browser_for_authentication(self, perms='read'):
+    def auth_via_browser(self, perms='read'):
         '''Opens the webbrowser to authenticate the given request request_token, sets the verifier.
         
         Use this method in stand-alone apps. In webapps, use auth_url(...) instead,
@@ -216,14 +235,18 @@ class OAuthFlickrInterface(object):
         Updates the given request_token by setting the OAuth verifier.
         '''
         
-        url = self.auth_url(perms)
+        # The HTTP server may have been started already, but we're not sure. Just start
+        # it if it needs to be started.
+        self._start_http_server()
         
-        auth_http_server = OAuthTokenHTTPServer()
-                
+        url = self.auth_url(perms)
         if not webbrowser.open_new_tab(url):
             raise exceptions.FlickrError('Unable to open a browser to visit %s' % url)
         
-        self.verifier = auth_http_server.wait_for_oauth_verifier()
+        self.verifier = self.auth_http_server.wait_for_oauth_verifier()
+
+        # We're now done with the HTTP server, so close it down again.
+        self._stop_http_server()
         
     def get_access_token(self):
         '''Exchanges the request token for an access token.
