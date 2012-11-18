@@ -4,10 +4,9 @@ This module contains most of the FlickrAPI code. It is well tested and
 documented.
 '''
 
-import gzip
+from __future__ import print_function
+
 import logging
-import os
-import webbrowser
 import six
 import functools
 
@@ -358,7 +357,6 @@ class FlickrAPI(object):
         return parser(self, data)
 
     
-
 #    def __extract_upload_response_format(self, kwargs):
 #        '''Returns the response format given in kwargs['format'], or
 #        the default format if there is no such key.
@@ -535,162 +533,32 @@ class FlickrAPI(object):
 #
 #        return response.read()
 
-    def validate_frob(self, frob, perms):
-        '''Lets the user validate the frob by launching a browser to
-        the Flickr website.
-        '''
-        
-        auth_url = self.auth_url(perms, frob)
-        try:
-            browser = webbrowser.get()
-        except webbrowser.Error:
-            if 'BROWSER' not in os.environ:
-                raise
-            browser = webbrowser.GenericBrowser(os.environ['BROWSER'])
+    def authenticate_console(self, perms='read'):
+        '''Performs the authentication/authorization, assuming a console program.
 
-        browser.open(auth_url, True, True)
-        
-    def get_token_part_one(self, perms="read", auth_callback=None):
-        """Get a token either from the cache, or make a new one from
-        the frob.
-        
-        This first attempts to find a token in the user's token cache
-        on disk. If that token is present and valid, it is returned by
-        the method.
-        
-        If that fails (or if the token is no longer valid based on
-        flickr.auth.checkToken) a new frob is acquired. If an auth_callback 
-        method has been specified it will be called. Otherwise the frob is
-        validated by having the user log into flickr (with a browser).
-        
-        To get a proper token, follow these steps:
-            - Store the result value of this method call
-            - Give the user a way to signal the program that he/she
-              has authorized it, for example show a button that can be
-              pressed.
-            - Wait for the user to signal the program that the
-              authorization was performed, but only if there was no
-              cached token.
-            - Call flickrapi.get_token_part_two(...) and pass it the
-              result value you stored.
-        
-        The newly minted token is then cached locally for the next
-        run.
-        
-        perms
-            "read", "write", or "delete"
-        auth_callback
-            method to be called if authorization is needed. When not
-            passed, ``self.validate_frob(...)`` is called. You can
-            call this method yourself from the callback method too.
-
-            If authorization should be blocked, pass
-            ``auth_callback=False``.
-      
-            The auth_callback method should take ``(frob, perms)`` as
-            parameters.
-                                   
-        An example::
-        
-            (token, frob) = flickr.get_token_part_one(perms='write')
-            if not token: raw_input("Press ENTER after you authorized this program")
-            flickr.get_token_part_two((token, frob))
-
-        Also take a look at ``authenticate_console(perms)``.
-        """
-
-        # Check our auth_callback parameter for correctness before we
-        # do anything
-        authenticate = self.validate_frob
-        if auth_callback is not None:
-            if hasattr(auth_callback, '__call__'):
-                # use the provided callback function
-                authenticate = auth_callback
-            elif auth_callback is False:
-                authenticate = None
-            else:
-                # Any non-callable non-False value is invalid
-                raise ValueError('Invalid value for auth_callback: %s'
-                        % auth_callback)
-
-        
-        # see if we have a saved token
-        token = self.token_cache.token
-        frob = None
-
-        # see if it's valid
-        if token:
-            LOG.debug("Trying cached token '%s'" % token)
-            try:
-                rsp = self.auth_checkToken(auth_token=token, format='xmlnode')
-
-                # see if we have enough permissions
-                tokenPerms = rsp.auth[0].perms[0].text
-                if tokenPerms == "read" and perms != "read": token = None
-                elif tokenPerms == "write" and perms == "delete": token = None
-            except FlickrError:
-                LOG.debug("Cached token invalid")
-                self.token_cache.forget()
-                token = None
-
-        # get a new token if we need one
-        if not token:
-            # If we can't authenticate, it's all over.
-            if not authenticate:
-                raise FlickrError('Authentication required but '
-                        'blocked using auth_callback=False')
-
-            # get the frob
-            LOG.debug("Getting frob for new token")
-            rsp = self.auth_getFrob(auth_token=None, format='xmlnode')
-
-            frob = rsp.frob[0].text
-            authenticate(frob, perms)
-
-        return (token, frob)
-        
-    def get_token_part_two(self, (token, frob)):
-        """Part two of getting a token, see ``get_token_part_one(...)`` for details."""
-
-        # If a valid token was obtained in the past, we're done
-        if token:
-            LOG.debug("get_token_part_two: no need, token already there")
-            self.token_cache.token = token
-            return token
-        
-        LOG.debug("get_token_part_two: getting a new token for frob '%s'" % frob)
-
-        return self.get_token(frob)
-    
-    def get_token(self, frob):
-        '''Gets the token given a certain frob. Used by ``get_token_part_two`` and
-        by the web authentication method.
-        '''
-        
-        # get a token
-        rsp = self.auth_getToken(frob=frob, auth_token=None, format='xmlnode')
-
-        token = rsp.auth[0].token[0].text
-        LOG.debug("get_token: new token '%s'" % token)
-        
-        # store the auth info for next time
-        self.token_cache.token = token
-
-        return token
-
-    def authenticate_console(self, perms='read', auth_callback=None):
-        '''Performs the authentication, assuming a console program.
-
-        Gets the token, if needed starts the browser and waits for the user to
-        press ENTER before continuing.
-
-        See ``get_token_part_one(...)`` for an explanation of the
-        parameters.
+        Shows the URL the user should visit on stdout, then waits for the user to authorize
+        the program.
         '''
 
-        (token, frob) = self.get_token_part_one(perms, auth_callback)
-        if not token: raw_input("Press ENTER after you authorized this program")
-        self.get_token_part_two((token, frob))
+        self.flickr_oauth.get_request_token()
+        authorize_url = self.flickr_oauth.auth_url(perms=perms)
+
+        print("Go to the following link in your browser to authorize this application:")
+        print(authorize_url)
+        print()
+
+        self.flickr_oauth.verifier = self.auth_http_server.wait_for_oauth_verifier()
+        self.flickr_oauth.get_access_token()
+
+    def authenticate_via_browser(self, perms='read'):
+        '''Performs the authentication/authorization, assuming a console program.
+
+        Starts the browser and waits for the user to authorize the app before continuing.
+        '''
+
+        self.flickr_oauth.get_request_token()
+        self.flickr_oauth.auth_via_browser(perms=perms)
+        self.flickr_oauth.get_access_token()
 
     @require_format('etree')
     def data_walker(self, method, searchstring='*/photo', **params):

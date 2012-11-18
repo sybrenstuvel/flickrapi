@@ -57,7 +57,7 @@ print(120*'=')
 print("Part 1: Obtain request token")
 
 params = {
-    'oauth_callback': "http://localhost:8000/",
+    'oauth_callback': 'oob', #"http://localhost:8000/",
 }
 
 import sys
