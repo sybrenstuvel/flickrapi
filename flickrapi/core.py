@@ -7,9 +7,9 @@ documented.
 import gzip
 import logging
 import os
-import urllib
-import urllib2
 import webbrowser
+import six
+import functools
 
 try: import cStringIO as StringIO
 except ImportError: import StringIO
@@ -18,8 +18,8 @@ except ImportError: import StringIO
 try: from hashlib import md5
 except ImportError: from md5 import md5
 
-from flickrapi.tokencache import TokenCache, SimpleTokenCache, \
-        LockingTokenCache
+from . import tokencache
+
 from flickrapi.xmlnode import XMLNode
 from flickrapi.multipart import Part, Multipart, FilePart
 from flickrapi.exceptions import *
@@ -31,9 +31,9 @@ LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
 
-def make_utf8(dictionary):
-    '''Encodes all Unicode strings in the dictionary to UTF-8. Converts
-    all other objects to regular strings.
+def make_bytes(dictionary):
+    '''Encodes all Unicode strings in the dictionary to UTF-8 bytes. Converts
+    all other objects to regular bytes.
     
     Returns a copy of the dictionary, doesn't touch the original.
     '''
@@ -41,14 +41,14 @@ def make_utf8(dictionary):
     result = {}
 
     for (key, value) in dictionary.iteritems():
-        if isinstance(value, unicode):
+        if isinstance(value, six.text_type):
             value = value.encode('utf-8')
         else:
-            value = str(value)
+            value = six.binary_type(value)
         result[key] = value
     
     return result
-        
+    
 def debug(method):
     '''Method decorator for debugging method calls.
 
@@ -70,13 +70,13 @@ def debug(method):
 # REST parsers, {format: parser_method, ...}. Fill by using the
 # @rest_parser(format) function decorator
 rest_parsers = {}
-def rest_parser(format):
+def rest_parser(parsed_format):
     '''Method decorator, use this to mark a function as the parser for
     REST as returned by Flickr.
     '''
 
     def decorate_parser(method):
-        rest_parsers[format] = method
+        rest_parsers[parsed_format] = method
         return method
 
     return decorate_parser
@@ -87,6 +87,7 @@ def require_format(required_format):
     '''
 
     def decorator(method):
+        @functools.wraps(method)
         def decorated(self, *args, **kwargs):
             # If everything is okay, call the method
             if self.default_format == required_format:
@@ -151,31 +152,30 @@ class FlickrAPI(object):
             >>> f.cache = SimpleCache(timeout=5, max_entries=100)
         """
 
-        # TODO: create the server just before we need it.
-        self.auth_http_server = auth.OAuthTokenHTTPServer()
         self.flickr_oauth = auth.OAuthFlickrInterface(api_key, secret)
 
         self.default_format = format
         
         self._handler_cache = {}
 
-        # TODO: what to do with token now we use OAuth?
         if token:
+            assert isinstance(token, auth.FlickrAccessToken)
+            
             # Use a memory-only token cache
-            self.token_cache = SimpleTokenCache()
+            self.token_cache = tokencache.SimpleTokenCache()
             self.token_cache.token = token
         elif not store_token:
             # Use an empty memory-only token cache
-            self.token_cache = SimpleTokenCache()
+            self.token_cache = tokencache.SimpleTokenCache()
         else:
             # Use a real token cache
-            self.token_cache = TokenCache(api_key, username)
+            self.token_cache = tokencache.OAuthTokenCache(api_key, username)
 
         # TODO: what to do with cache now we use OAuth?
-        if cache:
-            self.cache = SimpleCache()
-        else:
-            self.cache = None
+#        if cache:
+#            self.cache = SimpleCache()
+#        else:
+#            self.cache = None
 
     def __repr__(self):
         '''Returns a string representation of this object.'''
@@ -204,7 +204,7 @@ class FlickrAPI(object):
             return rsp
         
         err = rsp.err[0]
-        raise FlickrError(u'Error: %(code)s: %(msg)s' % err, code=err['code'])
+        raise FlickrError(six.u('Error: %(code)s: %(msg)s') % err, code=err['code'])
 
     @rest_parser('etree')
     def parse_etree(self, rest_xml):
@@ -238,10 +238,18 @@ class FlickrAPI(object):
         
         err = rsp.find('err')
         code = err.attrib.get('code', None)
-        raise FlickrError(u'Error: %(code)s: %(msg)s' % err.attrib, code=code)
+        raise FlickrError(six.u('Error: %(code)s: %(msg)s') % err.attrib, code=code)
 
     def __getattr__(self, method_name):
         '''Returns a CallBuilder for the given method name.'''
+
+        # Refuse to do anything with special methods
+        if method_name.startswith('_'):
+            raise AttributeError(method_name)
+        
+        # Compatibility with old way of calling, i.e. flickrobj.photos_getInfo(...)
+        if '_' in method_name:
+            method_name = method_name.replace('_', '.')
 
         return CallBuilder(self, method_name='flickr.' + method_name)
 
@@ -250,7 +258,6 @@ class FlickrAPI(object):
         
         Example::
 
-            flickr.auth.getFrob(api_key="AAAAAA")
             etree = flickr.photos.getInfo(photo_id='1234')
             etree = flickr.photos.getInfo(photo_id='1234', format='etree')
             xmlnode = flickr.photos.getInfo(photo_id='1234', format='xmlnode')
@@ -265,8 +272,11 @@ class FlickrAPI(object):
                     'format': self.default_format}
         params = self._supply_defaults(params, defaults)
 
+        LOG.info('Calling %s', defaults)
+
         return self._wrap_in_parser(self._flickr_call,
-                    parse_format=params['format'], **params)
+                                    parse_format=params['format'],
+                                    **params)
 
     def _supply_defaults(self, args, defaults):
         '''Returns a new dictionary containing ``args``, augmented with defaults
@@ -291,7 +301,7 @@ class FlickrAPI(object):
         for key, value in result.copy().iteritems():
             # You are able to remove a default by assigning None, and we can't
             # pass None to Flickr anyway.
-            if result[key] is None:
+            if value is None:
                 del result[key]
         
         return result
@@ -309,15 +319,16 @@ class FlickrAPI(object):
         LOG.debug("Calling %s" % kwargs)
 
         # Return value from cache if available
-        if self.cache and self.cache.get(post_data):
-            return self.cache.get(post_data)
+        # TODO: handle caching
+#        if self.cache and self.cache.get(post_data):
+#            return self.cache.get(post_data)
 
-        # TODO: parameterize URL
         reply = self.flickr_oauth.do_request('http://api.flickr.com/services/rest/', kwargs)
 
         # Store in cache, if we have one
-        if self.cache is not None:
-            self.cache.set(post_data, reply)
+        # TODO: handle caching
+#        if self.cache is not None:
+#            self.cache.set(post_data, reply)
 
         return reply
 
@@ -346,8 +357,7 @@ class FlickrAPI(object):
         parser = rest_parsers[parse_format]
         return parser(self, data)
 
-    def auth_url(self, perms, frob):
-        """Return the authorization URL to get a token.
+    
 
 #    def __extract_upload_response_format(self, kwargs):
 #        '''Returns the response format given in kwargs['format'], or
