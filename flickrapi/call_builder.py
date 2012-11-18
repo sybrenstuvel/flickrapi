@@ -2,11 +2,17 @@
 class CallBuilder(object):
     '''Builds a method name for FlickrAPI calls.
 
-    >>> c = CallBuilder()
+    >>> class Faker(object):
+    ...     def do_flickr_call(self, method_name, **kwargs):
+    ...         print('%s(%s)' % (method_name, kwargs))
+    ...
+    >>> c = CallBuilder(Faker())
     >>> c.photos
     CallBuilder('flickr.photos')
     >>> c.photos.getInfo
     CallBuilder('flickr.photos.getInfo')
+    >>> c.photos.getInfo(photo_id='1234')
+    flickr.photos.getInfo({'photo_id': '1234'})
 
     '''
 
@@ -34,5 +40,10 @@ if __name__ == '__main__':
     import doctest
     doctest.testmod()
 
-    c = CallBuilder('flickr')
+    class Faker(object):
+        def do_flickr_call(self, method_name, **kwargs):
+            print('%s(%s)' % (method_name, kwargs))
+
+    c = CallBuilder(Faker())
     c.photos.getInfo(photo_id='1234')
+    c.je.moeder.heeft.een.moeder(photo_id='1234')
