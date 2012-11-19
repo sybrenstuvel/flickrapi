@@ -110,10 +110,27 @@ def authenticator(method):
             perms = 'read'
         
         token = self.token_cache.token
-        if token and token.has_level(perms):
+        if token:
+            # Check token for validity
             self.flickr_oauth.token = token
-            return
-        
+            try:
+                resp = self.auth.oauth.checkToken(format='etree')
+                token_perms = resp.findtext('oauth/perms')
+                if token_perms == token.access_level and token.has_level(perms):
+                    # Token is valid, and for the expected permissions, so no
+                    # need to continue authentication.
+                    return
+                else:
+                    # Token was for other permissions, so erase it as it is
+                    # not usable for this request.
+                    self.flickr_oauth.token = None
+                    del self.token_cache.token
+            except FlickrError:
+                # There was an error talking to Flickr, we assume this is due
+                # to an invalid token.
+                self.flickr_oauth.token = None
+                del self.token_cache.token
+                    
         method(self, *args, **kwargs)
     
     return decorated

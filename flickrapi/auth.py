@@ -59,13 +59,16 @@ class OAuthTokenHTTPServer(BaseHTTPServer.HTTPServer):
         
         return local_addr
     
-    def wait_for_oauth_verifier(self):
+    def wait_for_oauth_verifier(self, timeout=None):
         '''Starts the HTTP server, waits for the OAuth verifier.'''
             
-        while self.oauth_verifier is None:
+        if self.oauth_verifier is None:
+            self.timeout = timeout
             self.handle_request()
     
-        self.log.info('OAuth verifier: %s' % self.oauth_verifier)
+        if self.oauth_verifier:
+            self.log.info('OAuth verifier: %s' % self.oauth_verifier)
+
         return self.oauth_verifier
 
     @property
@@ -159,7 +162,16 @@ class OAuthFlickrInterface(object):
     
     @token.setter
     def token(self, new_token):
-        assert isinstance(new_token, FlickrAccessToken)
+        
+        if new_token is None:
+            self.oauth_token = None
+            self.oauth.client.resource_owner_key = None
+            self.oauth.client.resource_owner_secret = None
+            self.oauth.client.verifier = None
+            self.requested_permissions = None
+            return
+
+        assert isinstance(new_token, FlickrAccessToken), new_token
         
         self.oauth_token = new_token
         
