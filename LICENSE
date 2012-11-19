@@ -1,8 +1,7 @@
-Copyright (c) 2007 by the respective coders, see
-http://www.stuvel.eu/projects/flickrapi
+Copyright (c) 2012, Sybren A. Stüvel <sybren@stuvel.eu>
 
 This code is subject to the Python licence, as can be read on
-http://www.python.org/download/releases/2.5.2/license/
+http://www.python.org/download/releases/3.3.0/license/
 
 For those without an internet connection, here is a summary. When this
 summary clashes with the Python licence, the latter will be applied.
