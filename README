@@ -13,11 +13,8 @@ To install the latest version from PyPi:
 
     pip install flickrapi
 
-For development, install nose, pymock and setuptools-hg using::
+For development, install extra dependencies using::
     
     pip install -r requirements.txt 
 
 then run ``nosetest`` in the top-level directory.
-
-Packaging requires ``pip install setuptools-hg``
-
