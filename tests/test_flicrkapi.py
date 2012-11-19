@@ -7,20 +7,15 @@ Far from complete, but it's a start.
 
 import logging
 import pkg_resources
-import StringIO
 import sys
 import types
 import unittest
 import urllib
-import urllib2
-import httplib
-import webbrowser
 
 # Make sure the flickrapi module from the source distribution is used
 sys.path.insert(0, '..')
 
 import flickrapi
-import flickrapi.contrib
 flickrapi.set_log_level(logging.FATAL)
 #flickrapi.set_log_level(logging.DEBUG)
 
@@ -162,13 +157,12 @@ class FlickrApiTest(SuperTest):
     def test_upload(self):
         photo = pkg_resources.resource_filename(__name__, 'photo.jpg')
 
-        flickr = self.clasz(key, secret, username='unittest-upload')
-        flickr.authenticate_via_browser(perms='delete')
-        result = flickr.upload(photo, is_public=0, is_friend=0, is_family=0, content_type=2)
+        self.f.authenticate_via_browser(perms='delete')
+        result = self.f.upload(photo, is_public=0, is_friend=0, is_family=0, content_type=2)
 
         # Now remove the photo from the stream again
         photo_id = result.find('photoid').text
-        flickr.photos.delete(photo_id=photo_id)
+        self.f.photos.delete(photo_id=photo_id)
 
     def test_store_token(self):
         '''Tests that store_token=False FlickrAPI uses SimpleTokenCache'''
