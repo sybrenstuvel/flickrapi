@@ -109,28 +109,11 @@ def authenticator(method):
         else:
             perms = 'read'
         
-        token = self.token_cache.token
-        if token:
-            # Check token for validity
-            self.flickr_oauth.token = token
-            try:
-                resp = self.auth.oauth.checkToken(format='etree')
-                token_perms = resp.findtext('oauth/perms')
-                if token_perms == token.access_level and token.has_level(perms):
-                    # Token is valid, and for the expected permissions, so no
-                    # need to continue authentication.
-                    return
-                else:
-                    # Token was for other permissions, so erase it as it is
-                    # not usable for this request.
-                    self.flickr_oauth.token = None
-                    del self.token_cache.token
-            except FlickrError:
-                # There was an error talking to Flickr, we assume this is due
-                # to an invalid token.
-                self.flickr_oauth.token = None
-                del self.token_cache.token
-                    
+        if self.token_valid(perms=perms):
+            # Token is valid, and for the expected permissions, so no
+            # need to continue authentication.
+            return
+        
         method(self, *args, **kwargs)
     
     return decorated
@@ -497,7 +480,42 @@ class FlickrAPI(object):
         return self._wrap_in_parser(self.flickr_oauth.do_upload, response_format,
                                     filename, form_url, kwargs)
     
+    def token_valid(self, perms='read'):
+        '''Verifies the cached token with Flickr.
+        
+        If the token turns out to be invalid, or with permissions lower than required,
+        the token is erased from the token cache.
+        
+        @return: True if the token is valid for the requested parameters, False otherwise.
+        '''
+        
+        token = self.token_cache.token
+        
+        if not token:
+            return False
+    
+        # Check token for validity
+        self.flickr_oauth.token = token
+        
+        try:
+            resp = self.auth.oauth.checkToken(format='etree')
+            token_perms = resp.findtext('oauth/perms')
+            if token_perms == token.access_level and token.has_level(perms):
+                # Token is valid, and for the expected permissions.
+                return True
 
+        except FlickrError:
+            # There was an error talking to Flickr, we assume this is due
+            # to an invalid token.
+            pass
+        
+        # Token was for other permissions, so erase it as it is
+        # not usable for this request.
+        self.flickr_oauth.token = None
+        del self.token_cache.token
+
+        return False
+    
     @authenticator
     def authenticate_console(self, perms='read'):
         '''Performs the authentication/authorization, assuming a console program.
@@ -528,6 +546,50 @@ class FlickrAPI(object):
         self.flickr_oauth.auth_via_browser(perms=perms)
         token = self.flickr_oauth.get_access_token()
         self.token_cache.token = token
+
+    def get_request_token(self, oauth_callback=None):
+        '''Requests a new request token.
+        
+        Updates this OAuthFlickrInterface object to use the request token on the following
+        authentication calls.
+        
+        @param oauth_callback: the URL the user is sent to after granting the token access.
+            If the callback is None, a local web server is started on a random port, and the
+            callback will be http://localhost:randomport/
+            
+            If you do not have a web-app and you also do not want to start a local web server,
+            pass oauth_callback='oob' and have your application accept the verifier from the
+            user instead. 
+        '''
+
+        self.flickr_oauth.get_request_token(oauth_callback=oauth_callback)
+
+    def auth_url(self, perms='read'):
+        '''Returns the URL the user should visit to authenticate the given oauth Token.
+        
+        Use this method in webapps, where you can redirect the user to the returned URL.
+        After authorization by the user, the browser is redirected to the callback URL,
+        which will contain the OAuth verifier. Set the 'verifier' property on this object
+        in order to use it.
+        
+        In stand-alone apps, authenticate_via_browser(...) may be easier instead.
+        '''
+        
+        return self.flickr_oauth.auth_url(perms=perms)
+
+    def get_access_token(self, verifier=None):
+        '''Exchanges the request token for an access token.
+
+        Also stores the access token for easy authentication of subsequent calls.
+        
+        @param verifier: the verifier code, in case you used out-of-band communication
+            of the verifier code.
+        '''
+
+        if verifier is not None:
+            self.flickr_oauth.verifier = verifier
+
+        self.token_cache.token = self.flickr_oauth.get_access_token()
 
     @require_format('etree')
     def data_walker(self, method, searchstring='*/photo', **params):

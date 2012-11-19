@@ -359,4 +359,3 @@ class OAuthFlickrInterface(object):
         
         return self.oauth_token
 
-        

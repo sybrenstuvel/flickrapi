@@ -1,70 +1,93 @@
 
-Authentication
+Authentication and Authorization
 ======================================================================
 
-Her photos may be private. Access to her account is private for sure.
-A lot of Flickr API calls require the application to be authenticated.
+For authentication and authorization Flickr uses
+`OAuth 1.0a <http://oauth.net/core/1.0a/>`_. This ensures that in one
+flow, the user is authenticated via the Flickr website, and the application
+is authorized by the user to act in its name.
+
+The user's photos may be private. Access to her account is private for sure.
+A lot of Flickr API calls require the application to be authorized.
 This means that the user has to tell Flickr that the application is
 allowed to do whatever it needs to do.
 
 The Flickr document `User Authentication`_ explains the authentication
-process; it's good to know what's in there before you go on.
+process; it's good to know what's in there before you go on. The Python
+Flickr API takes care of most of the OAuth details, but still it is
+important to know the authentication flow.
 
-The document states "The auth_token and api_sig parameters should then
-be passed along with each request". You do *not* have to do this - the
-Python Flickr API takes care of that.
-
-Here is a simple example of Flickr's two-phase authentication::
+Here is a simple example::
 
     import flickrapi
 
-    api_key = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-    api_secret = 'YYYYYYYYYYYYYYYY'
+    api_key = u'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+    api_secret = u'YYYYYYYYYYYYYYYY'
 
     flickr = flickrapi.FlickrAPI(api_key, api_secret)
-
-    (token, frob) = flickr.get_token_part_one(perms='write')
-    if not token: raw_input("Press ENTER after you authorized this program")
-    flickr.get_token_part_two((token, frob))
+    flickr.authenticate_via_browser(perms='read')
 
 The ``api_key`` and ``api_secret`` can be obtained from
 http://www.flickr.com/services/api/keys/.
 
-The call to ``flickr.get_token_part_one(...)`` does a lot of things.
+The call to ``flickr.authenticate_via_browser(...)`` does a lot of things.
 First, it checks the on-disk token cache. After all, the application
-may be authenticated already. 
+may be authenticated already. If a token is found, it is checked with
+Flickr for validity. If it is valid, it is used for all
+following calls and the authentication process is complete.
 
-If the application isn't authenticated, a browser opens the Flickr
+If the application isn't authenticated yet, a browser opens the Flickr
 page, on which the user can grant the application the appropriate
-access. The application has to wait for the user to do this, hence the
-``raw_input("Press ENTER after you authorized this program")``. A GUI
-application can use a popup for this, or some other way for the user
-to indicate she has performed the authentication ritual.
-
-Once this step is done, we can continue to store the token in the
-cache and remember it for future API calls. This is what
-``flickr.get_token_part_two(...)`` does.
-
+access. When the user presses the "OK, I'LL AUTHORIZE IT" button, the
+browser will be redirected to a local web server to pass a
+verification code to the application. When this code has been received,
+the token is stored in the token cache and the authentication process is complete.
 
 .. _`User Authentication`: http://www.flickr.com/services/api/auth.oauth.html
 
-Authentication callback
+Authenticating without local web server
 ----------------------------------------------------------------------
 
 By default a webbrowser is started to let the user perform the
-authentication. However, this may not be appropriate or even possible
-in your application. If you want to alter this functionality, use the
-``auth_callback`` parameter when calling ``get_token_part_one(...)``.
-The function will be passed the frob and the requested permission::
+authentication. A local web server is then started to receive the OAuth
+verifier code. Upon authorizing the application the browser is sent to this
+web server, where ``FlickrAPI`` obtains the verifier code.
 
-    def auth(frob, perms):
-        print 'Please give us permission %s' % perms
+However, this may not be appropriate or even possible in your application.
+When a local web server is not used, you can use "out of band" passing of
+the verifier code::
 
-    (token, frob) = flickr.get_token_part_one(perms='write', auth)
+    import flickrapi
+    import webbrowser
 
-Of course this example isn't useful, but it shows how to use the
-callback. If you just want to wrap the browser startup with some code,
-call ``flickr.validate_frob(frob, perms)`` from your callback.
+    api_key = u'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+    api_secret = u'YYYYYYYYYYYYYYYY'
+
+    flickr = flickrapi.FlickrAPI(api_key, api_secret)
+    
+    print('Step 1: authenticate')
+    
+    # Only do this if we don't have a valid token already
+    if not flickr.token_valid(perms='read'):
+    
+        # Get a request token
+        flickr.get_request_token(oauth_callback='oob')
+        
+        # Open a browser at the authentication URL. Do this however
+        # you want, as long as the user visits that URL.
+        authorize_url = flickr.auth_url(perms='read')
+        webbrowser.open_new_tab(authorize_url)
+        
+        # Get the verifier code from the user. Do this however you
+        # want, as long as the user gives the application the code.
+        verifier = unicode(raw_input('Verifier code: '))
+        
+        # Trade the request token for an access token
+        flickr.get_access_token(verifier)
+  
+    print('Step 2: use Flickr')
+    resp = flickr.photos.getInfo(photo_id='7658567128')
+
 
 Authenticating web applications
 ----------------------------------------------------------------------
