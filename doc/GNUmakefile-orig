@@ -13,7 +13,7 @@ apidoc:
 	rm -rf apidoc
 	epydoc --docformat=RestructuredText \
 		   --name FlickrAPI \
-		   --url http://stuvel.eu/projects/flickrapi \
+		   --url http://stuvel.eu/flickrapi \
 		   --show-sourcecode \
 		   --verbose \
 		   -o apidoc \
