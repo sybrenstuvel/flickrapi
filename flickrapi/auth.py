@@ -37,7 +37,7 @@ class OAuthTokenHTTPServer(BaseHTTPServer.HTTPServer):
     
     def __init__(self):
         
-        self.log = logging.getLogger('{}.{}'.format(__name__, self.__class__.__name__))
+        self.log = logging.getLogger('%s.%s' % (self.__class__.__module__, self.__class__.__name__))
         
         self.local_addr = self.listen_port()
         self.log.info('Creating HTTP server at %s', self.local_addr)
@@ -126,8 +126,8 @@ class OAuthFlickrInterface(object):
 
     
     def __init__(self, api_key, api_secret):
-        self.log = logging.getLogger('{}.{}'.format(__name__, self.__class__.__name__))
-
+        self.log = logging.getLogger('%s.%s' % (self.__class__.__module__, self.__class__.__name__))
+        
         assert isinstance(api_key, six.text_type), 'api_key must be unicode string'
         assert isinstance(api_secret, six.text_type), 'api_secret must be unicode string'
 
@@ -220,7 +220,11 @@ class OAuthFlickrInterface(object):
     def parse_oauth_response(data):
         '''Parses the data string as OAuth response, returning it as a dict.'''
         
-        return {key: value.decode('utf-8') for key, value in urlparse.parse_qsl(data)}
+        resp = {}
+        for key, value in urlparse.parse_qsl(data):
+            resp[key] = value.decode('utf-8')
+        
+        return resp
 
     def _start_http_server(self):
         '''Starts the HTTP server, if it wasn't started already.'''
@@ -280,7 +284,7 @@ class OAuthFlickrInterface(object):
         if self.oauth.client.resource_owner_key is None:
             raise FlickrError('No resource owner key set, you probably forgot to call get_request_token(...)')
 
-        if perms not in {'read', 'write', 'delete'}:
+        if perms not in ('read', 'write', 'delete'):
             raise ValueError('Invalid parameter perms=%r' % perms)
         
         self.requested_permissions = perms
