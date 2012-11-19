@@ -15,9 +15,20 @@ allowed to do whatever it needs to do.
 The Flickr document `User Authentication`_ explains the authentication
 process; it's good to know what's in there before you go on. The Python
 Flickr API takes care of most of the OAuth details, but still it is
-important to know the authentication flow.
+important to know the authentication flow. In short:
 
-Here is a simple example::
+ 1. Get a request token from Flickr.
+ 2. Send the user's web browser to Flickr to log in and authorize the
+     application.
+ 3. The browser is redirected to the application's callback URL to
+     pass the application a verification code.
+ 4. Use the verification code to trade the request token for an access
+     token.
+ 5. The access token can be stored by the application, so that future
+     calls don't have to follow these steps.
+
+Here is a simple example that does all the above in one simple call to
+``authenticate_via_browser``::
 
     import flickrapi
 
@@ -28,22 +39,45 @@ Here is a simple example::
     flickr.authenticate_via_browser(perms='read')
 
 The ``api_key`` and ``api_secret`` can be obtained from
-http://www.flickr.com/services/api/keys/.
+http://www.flickr.com/services/api/keys/. Every application should use
+its own key and secret.
 
-The call to ``flickr.authenticate_via_browser(...)`` does a lot of things.
-First, it checks the on-disk token cache. After all, the application
-may be authenticated already. If a token is found, it is checked with
-Flickr for validity. If it is valid, it is used for all
+The call to ``flickr.authenticate_via_browser(...)`` does a lot of
+things.  First, it checks the on-disk token cache. After all, the
+application may be authenticated already. If a token is found, it is
+checked with Flickr for validity. If it is valid, it is used for all
 following calls and the authentication process is complete.
 
 If the application isn't authenticated yet, a browser opens the Flickr
 page, on which the user can grant the application the appropriate
 access. When the user presses the "OK, I'LL AUTHORIZE IT" button, the
-browser will be redirected to a local web server to pass a
-verification code to the application. When this code has been received,
-the token is stored in the token cache and the authentication process is complete.
+browser will be redirected to a callback URL or display a verification
+code. The code is passed then to the application. When this code has
+been received, the token is stored in the token cache and the
+authentication process is complete.
 
 .. _`User Authentication`: http://www.flickr.com/services/api/auth.oauth.html
+
+Non-web applications
+--------------------------------------------------
+
+OAuth was designed for web-based applications. After authorizing the
+application the browser is sent to an papplication-specific callback
+URL with a verification code appended. When your application is not
+web-based, you have two options:
+
+ 1. Use "oob" as the callback URL. Flickr displays the verification
+     code, which the user has to copy-and-paste to your application.
+     This is described in `Authenticating without local web server`_.
+
+ 2. Use Python Flickr API's local webserver. It is only available on
+     the machine the application is running on, and listens on a
+     random port. This is described in the rest of this section.
+
+Python Flickr API uses a local web server by default, and this is by
+far the easiest way to authorize desktop applications.
+
+.. todo:: more explanation; include timeout and GUI examples.
 
 Authenticating without local web server
 ----------------------------------------------------------------------
@@ -94,25 +128,11 @@ Authenticating web applications
 
 When working with web applications, things are a bit different. The
 user using the application (through a browser) is likely to be
-different from the user running the server-side software.
+different from the user running the server-side software. You can pass
+a username to the ``FlickrAPI`` constructor, so that access tokens
+from different users won't be mixed up.
 
-We'll assume you're following Flickr's `Web Applications How-To`_, and
-just tell you how things are splified when working with the Python
-Flickr API.
-
-    3. Create a login link. Use ``flickr.web_login_url(perms)``` for
-       that.  It'll return the login link for you, given the
-       permissions you passed in the ``perms`` parameter.
-
-    5. Don't bother understanding the signing process; the
-       ``FlickrAPI`` module takes care of that for you. Once you
-       received the frob from Flickr, use
-       ``flickr.get_token("the_frob")``. The FlickrAPI module will
-       remember the token for you.
-
-    6. You can safely skip this, and just use the FlickrAPI module as
-       usual. Only read this if you want to understand how the
-       FlickrAPI module signs method calls for you.
+.. todo:: web flow
 
 Token handling in web applications
 ----------------------------------------------------------------------
@@ -124,13 +144,11 @@ means of identification) as the ``username`` parameter to the
 to that user. It will keep track of the authentication token for that
 user, and there's nothing special you'll have to do.
 
-When working with anonymous users, you'll have to store the
-authentication token in a cookie. In step 5. above, use this::
+When working with anonymous users, you'll have to store their access
+token in a cookie.
 
-    token = flickr.get_token("the_frob")
+.. todo:: concrete examples
 
-Then use your web framework to store the token in a cookie. When
-reading a token from a cookie, pass it on to the FlickrAPI constructor
 like this::
 
     flickr = flickrapi.FlickrAPI(api_key, api_secret, token=token)
@@ -147,13 +165,15 @@ since
 Preventing usage of on-disk token cache
 ----------------------------------------------------------------------
 
-Another way of preventing the storage of tokens is to pass
-``store_token=False`` as the constructor parameter. Use this if you
-want to be absolutely sure that the FlickrAPI instance doesn't use any
-previously stored tokens, nor that it will store new tokens.
+If for any reason you want to make sure the access token is not
+stored, pass ``store_token=False`` as constructor parameter. Use this
+if you want to be absolutely sure that the FlickrAPI instance doesn't
+use any previously stored tokens, nor that it will store new tokens.
 
 Controlling the location of the on-disk token cache
 ----------------------------------------------------------------------
+
+.. todo:: allow changing the OAuth token DB location
 
 By default the authentication tokens are stored in the directory
 ``~/.flickr``. If you want to change this directory, you can do so
@@ -175,32 +195,15 @@ the ``FlickrAPI`` instance::
 Multiple processes using the same key
 ----------------------------------------------------------------------
 
-By default the token is stored on the filesystem in
-``somepath/<authentication key>/auth.token``. When multiple
-processes use the same authentication key a race condition can occur
-where the authentication token is removed. To circumvent this, use the
-``LockingTokenCache`` instead::
-
-    from flickrapi import FlickrAPI
-    from flickrapi.tokencache import LockingTokenCache
-    
-    flickr = flickrapi.FlickrAPI(api_key, secret)
-    
-    flickr.token_cache = LockingTokenCache(api_key)
-    # -- or --
-    flickr.token_cache = LockingTokenCache(api_key, username)
-
-This cache ensures that only one process at the time can use the token
-cache. It does not forsee in multi-threading.
-
-As the locking mechanism causes additional disk I/O and performs more
-checks, it is slower than the regular cache. Since not that many
-people use the same key in parallel on one machine (or a shared
-filesystem on which the token is stored) the default token cache does
-not use locking.
+The token database uses SQLite3, so it should be safe to access using
+mutiple processes at the same time.
 
 Example using Django
 ----------------------------------------------------------------------
+
+.. todo:: Update this example.
+
+.. todo:: add an example using Flask, as it's smaller and simpler.
 
 Here is a simple example in `Django <https://www.djangoproject.com/>`_::
 
@@ -277,3 +280,4 @@ The ``callback`` view should be called when the user is sent to the
 callback URL as defined in your Flickr API key. The key and secret
 should be configured in your settings.py, in the properties
 ``FLICKR_API_KEY`` and ``FLICKR_API_SECRET``.
+

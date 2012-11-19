@@ -13,13 +13,17 @@ https://bitbucket.org/sybren/flickrapi/issues?status=new&status=open
 Authentication has been re-written to use OAuth. See the documentation
 on how to use this. Some results are:
   
-    - The token cache is now based on SQLite3, and contains not only the
-      authentication tokens, but also the user's full name, username
-      and NSID.
+    - You always have to pass both the API key and secret. In 1.x you
+      could choose to pass only the API key, but this no longer works
+      with OAuth.
 
-    - For non-web applications, a local HTTP server is started to receive
-      the verification code. This means that the user does not have to copy
-      and paste the verification code to the application.
+    - The token cache is now based on SQLite3, and contains not only
+      the authentication tokens, but also the user's full name,
+      username and NSID.
+
+    - For non-web applications, a local HTTP server is started to
+      receive the verification code. This means that the user does not
+      have to copy and paste the verification code to the application.
 
     - The authentication callback functionality is gone. I'm not sure
       how many people still need this now that we've moved to OAuth.
@@ -30,7 +34,7 @@ on how to use this. Some results are:
 
     - Persistent connections have been dropped.
 
-Flickr functions can be called with dotted notation. For example:
+Flickr functions can be called with dotted notation. For example::
     
     flickr.photos_getInfo(photo_id='123') now becomes:
     flickr.photos.getInfo(photo_id='123')
