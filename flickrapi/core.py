@@ -10,13 +10,6 @@ import logging
 import six
 import functools
 
-try: import cStringIO as StringIO
-except ImportError: import StringIO
-
-# Smartly import hashlib and fall back on md5
-try: from hashlib import md5
-except ImportError: from md5 import md5
-
 from . import tokencache, auth
 
 from flickrapi.xmlnode import XMLNode
@@ -200,11 +193,10 @@ class FlickrAPI(object):
             # Use a real token cache
             self.token_cache = tokencache.OAuthTokenCache(api_key, username or '')
 
-        # TODO: what to do with cache now we use OAuth?
-#        if cache:
-#            self.cache = SimpleCache()
-#        else:
-#            self.cache = None
+        if cache:
+            self.cache = SimpleCache()
+        else:
+            self.cache = None
 
     def __repr__(self):
         '''Returns a string representation of this object.'''
@@ -342,16 +334,14 @@ class FlickrAPI(object):
         LOG.debug("Calling %s" % kwargs)
 
         # Return value from cache if available
-        # TODO: handle caching
-#        if self.cache and self.cache.get(post_data):
-#            return self.cache.get(post_data)
+        if self.cache and self.cache.get(kwargs):
+            return self.cache.get(kwargs)
 
         reply = self.flickr_oauth.do_request(self.REST_URL, kwargs)
 
         # Store in cache, if we have one
-        # TODO: handle caching
-#        if self.cache is not None:
-#            self.cache.set(post_data, reply)
+        if self.cache is not None:
+            self.cache.set(kwargs, reply)
 
         return reply
 
