@@ -18,13 +18,18 @@ flickr.authenticate_via_browser(perms='delete')
 
 # ------------------------------------------------------------------------------
 print('Step 2: Upload photo')
-resp = flickr.upload('tests/photo.jpg')
+resp = flickr.upload('tests/photo.jpg', is_public=0, is_friend=0, is_family=0)
 
 from xml.etree import ElementTree as ET
 ET.dump(resp)
+photo_id = resp.findtext('photoid')
 
 # ------------------------------------------------------------------------------
-print('Step 3: Delete photo')
+print('Step 3: Replace photo')
 
-photo_id = resp.findtext('photoid')
+flickr.replace('Vanaf NDSM naar Centrum - begin oktober 2011.jpg', photo_id=photo_id)
+
+
+# ------------------------------------------------------------------------------
+print('Step 4: Delete photo')
 flickr.photos.delete(photo_id=photo_id)
