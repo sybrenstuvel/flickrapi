@@ -8,14 +8,13 @@ import urlparse
 import os.path
 import sys
 import webbrowser
+import six
 
 import requests
 from requests.auth import OAuth1
 
-
-from flickrapi import sockutil, exceptions
-import six
-from flickrapi.exceptions import FlickrError
+from . import sockutil, exceptions, html
+from .exceptions import FlickrError
 
 class OAuthTokenHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -28,10 +27,10 @@ class OAuthTokenHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.server.oauth_verifier = url_vars['oauth_verifier'][0].decode('utf-8')
 
         self.send_response(200)
-        self.send_header('Content-type', 'text/plain')
+        self.send_header('Content-type', 'text/html')
         self.end_headers()
 
-        self.wfile.write('OK')
+        self.wfile.write(html.auth_okay_html)
 
 class OAuthTokenHTTPServer(BaseHTTPServer.HTTPServer):
     '''HTTP server on a random port, which will receive the OAuth verifier.'''
