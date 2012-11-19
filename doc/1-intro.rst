@@ -50,6 +50,12 @@ Installation from source is done using::
 
  python setup.py install
 
+Developers of the Python Flickr API code (that is, people working on the
+library code, rather than using the library) can install development
+dependencies using::
+
+ pip install -r requirements.txt
+
 
 Requirements and compatibility
 ----------------------------------------------------------------------
@@ -60,9 +66,9 @@ has (at least) one `bug <https://github.com/kennethreitz/requests/issues/944>`_
 that makes it incompatible with Python 3.2. When that is fixed, we will
 make Python Flick API compatible with Python 3.2+ too.
 
-Rendering the documentation requires `Docutils`_.
+Rendering the documentation requires `Sphinx <http://sphinx-doc.org/>`_.
 
 .. _Requests: http://docs.python-requests.org/
 .. _Six: http://packages.python.org/six/
-.. _Docutils: http://docutils.sourceforge.net/
+
 

@@ -37,4 +37,4 @@ Django caching framework into FlickrAPI, like this::
 That's all you need to enable a wealth of caching options, from
 database-backed cache to multi-node in-memory cache farms.
 
-.. _`Django low-level cache API`: http://www.djangoproject.com/documentation/cache/#the-low-level-cache-api
+.. _`Django low-level cache API`: https://docs.djangoproject.com/en/dev/topics/cache/#the-low-level-cache-api

@@ -179,7 +179,7 @@ not use locking.
 Example using Django
 ----------------------------------------------------------------------
 
-Here is a simple example in `Django <http://www.djangoproject.com/>`_::
+Here is a simple example in `Django <https://www.djangoproject.com/>`_::
 
  import flickrapi
  from django.conf import settings
