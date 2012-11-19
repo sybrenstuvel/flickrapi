@@ -202,19 +202,8 @@ class OAuthFlickrInterface(object):
         @return: the response content
         '''
 
-        body_oauth = OAuth1(self.oauth.client.client_key, self.oauth.client.client_secret,
-                            self.oauth.client.resource_owner_key, self.oauth.client.resource_owner_secret,
-                            signature_type='query')
-
-        self.log.info('do_upload:')
-        self.log.info('    client_key: %s', self.oauth.client.client_key)
-        self.log.info('    client_secret: %s', self.oauth.client.client_secret)
-        self.log.info('    resource_owner_key: %s', self.oauth.client.resource_owner_key)
-        self.log.info('    resource_owner_secret: %s', self.oauth.client.resource_owner_secret)
-
-        files = {'photo': open(filename, 'rb')}
-        req = requests.post(url, data=params, auth=self.oauth, config={'verbose': sys.stdout},
-                            files=files)
+        req = requests.post(url, data=params, auth=self.oauth,
+                            files={'photo': open(filename, 'rb')})
         
         # check the response headers / status code.
         if req.status_code != 200:
