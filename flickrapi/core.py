@@ -175,7 +175,7 @@ class FlickrAPI(object):
             use. If you don't want to use the default settings, you can
             instantiate a cache yourself too:
 
-            >>> f = FlickrAPI(api_key='123')
+            >>> f = FlickrAPI(u'123', u'123')
             >>> f.cache = SimpleCache(timeout=5, max_entries=100)
         """
 
