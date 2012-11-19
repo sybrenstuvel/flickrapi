@@ -27,11 +27,11 @@ class SimpleTokenCache(object):
     
     @token.setter
     def token(self, token):
-        self.token = token
+        self._token = token
     
     @token.deleter
     def token(self):
-        self.token = None
+        self._token = None
         
     def forget(self):
         '''Removes the cached token'''
@@ -155,7 +155,7 @@ class OAuthTokenCache(object):
         # Create cache table if it doesn't exist already
         curs.execute('''CREATE TABLE IF NOT EXISTS oauth_tokens (
                         api_key varchar(64) not null,
-                        lookup_key varchar(32) not null default '',
+                        lookup_key varchar(64) not null default '',
                         oauth_token varchar(64) not null,
                         oauth_token_secret varchar(64) not null,
                         access_level varchar(6) not null,
@@ -217,6 +217,11 @@ class OAuthTokenCache(object):
         curs.execute('''DELETE FROM oauth_tokens WHERE api_key=? and lookup_key=?''',
                      (self.api_key, self.lookup_key))
         db.commit()
+        
+    def forget(self):
+        '''Removes the cached token'''
+
+        del self.token
 
 class LockingTokenCache(TokenCache):
     '''Locks the token cache when reading or updating it, so that

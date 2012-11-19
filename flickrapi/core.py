@@ -109,13 +109,15 @@ def authenticator(method):
     def decorated(self, *args, **kwargs):
         assert isinstance(self, FlickrAPI)
         
-        token = self.token_cache.token
         if 'perms' in kwargs:
-            permissions = kwargs['perms']
+            perms = kwargs['perms']
+        elif len(args):
+            perms = args[0]
         else:
-            raise ValueError('Unable to find requested permissions, pass "perms" parameter as keyword')
-
-        if token and token.has_level(permissions):
+            perms = 'read'
+        
+        token = self.token_cache.token
+        if token and token.has_level(perms):
             self.flickr_oauth.token = token
             return
         
@@ -311,12 +313,6 @@ class FlickrAPI(object):
 
         Defaults can be overridden, or completely removed by setting the
         appropriate value in ``args`` to ``None``.
-
-        >>> f = FlickrAPI('123')
-        >>> f._supply_defaults(
-        ...  {'foo': 'bar', 'baz': None, 'token': None},
-        ...  {'baz': 'foobar', 'room': 'door'})
-        {'foo': 'bar', 'room': 'door'}
         '''
 
         result = args.copy()
@@ -702,6 +698,6 @@ class FlickrAPI(object):
         Also see `walk_set`.
         '''
 
-        return self.data_walker(self.photos_search,
+        return self.data_walker(self.photos.search,
                 per_page=per_page, **kwargs)
 

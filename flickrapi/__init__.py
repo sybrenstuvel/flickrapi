@@ -55,7 +55,7 @@ from flickrapi.xmlnode import XMLNode
 from flickrapi.exceptions import IllegalArgumentException, \
         FlickrError, CancelUpload, LockingError
 from flickrapi.cache import SimpleCache
-from flickrapi.tokencache import TokenCache, SimpleTokenCache, \
+from flickrapi.tokencache import OAuthTokenCache, TokenCache, SimpleTokenCache, \
         LockingTokenCache
 
 

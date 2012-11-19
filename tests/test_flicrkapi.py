@@ -75,6 +75,7 @@ class SuperTest(unittest.TestCase):
         self.clasz = flickrapi.FlickrAPI
 
         self.f = self.clasz(key, secret)
+        self.f_noauth = self.clasz(key, secret)
 
         # Remove/prevent any unwanted tokens
         del self.f.token_cache.token
@@ -109,6 +110,14 @@ class FlickrApiTest(SuperTest):
         r = repr(self.f)
         self.assertTrue('FlickrAPI' in r)
         self.assertTrue(key in r)
+
+    def test_defaults(self):
+        '''Tests _supply_defaults.'''
+        
+        data = self.f._supply_defaults({'foo': 'bar', 'baz': None, 'token': None},
+                                       {'baz': 'foobar', 'room': 'door'})
+        self.assertEqual({'foo': 'bar', 'room': 'door'}, data)
+
 
     def test_unauthenticated(self):
         '''Test we can access public photos without any authentication/authorization.'''
@@ -153,13 +162,13 @@ class FlickrApiTest(SuperTest):
     def test_upload(self):
         photo = pkg_resources.resource_filename(__name__, 'photo.jpg')
 
-        self.f.token_cache.username = 'unittest-upload'
-        self.f.authenticate_via_browser(perms='delete')
-        result = self.f.upload(photo, is_public=0, is_friend=0, is_family=0, content_type=2)
+        flickr = self.clasz(key, secret, username='unittest-upload')
+        flickr.authenticate_via_browser(perms='delete')
+        result = flickr.upload(photo, is_public=0, is_friend=0, is_family=0, content_type=2)
 
         # Now remove the photo from the stream again
         photo_id = result.find('photoid').text
-        self.f.photos.delete(photo_id=photo_id)
+        flickr.photos.delete(photo_id=photo_id)
 
     def test_store_token(self):
         '''Tests that store_token=False FlickrAPI uses SimpleTokenCache'''
@@ -205,52 +214,6 @@ class FlickrApiTest(SuperTest):
                         'Expected wrapped function to be called')
 
 
-class CachingTest(SuperTest):
-    '''Tests that the caching framework works'''
-
-    def test_cache_write(self):
-        '''tests that the call result is written to cache'''
-
-        photo_id = '2333478006'
-        cache_key = ('api_key=%s'
-                     '&photo_id=%s'
-                     '&method=flickr.photos.getInfo'
-                     '&format=rest' % (key, photo_id))
-        
-        f = self.clasz(key, store_token=False, format='rest')
-        f.cache = flickrapi.SimpleCache()
-        self.assertEqual(0, len(f.cache))
-
-        info = f.photos_getInfo(photo_id=photo_id)
-
-        self.assertEqual(info, f.cache.get(cache_key))
-
-    def test_cache_read(self):
-        '''Tests that cached data is returned if available'''
-
-        photo_id = '2333478006'
-        cache_key = ('api_key=%s'
-                     '&photo_id=%s'
-                     '&method=flickr.photos.getInfo'
-                     '&format=rest' % (key, photo_id))
-        faked_value = "FAKED_VALUE"
-        
-        f = self.clasz(key, store_token=False, format='rest')
-        f.cache = flickrapi.SimpleCache()
-        f.cache.set(cache_key, faked_value)
-
-        info = f.photos_getInfo(photo_id=photo_id)
-
-        self.assertEqual(faked_value, info)
-
-    def test_cache_constructor_parameter(self):
-        '''Tests that a cache is created when requested.'''
-
-        f = self.clasz(key, cache=True)
-        self.assertNotEqual(None, f.cache, "Cache should not be None")
-
-    # Test list of non-cacheable method calls
-
 class FormatsTest(SuperTest):
     '''Tests the different parsed formats.
     
@@ -261,14 +224,14 @@ class FormatsTest(SuperTest):
     def test_default_format(self):
         '''Test that the default format is etree'''
 
-        f = self.clasz(key)
-        etree = f.photos_getInfo(photo_id=u'2333478006')
+        f = self.clasz(key, secret)
+        etree = f.photos.getInfo(photo_id=u'2333478006')
         self.assertEquals(type(etree), type(ElementTree.Element(None)))
 
     def test_etree_format_happy(self):
         '''Test ETree format'''
 
-        etree = self.f_noauth.photos_getInfo(photo_id=u'2333478006',
+        etree = self.f_noauth.photos.getInfo(photo_id=u'2333478006',
                     format='etree')
         self.assertEquals(type(etree), type(ElementTree.Element(None)))
 
@@ -281,7 +244,7 @@ class FormatsTest(SuperTest):
     def test_etree_default_format(self):
         '''Test setting the default format to etree'''
 
-        f = self.clasz(key, format='etree')
+        f = self.clasz(key, secret, format='etree')
         etree = f.photos_getInfo(photo_id=u'2333478006')
         self.assertEquals(type(etree), type(ElementTree.Element(None)))
 
@@ -323,6 +286,7 @@ class WalkerTest(SuperTest):
 
     def test_walk(self):
         # Check that we get a generator
+        self.f.authenticate_via_browser()
         gen = self.f.walk(tag_mode='all',
                 tags='sybren,365,threesixtyfive,me',
                 min_taken_date='2008-08-19',
@@ -334,7 +298,7 @@ class WalkerTest(SuperTest):
         ids = [p.get('id') for p in gen]
         self.assertEquals(['2824913799', '2824831549', '2807789315', '2807789039',
                            '2807773797', '2807772503', '2807771401', '2808616234',
-                           '2808618120', '2808591736', '2807741221'], ids)
+                           '2808591736', '2807741221'], ids)
 
 if __name__ == '__main__':
     unittest.main()
