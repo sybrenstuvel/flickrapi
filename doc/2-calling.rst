@@ -18,18 +18,23 @@ some examples::
 
 .. _`Flickr Services`: http://www.flickr.com/services/api/keys/apply/
 
+The API key and secret MUST be Unicode strings. All parameters you pass
+to Flickr MUST be passed as keyword arguments.
+
 Parsing the return value
 ----------------------------------------------------------------------
 
 Flickr sends back XML when you call a function. This XML is parsed and
-returned to you. There are two parsers available: ElementTree and
-XMLNode. ElementTree was introduced in version 1.1, and replaced
+returned to the application. There are two parsers available: ElementTree and
+XMLNode. ElementTree was introduced in Python Flickr API version 1.1, and replaced
 XMLNode as the default parser as of version 1.2. If you want another format,
 such as JSON, you can use that too - see `Unparsed response formats`_.
 
 In the following sections, we'll use a ``sets =
 flickr.photosets.getList(...)`` call and assume this was the response
-XML::
+XML:
+
+.. code-block:: xml
 
     <rsp stat='ok'>
         <photosets cancreate="1">
@@ -49,9 +54,9 @@ XML::
 Response parser: ElementTree
 ----------------------------------------------------------------------
 
-The old XMLNode parser had some drawbacks. A better one is Python's
-standard ElementTree_. If you create the ``FlickrAPI`` instance like
-this, you'll use ElementTree::
+ElementTree_ is an XML parser library that's part of Python's standard
+library. It is the default response parser, so if you create the ``FlickrAPI``
+instance like this, you'll use ElementTree::
 
     flickr = flickrapi.FlickrAPI(api_key, api_secret)
 
@@ -59,9 +64,9 @@ or explicitly::
 
     flickr = flickrapi.FlickrAPI(api_key, api_secret, format='etree')
 
-The `ElementTree documentation`_ is quite clear, but to make things
-even easier, here are some examples using the same call and response
-XML as in the XMLNode example::
+The ElementTree_ documentation is quite clear, but to make things
+even easier, here are some examples using the call and response
+XML as described above::
 
     sets = flickr.photosets.getList(user_id='73509078@N00')
 
@@ -86,31 +91,7 @@ XML as in the XMLNode example::
 
     ... and similar for set1 ...
 
-ElementTree in Python 2.4
-----------------------------------------------------------------------
-
-Python 2.5 comes shipped with ElementTree. To get it running on Python
-2.4 you'll have to install ElementTree yourself. The easiest way is to
-get setuptools and then just type::
-
-    easy_install elementtree
-    easy_install flickrapi
-
-That'll get you both ElementTree and the latest version of the Python
-Flickr API.
-
-Another method is to get the Python FlickrAPI source and run::
-
-    python setup.py install
-    easy_install elementtree
-
-As a last resort, you can `download ElementTree`_ and install it
-manually.
-
-.. _`download ElementTree`: http://effbot.org/downloads/#elementtree
-
-.. _`ElementTree`:
-.. _`ElementTree documentation`: http://docs.python.org/lib/module-xml.etree.ElementTree.html
+.. _ElementTree: http://effbot.org/zone/element.htm
 
 Response parser: XMLNode
 ----------------------------------------------------------------------
@@ -163,20 +144,13 @@ When something has gone wrong Flickr will return an error code and a
 description of the error. In this case, a ``FlickrError`` exception
 will be thrown.
 
-The old behaviour of the Python Flickr API was to simply return the
-error code in the XML not raising any exception. It was possible to
-pass ``fail_on_error=False`` to the ``FlickrAPI`` constructor to get
-this behaviour, but this was deprecated in version 1.1 and has been
-removed in version 1.3.
-
 Unparsed response formats
 ----------------------------------------------------------------------
 
-Flickr supports different response formats, such as JSON and XML-RPC.
+Flickr supports different response formats, such as JSON and SOAP.
 If you want, you can use such a different response format. Just add a
-``format="json"`` option to the Flickr call. The Python Flickr API
-won't parse that format for you, though, so you just get the raw
-response::
+parameter like ``format="json"`` to the Flickr call. The Python Flickr API
+won't parse that format for you, and you just get the raw response::
 
   >>> f = flickrapi.FlickrAPI(api_key, api_secret)
   >>> f.test_echo(boo='baah', format='json')
