@@ -79,16 +79,23 @@ class FlickrAccessToken(object):
     Contains the token, token secret, and the user's full name, username and NSID.
     '''
     
-    def __init__(self, token, token_secret, fullname, username, user_nsid):
+    levels = ('read', 'write', 'delete')
+    
+    def __init__(self, token, token_secret, access_level, fullname, username, user_nsid):
         
         assert isinstance(token, six.text_type), 'token should be unicode text'
         assert isinstance(token_secret, six.text_type), 'token_secret should be unicode text'
+        assert isinstance(access_level, six.text_type), 'access_level should be unicode text'
         assert isinstance(fullname, six.text_type), 'fullname should be unicode text'
         assert isinstance(username, six.text_type), 'username should be unicode text'
         assert isinstance(user_nsid, six.text_type), 'user_nsid should be unicode text'
         
+        access_level = access_level.lower()
+        assert access_level in self.levels, 'access_level should be one of %r' % self.levels
+        
         self.token = token
         self.token_secret = token_secret
+        self.access_level = access_level
         self.fullname = fullname
         self.username = username
         self.user_nsid = user_nsid
@@ -103,6 +110,13 @@ class FlickrAccessToken(object):
     def __repr__(self):
         return str(self)
 
+    def has_level(self, access_level):
+        '''Returns True iff the token's access level implies the given access level.'''
+        
+        my_idx = self.levels.index(self.access_level)
+        q_idx = self.levels.index(access_level)
+    
+        return q_idx <= my_idx
 
 class OAuthFlickrInterface(object):
     '''Interface object for handling OAuth-authenticated calls to Flickr.'''
@@ -118,9 +132,10 @@ class OAuthFlickrInterface(object):
         assert isinstance(api_key, six.text_type), 'api_key must be unicode string'
         assert isinstance(api_secret, six.text_type), 'api_secret must be unicode string'
 
-        self.oauth = OAuth1(api_key, api_secret, signature_type='query')
+        self.oauth = OAuth1(api_key, api_secret, signature_type='auth_header')
         self.oauth_token = None
         self.auth_http_server = None
+        self.requested_permissions = None
 
     @property
     def key(self):
@@ -138,6 +153,21 @@ class OAuthFlickrInterface(object):
         
         assert isinstance(new_verifier, six.text_type), 'verifier must be unicode text type'
         self.oauth.client.verifier = new_verifier
+
+    @property
+    def token(self):
+        return self.oauth_token
+    
+    @token.setter
+    def token(self, new_token):
+        assert isinstance(new_token, FlickrAccessToken)
+        
+        self.oauth_token = new_token
+        
+        self.oauth.client.resource_owner_key = new_token.token
+        self.oauth.client.resource_owner_secret = new_token.token_secret
+        self.oauth.client.verifier = None
+        self.requested_permissions = new_token.access_level
 
     def _find_cache_dir(self):
         '''Returns the appropriate directory for the HTTP cache.'''
@@ -165,6 +195,38 @@ class OAuthFlickrInterface(object):
             raise exceptions.FlickrError('do_request: Status code %s received' % req.status_code)
         
         return req.content
+    
+    def do_upload(self, filename, url, params=None):
+        '''Performs a file upload to the given URL with the given parameters, signed with OAuth.
+        
+        @return: the response content
+        '''
+
+        body_oauth = OAuth1(self.oauth.client.client_key, self.oauth.client.client_secret,
+                            self.oauth.client.resource_owner_key, self.oauth.client.resource_owner_secret,
+                            signature_type='query')
+
+        self.log.info('do_upload:')
+        self.log.info('    client_key: %s', self.oauth.client.client_key)
+        self.log.info('    client_secret: %s', self.oauth.client.client_secret)
+        self.log.info('    resource_owner_key: %s', self.oauth.client.resource_owner_key)
+        self.log.info('    resource_owner_secret: %s', self.oauth.client.resource_owner_secret)
+
+        files = {'photo': open(filename, 'rb')}
+        req = requests.post(url, data=params, auth=self.oauth, config={'verbose': sys.stdout},
+                            files=files)
+        
+        # check the response headers / status code.
+        if req.status_code != 200:
+            self.log.error('do_upload: Status code %i received, content:', req.status_code)
+
+            for part in req.content.split('&'):
+                self.log.error('    %s', urlparse.unquote(part))
+           
+            raise exceptions.FlickrError('do_upload: Status code %s received' % req.status_code)
+        
+        return req.content
+        
     
     @staticmethod
     def parse_oauth_response(data):
@@ -233,7 +295,9 @@ class OAuthFlickrInterface(object):
         if perms not in {'read', 'write', 'delete'}:
             raise ValueError('Invalid parameter perms=%r' % perms)
         
-        return "%s?oauth_token=%s&perms=read" % (self.AUTHORIZE_URL, self.oauth.client.resource_owner_key)
+        self.requested_permissions = perms
+        
+        return "%s?oauth_token=%s&perms=%s" % (self.AUTHORIZE_URL, self.oauth.client.resource_owner_key, perms)
 
     def auth_via_browser(self, perms='read'):
         '''Opens the webbrowser to authenticate the given request request_token, sets the verifier.
@@ -269,6 +333,8 @@ class OAuthFlickrInterface(object):
             raise FlickrError('No resource owner key set, you probably forgot to call get_request_token(...)')
         if self.oauth.client.verifier is None:
             raise FlickrError('No token verifier set, you probably forgot to set %s.verifier' % self)
+        if self.requested_permissions is None:
+            raise FlickrError('Requested permissions are unknown.')
 
         content = self.do_request(self.ACCESS_TOKEN_URL)
         
@@ -277,6 +343,7 @@ class OAuthFlickrInterface(object):
         
         self.oauth_token = FlickrAccessToken(access_token_resp['oauth_token'],
                                              access_token_resp['oauth_token_secret'],
+                                             self.requested_permissions.decode('utf-8'),
                                              access_token_resp['fullname'],
                                              access_token_resp['username'],
                                              access_token_resp['user_nsid'])

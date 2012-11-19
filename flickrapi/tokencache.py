@@ -158,6 +158,7 @@ class OAuthTokenCache(object):
                         lookup_key varchar(32) not null default '',
                         oauth_token varchar(64) not null,
                         oauth_token_secret varchar(64) not null,
+                        access_level varchar(6) not null,
                         fullname varchar(255) not null,
                         username varchar(255) not null,
                         user_nsid varchar(64) not null,
@@ -173,7 +174,7 @@ class OAuthTokenCache(object):
 
         db = sqlite3.connect(self.filename)
         curs = db.cursor()
-        curs.execute('''SELECT oauth_token, oauth_token_secret, fullname, username, user_nsid
+        curs.execute('''SELECT oauth_token, oauth_token_secret, access_level, fullname, username, user_nsid
                         FROM oauth_tokens WHERE api_key=? and lookup_key=?''',
                      (self.api_key, self.lookup_key))
         token_data = curs.fetchone()
@@ -195,10 +196,10 @@ class OAuthTokenCache(object):
         db = sqlite3.connect(self.filename)
         curs = db.cursor()
         curs.execute('''INSERT OR REPLACE INTO oauth_tokens
-            (api_key, lookup_key, oauth_token, oauth_token_secret, fullname, username, user_nsid)
-            values (?, ?, ?, ?, ?, ?, ?)''',
+            (api_key, lookup_key, oauth_token, oauth_token_secret, access_level, fullname, username, user_nsid)
+            values (?, ?, ?, ?, ?, ?, ?, ?)''',
             (self.api_key, self.lookup_key,
-             token.token, token.token_secret,
+             token.token, token.token_secret, token.access_level,
              token.fullname, token.username, token.user_nsid)
         )
         db.commit()

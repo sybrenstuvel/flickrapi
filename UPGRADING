@@ -4,6 +4,12 @@ Upgrading from previous versions
 From any 1.x release to 2.0:
 ---------------------------------
 
+For this release the main goal was to quickly transition from the obsolete
+authentication method to OAuth. As a result, some features of the 1.x version
+have been dropped. If you want any of those features back, let me know at:
+https://bitbucket.org/sybren/flickrapi/issues?status=new&status=open
+
+
 Authentication has been re-written to use OAuth. See the documentation
 on how to use this. Some results are:
   
@@ -11,14 +17,18 @@ on how to use this. Some results are:
       authentication tokens, but also the user's full name, username
       and NSID.
 
-    - The authentication callback functionality is gone. I'm not sure
-      how many people still need this now that we've moved to OAuth, so
-      if you want it back, please file an issue at
-      https://bitbucket.org/sybren/flickrapi/issues?status=new&status=open
-
     - For non-web applications, a local HTTP server is started to receive
       the verification code. This means that the user does not have to copy
       and paste the verification code to the application.
+
+    - The authentication callback functionality is gone. I'm not sure
+      how many people still need this now that we've moved to OAuth.
+
+    - The upload progress-callback functionality has been dropped. This was
+      a hack on top of httplib, so this no longer works using Requests and
+      OAuth.
+
+    - Persistent connections have been dropped.
 
 Flickr functions can be called with dotted notation. For example:
     

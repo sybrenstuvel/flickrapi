@@ -1,10 +1,9 @@
 eclipse.preferences.version=1
 encoding//flickrapi/__init__.py=utf-8
 encoding//flickrapi/cache.py=utf-8
-encoding//flickrapi/multipart.py=utf-8
-encoding//flickrapi/reportinghttp.py=utf-8
 encoding//flickrapi/shorturl.py=utf-8
 encoding//flickrapi/sockutil.py=utf-8
 encoding//tests/__init__.py=utf-8
 encoding/<project>=UTF-8
+encoding/_setup.py=utf-8
 encoding/token_test.py=utf-8
