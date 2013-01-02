@@ -145,6 +145,26 @@ class OAuthFlickrInterface(object):
         return self.oauth.client.client_key
 
     @property
+    def resource_owner_key(self):
+        '''Returns the OAuth resource owner key'''
+        return self.oauth.client.resource_owner_key
+
+    @resource_owner_key.setter
+    def resource_owner_key(self, new_key):
+        '''Stores the OAuth resource owner key'''
+        self.oauth.client.resource_owner_key = new_key
+
+    @property
+    def resource_owner_secret(self):
+        '''Returns the OAuth resource owner secret'''
+        return self.oauth.client.resource_owner_secret
+
+    @resource_owner_secret.setter
+    def resource_owner_secret(self, new_secret):
+        '''Stores the OAuth resource owner secret'''
+        self.oauth.client.resource_owner_secret = new_secret
+
+    @property
     def verifier(self):
         '''Returns the OAuth verifier.'''
         return self.oauth.client.verifier
