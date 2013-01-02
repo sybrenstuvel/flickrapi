@@ -18,3 +18,10 @@ For development, install extra dependencies using::
     pip install -r requirements.txt 
 
 then run ``nosetest`` in the top-level directory.
+
+Generating the documentation
+--------------------------------------------------
+
+The documentation is written in Sphynx. Execute 'make html' in the doc
+directory to generate the HTML pages. They can then be found in
+doc/_build/html.
