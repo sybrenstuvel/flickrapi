@@ -233,7 +233,15 @@ class OAuthFlickrInterface(object):
         @return: the response content
         '''
 
-        req = requests.post(url, data=params, auth=self.oauth,
+        # work-around for Flickr expecting 'photo' to be excluded
+        # from the oauth signature:
+        #   1. create a dummy request without 'photo'
+        #   2. create real request and use auth headers from the dummy one
+        dummy_req = requests.Request('POST', url, data=params,
+                                     auth=self.oauth)
+        prepared = dummy_req.prepare()
+        auth = {'Authorization': prepared.headers.get('Authorization')}
+        req = requests.post(url, data=params, headers=auth,
                             files={'photo': open(filename, 'rb')})
         
         # check the response headers / status code.
