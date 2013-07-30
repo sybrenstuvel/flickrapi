@@ -50,8 +50,9 @@ data = {
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     'install_requires': [
-        'requests==0.14.1', # 0.14.2 has a bug and won't install on Python 3.2
-        'six>=1.2.0'
+        'requests>=1.2.0',
+        'six>=1.2.0',
+        'requests_oauthlib'
     ],
     'extras_require': {
         'ElementTree':  ["elementtree>=1.2.6"],

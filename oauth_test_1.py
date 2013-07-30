@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import time
 import requests
-from requests.auth import OAuth1
+from requests_oauthlib import OAuth1
 import six
 from urlparse import parse_qsl
 

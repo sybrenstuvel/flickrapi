@@ -11,7 +11,7 @@ import webbrowser
 import six
 
 import requests
-from requests.auth import OAuth1
+from requests_oauthlib import OAuth1
 
 from . import sockutil, exceptions, html
 from .exceptions import FlickrError

@@ -1,6 +1,6 @@
 import sys
 import requests
-from requests.auth import OAuth1
+from requests_oauthlib import OAuth1
 import urllib
 
 url = "http://www.flickr.com/services/oauth/request_token"
