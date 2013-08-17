@@ -141,6 +141,16 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     try:
         try:
             import pkg_resources
+
+            # Setuptools 0.7b and later is a suitable (and preferable)
+            # substitute for any Distribute version.
+            try:
+                pkg_resources.require("setuptools>=0.7b")
+                return
+            except (pkg_resources.DistributionNotFound,
+                    pkg_resources.VersionConflict):
+                pass
+
             if not hasattr(pkg_resources, '_distribute'):
                 if not no_fake:
                     _fake_setuptools()
