@@ -18,9 +18,6 @@ import sys
 if (major, minor) < (2, 6):
     raise SystemExit("Sorry, Python 2.6 or newer required")
 
-import distribute_setup
-distribute_setup.use_setuptools()
-
 from setuptools import setup
 
 data = {
