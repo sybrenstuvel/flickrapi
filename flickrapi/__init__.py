@@ -46,7 +46,6 @@ __author__ = u'Sybren St\u00fcvel'.encode('utf-8')
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
-logging.basicConfig()
 
 # Import the core functionality into the flickrapi namespace
 from flickrapi.core import FlickrAPI

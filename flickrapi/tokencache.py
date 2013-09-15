@@ -9,7 +9,6 @@ import sqlite3
 from flickrapi.exceptions import LockingError, CacheDatabaseError
 from flickrapi.auth import FlickrAccessToken
 
-logging.basicConfig()
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
