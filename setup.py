@@ -35,7 +35,8 @@ data = {
         'access, uploading and replacing photos, and all Flickr API '
         'functions.', 
     'packages': ['flickrapi'],
-    'data_files': ['LICENSE', 'README', 'UPGRADING'],
+    'package_data': {'flickrapi': ['../LICENSE.txt', '../README.txt', '../UPGRADING.txt']},
+
     'license': 'Python',
     'classifiers': [
         'Development Status :: 6 - Mature',
@@ -43,6 +44,9 @@ data = {
         'License :: OSI Approved :: Python License (CNRI Python License)',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
         'Topic :: Multimedia :: Graphics',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
