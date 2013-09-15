@@ -12,3 +12,4 @@ flickrapi.egg-info/
 doc/_build
 distribute-*.egg
 distribute-*.tar.gz
+.idea/
