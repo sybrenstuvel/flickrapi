@@ -33,9 +33,15 @@ class OAuthTokenHTTPHandler(http_server.BaseHTTPRequestHandler):
         qs = urllib_parse.urlsplit(self.path).query
         url_vars = urllib_parse.parse_qs(qs)
 
-        # TODO: check if Python 2.7 needs those decode calls.
-        self.server.oauth_token = url_vars['oauth_token'][0] #.decode('utf-8')
-        self.server.oauth_verifier = url_vars['oauth_verifier'][0]# .decode('utf-8')
+        oauth_token = url_vars['oauth_token'][0]
+        oauth_verifier = url_vars['oauth_verifier'][0]
+
+        if six.PY2:
+            self.server.oauth_token = oauth_token.decode('utf-8')
+            self.server.oauth_verifier = oauth_verifier.decode('utf-8')
+        else:
+            self.server.oauth_token = oauth_token
+            self.server.oauth_verifier = oauth_verifier
 
         assert(isinstance(self.server.oauth_token, six.string_types))
         assert(isinstance(self.server.oauth_verifier, six.string_types))
@@ -44,7 +50,7 @@ class OAuthTokenHTTPHandler(http_server.BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
-        self.wfile.write(html.auth_okay_html.encode('utf-8'))
+        self.wfile.write(html.auth_okay_html)
 
 class OAuthTokenHTTPServer(http_server.HTTPServer):
     '''HTTP server on a random port, which will receive the OAuth verifier.'''
@@ -100,7 +106,7 @@ class FlickrAccessToken(object):
         
         assert isinstance(token, six.text_type), 'token should be unicode text'
         assert isinstance(token_secret, six.text_type), 'token_secret should be unicode text'
-        assert isinstance(access_level, six.text_type), 'access_level should be unicode text'
+        assert isinstance(access_level, six.text_type), 'access_level should be unicode text, is %r' % type(access_level)
         assert isinstance(fullname, six.text_type), 'fullname should be unicode text'
         assert isinstance(username, six.text_type), 'username should be unicode text'
         assert isinstance(user_nsid, six.text_type), 'user_nsid should be unicode text'

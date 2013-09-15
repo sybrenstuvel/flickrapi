@@ -31,6 +31,11 @@ def make_bytes(dictionary):
     result = {}
 
     for (key, value) in six.iteritems(dictionary):
+        # Keep binary data as-is.
+        if isinstance(value, six.binary_type):
+            result[key] = value
+            continue
+
         # If it's not a string, convert it to one.
         if not isinstance(value, six.text_type):
             value = six.text_type(value)
@@ -543,6 +548,9 @@ class FlickrAPI(object):
 
         Starts the browser and waits for the user to authorize the app before continuing.
         '''
+
+        if isinstance(perms, six.binary_type):
+            perms = six.u(perms)
 
         self.flickr_oauth.get_request_token()
         self.flickr_oauth.auth_via_browser(perms=perms)

@@ -1,4 +1,4 @@
-__author__ = 'Sybren'
+# -*- coding: utf-8 -*-
 
 import unittest
 

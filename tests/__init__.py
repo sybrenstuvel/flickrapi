@@ -6,6 +6,7 @@ import os
 import os.path
 import sys
 import unittest
+import six
 
 import flickrapi
 
@@ -72,7 +73,11 @@ def run_unittests():
 
 @run_in_code_dir
 def run_doctests():
-    '''Runs all doctests in the flickrapi module.'''
+    '''Runs all doctests in the flickrapi module.
+    
+    Only runs on Python 3.x, as unicode literals are displayed differently in
+    Python 2.7.
+    '''
 
     # First run the flickrapi module
     (failure_count, test_count) = doctest.testmod(flickrapi)
@@ -112,7 +117,8 @@ def run_tests():
 
     try:
         run_unittests()
-        run_doctests()
+        if six.PY3:
+            run_doctests()
     finally:
         sys.exit = orig_exit
 
