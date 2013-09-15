@@ -296,6 +296,15 @@ class FormatsTest(SuperTest):
         self.assertEqual(photo['photo']['id'], '2333478006')
         self.assertEqual(locality['_content'], 'Amsterdam')
 
+    def test_json_callback_format(self):
+        '''Test json format (with callback)'''
+
+        data = self.f_noauth.photos.getInfo(photo_id='2333478006',
+                                            format='json',
+                                            jsoncallback='foobar')
+        decoded = data.decode('utf-8')
+        self.assertEqual('foobar({', decoded[:8])
+
 
 class WalkerTest(SuperTest):
     '''Tests walk* functions.'''

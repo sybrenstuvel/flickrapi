@@ -305,8 +305,9 @@ class FlickrAPI(object):
 
         # Set some defaults
         defaults = {'method': method_name,
-                    'nojsoncallback': 1,
                     'format': self.default_format}
+        if 'jsoncallback' not in kwargs:
+            defaults['nojsoncallback'] = 1
         params = self._supply_defaults(params, defaults)
 
         LOG.info('Calling %s', defaults)
@@ -371,11 +372,10 @@ class FlickrAPI(object):
 
         # Find the parser, and set the format to rest if we're supposed to
         # parse it.
-        if parse_format in rest_parsers:
+        if parse_format in rest_parsers and 'format' in kwargs:
             kwargs['format'] = rest_parsers[parse_format][1]
 
-        LOG.debug('Wrapping call %s(self, %s, %s)' % (wrapped_method, args,
-            kwargs))
+        LOG.debug('Wrapping call %s(self, %s, %s)' % (wrapped_method, args, kwargs))
         data = wrapped_method(*args, **kwargs)
 
         # Just return if we have no parser
