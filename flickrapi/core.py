@@ -62,16 +62,16 @@ def debug(method):
     return debugged
 
 
-# REST parsers, {format: parser_method, ...}. Fill by using the
+# REST parsers, {format: (parser_method, request format), ...}. Fill by using the
 # @rest_parser(format) function decorator
 rest_parsers = {}
-def rest_parser(parsed_format):
+def rest_parser(parsed_format, request_format='rest'):
     '''Method decorator, use this to mark a function as the parser for
     REST as returned by Flickr.
     '''
 
     def decorate_parser(method):
-        rest_parsers[parsed_format] = method
+        rest_parsers[parsed_format] = (method, request_format)
         return method
 
     return decorate_parser
@@ -232,6 +232,17 @@ class FlickrAPI(object):
         err = rsp.err[0]
         raise FlickrError(six.u('Error: %(code)s: %(msg)s') % err, code=err['code'])
 
+    @rest_parser('parsed-json', 'json')
+    def parse_json(self, json_string):
+        '''Parses a JSON response from Flickr.'''
+
+        if isinstance(json_string, six.binary_type):
+            json_string = json_string.decode('utf-8')
+
+        import json
+        return json.loads(json_string)
+
+
     @rest_parser('etree')
     def parse_etree(self, rest_xml):
         '''Parses a REST XML response from Flickr into an ElementTree object.'''
@@ -360,8 +371,8 @@ class FlickrAPI(object):
 
         # Find the parser, and set the format to rest if we're supposed to
         # parse it.
-        if parse_format in rest_parsers and 'format' in kwargs:
-            kwargs['format'] = 'rest'
+        if parse_format in rest_parsers:
+            kwargs['format'] = rest_parsers[parse_format][1]
 
         LOG.debug('Wrapping call %s(self, %s, %s)' % (wrapped_method, args,
             kwargs))
@@ -372,7 +383,7 @@ class FlickrAPI(object):
             return data
 
         # Return the parsed data
-        parser = rest_parsers[parse_format]
+        parser = rest_parsers[parse_format][0]
         return parser(self, data)
 
     

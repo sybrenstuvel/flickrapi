@@ -21,6 +21,12 @@ some examples::
 The API key and secret MUST be Unicode strings. All parameters you pass
 to Flickr MUST be passed as keyword arguments.
 
+.. NOTE::
+    Contrary to Flickr's API documentation, you should **not** pass
+    the ``api_key`` and ``api_secret`` parameters to each call. Passing
+    them to the ``FlickrAPI`` constructor is enough.
+
+
 Parsing the return value
 ----------------------------------------------------------------------
 
@@ -50,6 +56,42 @@ XML:
             </photoset>
         </photosets>
     </rsp>
+
+
+Response format: JSON
+----------------------------------------------------------------------
+
+When using JSON as the response format, there are a few possibilities. The
+most common use case is to use Python's built-in ``json`` module to parse
+the response, and return it as a ``dict``::
+
+    flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
+    sets   = flickr.photosets.getList(user_id='73509078@N00')
+    title  = sets['photosets']['photoset'][0]['title']['_content']
+
+    print('First set title: %s' % title)
+
+To get the raw JSON response, use ``format='json'``. This will be directly
+parseable, as the Python FlickrAPI will pass ``nojsoncallback=1``
+by default::
+
+    flickr = flickrapi.FlickrAPI(api_key, api_secret, format='json')
+    raw_json = flickr.photosets.getList(user_id='73509078@N00')
+    # raw_json -> '{...}'
+
+    import json
+    parsed = json.loads(raw_json.decode('utf-8'))
+
+To get a JavaScript callback function, use ``format=json`` and
+``jsoncallback='foobar'``::
+
+    flickr = flickrapi.FlickrAPI(api_key, api_secret, format='json')
+    raw_json = flickr.photosets.getList(user_id='73509078@N00',
+                                        jsoncallback='foobar')
+
+    # raw_json -> 'foobar({...})'
+
+
 
 Response parser: ElementTree
 ----------------------------------------------------------------------

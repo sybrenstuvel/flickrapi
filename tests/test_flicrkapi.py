@@ -5,6 +5,7 @@
 Far from complete, but it's a start.
 '''
 
+import json
 import logging
 import pkg_resources
 import sys
@@ -266,6 +267,35 @@ class FormatsTest(SuperTest):
         # Try to parse it
         rst = flickrapi.XMLNode.parse(xml, False)
         self.assertTrue(int(rst.photos[0]['total']) > 0)
+
+    def test_json_format(self):
+        '''Test json format (no callback)'''
+
+        data = self.f_noauth.photos.getInfo(photo_id='2333478006',
+                                            format='json')
+        photo = json.loads(data.decode('utf-8'))
+        location = photo['photo']['location']
+        if 'locality' not in location:
+            raise KeyError('locality not in %r' % location)
+        locality = location['locality']
+
+        self.assertEqual(photo['photo']['id'], '2333478006')
+        self.assertEqual(locality['_content'], 'Amsterdam')
+
+    def test_parsed_json_format(self):
+        '''Test parsed json format'''
+
+        photo = self.f_noauth.photos.getInfo(photo_id='2333478006',
+                                             format='parsed-json')
+
+        location = photo['photo']['location']
+        if 'locality' not in location:
+            raise KeyError('locality not in %r' % location)
+        locality = location['locality']
+
+        self.assertEqual(photo['photo']['id'], '2333478006')
+        self.assertEqual(locality['_content'], 'Amsterdam')
+
 
 class WalkerTest(SuperTest):
     '''Tests walk* functions.'''
