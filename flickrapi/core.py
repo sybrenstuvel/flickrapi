@@ -30,12 +30,12 @@ def make_bytes(dictionary):
     
     result = {}
 
-    for (key, value) in dictionary.iteritems():
-        if isinstance(value, six.text_type):
-            value = value.encode('utf-8')
-        else:
-            value = six.binary_type(value)
-        result[key] = value
+    for (key, value) in six.iteritems(dictionary):
+        # If it's not a string, convert it to one.
+        if not isinstance(value, six.text_type):
+            value = six.text_type(value)
+
+        result[key] = value.encode('utf-8')
     
     return result
     
@@ -308,12 +308,12 @@ class FlickrAPI(object):
         '''
 
         result = args.copy()
-        for key, default_value in defaults.iteritems():
+        for key, default_value in six.iteritems(defaults):
             # Set the default if the parameter wasn't passed
             if key not in args:
                 result[key] = default_value
 
-        for key, value in result.copy().iteritems():
+        for key, value in six.iteritems(result.copy()):
             # You are able to remove a default by assigning None, and we can't
             # pass None to Flickr anyway.
             if value is None:
@@ -470,6 +470,8 @@ class FlickrAPI(object):
             raise IllegalArgumentException("filename must be specified")
         if not self.token_cache.token:
             raise IllegalArgumentException("Authentication is required")
+
+        kwargs['api_key'] = self.flickr_oauth.key
 
         # Figure out the response format
         response_format = self._extract_upload_response_format(kwargs)

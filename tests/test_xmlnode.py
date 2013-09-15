@@ -94,3 +94,25 @@ class TestXMLNode(unittest.TestCase):
         '''This XML exposed a bug in 1.0, should parse okay now.'''
  
         XMLNode.parse(group_info_xml)
+
+    def testMoreParsing(self):
+        '''Tests parsing of XML.
+
+        This used to be a doctest, but it was very hard to make it compatible
+        with both Python 2 and 3.
+        '''
+
+        xml_str = '''<xml foo="32">
+            <taggy bar="10">Name0</taggy>
+            <taggy bar="11" baz="12">Name1</taggy>
+            </xml>'''
+
+        f = XMLNode.parse(xml_str)
+        self.assertEqual(f.name, 'xml')
+        self.assertEqual(f['foo'], '32')
+        self.assertEqual(f.taggy[0].name, 'taggy')
+        self.assertEqual(f.taggy[0]["bar"], '10')
+        self.assertEqual(f.taggy[0].text, 'Name0')
+        self.assertEqual(f.taggy[1].name, 'taggy')
+        self.assertEqual(f.taggy[1]["bar"], '11')
+        self.assertEqual(f.taggy[1]["baz"], '12')

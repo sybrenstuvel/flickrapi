@@ -11,6 +11,8 @@ http://www.flickr.com/groups/api/discuss/72157616713786392/
 
 '''
 
+import six
+
 __all__ = ['encode', 'decode', 'url', 'SHORT_URL']
 
 ALPHABET = u'123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
@@ -22,9 +24,9 @@ def encode(photo_id):
     '''encode(photo_id) -> short id
     
     >>> encode(u'4325695128')
-    u'7Afjsu'
+    '7Afjsu'
     >>> encode(u'2811466321')
-    u'5hruZg'
+    '5hruZg'
     '''
 
     photo_id = int(photo_id)
@@ -43,29 +45,29 @@ def decode(short_id):
     '''decode(short id) -> photo id
     
     >>> decode(u'7Afjsu')
-    u'4325695128'
+    '4325695128'
     >>> decode(u'5hruZg')
-    u'2811466321'
+    '2811466321'
     '''
 
     decoded = 0
     multi = 1
 
-    for i in xrange(len(short_id)-1, -1, -1):
+    for i in six.moves.range(len(short_id)-1, -1, -1):
         char = short_id[i]
         index = ALPHABET.index(char)
-        decoded = decoded + multi * index
-        multi = multi * len(ALPHABET)
+        decoded += multi * index
+        multi *= len(ALPHABET)
 
-    return unicode(decoded)
+    return six.text_type(decoded)
 
 def url(photo_id):
     '''url(photo id) -> short url
     
     >>> url(u'4325695128')
-    u'http://flic.kr/p/7Afjsu'
+    'http://flic.kr/p/7Afjsu'
     >>> url(u'2811466321')
-    u'http://flic.kr/p/5hruZg'
+    'http://flic.kr/p/5hruZg'
     '''
 
     short_id = encode(photo_id)

@@ -6,10 +6,12 @@ not be as thoroughly tested as the core Python FlickrAPI modules.
 '''
 
 import logging
-import httplib
 import threading
 
-import core
+import six
+http_client = six.moves.http_client
+
+from flickrapi import core
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
@@ -42,14 +44,14 @@ class PersistentFlickrAPI(core.FlickrAPI):
         # Thread-local persistent connection
         try:
             if 'conn' not in self.thr.__dict__:
-                self.thr.conn = httplib.HTTPConnection(self.flickr_host)
+                self.thr.conn = http_client.HTTPConnection(self.flickr_host)
                 LOG.info("connection opened to %s" % self.flickr_host, 3)
 
             self.thr.conn.request("POST", self.flickr_rest_form, post_data,
                     {"Content-Type": "application/x-www-form-urlencoded"})
             reply = self.thr.conn.getresponse().read()
 
-        except httplib.ImproperConnectionState, e:
+        except http_client.ImproperConnectionState as e:
             LOG.error("connection error: %s" % e, 3)
             self.thr.conn.close()
             del self.thr.conn

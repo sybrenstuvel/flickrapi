@@ -76,7 +76,7 @@ def set_log_level(level):
 
 
 if __name__ == "__main__":
-    print "Running doctests"
+    print("Running doctests")
     import doctest
     doctest.testmod()
-    print "Tests OK"
+    print("Tests OK")

@@ -32,7 +32,7 @@ def run_in_module_dir(module):
             curdir = os.getcwd()
             try:
                 if directory:
-                    print 'Changing to %s' % directory
+                    print('Changing to %s' % directory)
                     os.chdir(directory)
                 return func()
             finally:
@@ -60,15 +60,15 @@ def run_unittests():
 
     for modulename in modules:
         module = load_module('%s.%s' % (__name__, modulename))
-        print '----------------------------------------------------------------------'
-        print module.__file__
-        print
+        print('----------------------------------------------------------------------')
+        print(module.__file__)
+        print()
         unittest.main(module=module)
 
     if failure:
-        print 'Unittests: there was at least one failure'
+        print('Unittests: there was at least one failure')
     else:
-        print 'Unittests: All tests ran OK'
+        print('Unittests: All tests ran OK')
 
 @run_in_code_dir
 def run_doctests():
@@ -96,12 +96,12 @@ def run_doctests():
         test_count += tested
 
     if failure_count:
-        print 'Doctests: %i of %i failed' % (failure_count, test_count)
+        print('Doctests: %i of %i failed' % (failure_count, test_count))
 
         global failure
         failure = True
     else:
-        print 'Doctests: all of %i OK' % test_count
+        print('Doctests: all of %i OK' % test_count)
 
 def run_tests():
     '''Runs all unittests and doctests.'''

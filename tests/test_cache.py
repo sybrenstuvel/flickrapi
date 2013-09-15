@@ -5,6 +5,7 @@
 import unittest
 import sys
 import time
+import six
 
 # Make sure the flickrapi module from the source distribution is used
 sys.path.insert(0, '..')
@@ -37,7 +38,7 @@ class TestCache(unittest.TestCase):
         max_entries = 90
         cache = flickrapi.SimpleCache(max_entries=max_entries)
 
-        for num in xrange(100):
+        for num in six.moves.range(100):
             cache.set('key-%03d' % num, 'value')
 
         removed = float(max_entries) / cache.cull_frequency

@@ -1,10 +1,20 @@
 '''OAuth support functionality
 '''
 
-import BaseHTTPServer
+
+# Try importing the Python 3 packages first, falling back to 2.x packages when it fails.
+try:
+    from http import server as http_server
+except ImportError:
+    import BaseHTTPServer as http_server
+
+try:
+    from urllib import parse as urllib_parse
+except ImportError:
+    import urlparse as urllib_parse
+
 import logging
 import random
-import urlparse
 import os.path
 import sys
 import webbrowser
@@ -16,23 +26,27 @@ from requests_oauthlib import OAuth1
 from . import sockutil, exceptions, html
 from .exceptions import FlickrError
 
-class OAuthTokenHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class OAuthTokenHTTPHandler(http_server.BaseHTTPRequestHandler):
     def do_GET(self):
         # /?oauth_token=72157630789362986-5405f8542b549e95&oauth_verifier=fe4eac402339100e
 
-        qs = urlparse.urlsplit(self.path).query
-        url_vars = urlparse.parse_qs(qs)
+        qs = urllib_parse.urlsplit(self.path).query
+        url_vars = urllib_parse.parse_qs(qs)
 
-        self.server.oauth_token = url_vars['oauth_token'][0].decode('utf-8')
-        self.server.oauth_verifier = url_vars['oauth_verifier'][0].decode('utf-8')
+        # TODO: check if Python 2.7 needs those decode calls.
+        self.server.oauth_token = url_vars['oauth_token'][0] #.decode('utf-8')
+        self.server.oauth_verifier = url_vars['oauth_verifier'][0]# .decode('utf-8')
+
+        assert(isinstance(self.server.oauth_token, six.string_types))
+        assert(isinstance(self.server.oauth_verifier, six.string_types))
 
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
-        self.wfile.write(html.auth_okay_html)
+        self.wfile.write(html.auth_okay_html.encode('utf-8'))
 
-class OAuthTokenHTTPServer(BaseHTTPServer.HTTPServer):
+class OAuthTokenHTTPServer(http_server.HTTPServer):
     '''HTTP server on a random port, which will receive the OAuth verifier.'''
     
     def __init__(self):
@@ -42,7 +56,7 @@ class OAuthTokenHTTPServer(BaseHTTPServer.HTTPServer):
         self.local_addr = self.listen_port()
         self.log.info('Creating HTTP server at %s', self.local_addr)
        
-        BaseHTTPServer.HTTPServer.__init__(self, self.local_addr, OAuthTokenHTTPHandler)
+        http_server.HTTPServer.__init__(self, self.local_addr, OAuthTokenHTTPHandler)
 
         self.oauth_verifier = None
     
@@ -55,10 +69,9 @@ class OAuthTokenHTTPServer(BaseHTTPServer.HTTPServer):
         # Find a random free port
         local_addr = ('localhost', int(random.uniform(1100, 20000)))
         self.log.debug('Finding free port starting at %s', local_addr)
+        # return local_addr
         return sockutil.find_free_port(local_addr)
-        
-        return local_addr
-    
+
     def wait_for_oauth_verifier(self, timeout=None):
         '''Starts the HTTP server, waits for the OAuth verifier.'''
             
@@ -73,7 +86,7 @@ class OAuthTokenHTTPServer(BaseHTTPServer.HTTPServer):
 
     @property
     def oauth_callback_url(self):
-        return 'http://localhost:%i/' % self.local_addr[1]
+        return 'http://localhost:%i/' % (self.local_addr[1], )
 
 class FlickrAccessToken(object):
     '''Flickr access token.
@@ -93,7 +106,7 @@ class FlickrAccessToken(object):
         assert isinstance(user_nsid, six.text_type), 'user_nsid should be unicode text'
         
         access_level = access_level.lower()
-        assert access_level in self.levels, 'access_level should be one of %r' % self.levels
+        assert access_level in self.levels, 'access_level should be one of %r' % (self.levels, )
         
         self.token = token
         self.token_secret = token_secret
@@ -103,7 +116,7 @@ class FlickrAccessToken(object):
         self.user_nsid = user_nsid
     
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return six.text_type(self).encode('utf-8')
     
     def __unicode__(self):
         return u'FlickrAccessToken(token=%s, fullname=%s, username=%s, user_nsid=%s)' % (
@@ -213,18 +226,20 @@ class OAuthFlickrInterface(object):
         
         @return: the response content
         '''
-        
-        req = requests.get(url, params=params, auth=self.oauth)
+
+        req = requests.get(url,
+                           params=params,
+                           auth=self.oauth)
         
         # check the response headers / status code.
         if req.status_code != 200:
             self.log.error('do_request: Status code %i received, content:', req.status_code)
 
             for part in req.content.split('&'):
-                self.log.error('    %s', urlparse.unquote(part))
+                self.log.error('    %s', urllib_parse.unquote(part))
            
             raise exceptions.FlickrError('do_request: Status code %s received' % req.status_code)
-        
+
         return req.content
     
     def do_upload(self, filename, url, params=None):
@@ -239,8 +254,11 @@ class OAuthFlickrInterface(object):
         #   2. create real request and use auth headers from the dummy one
         dummy_req = requests.Request('POST', url, data=params,
                                      auth=self.oauth)
+
         prepared = dummy_req.prepare()
-        auth = {'Authorization': prepared.headers.get('Authorization')}
+        headers = prepared.headers
+        auth = {'Authorization': headers.get(six.b('Authorization'))}
+
         req = requests.post(url, data=params, headers=auth,
                             files={'photo': open(filename, 'rb')})
         
@@ -249,7 +267,7 @@ class OAuthFlickrInterface(object):
             self.log.error('do_upload: Status code %i received, content:', req.status_code)
 
             for part in req.content.split('&'):
-                self.log.error('    %s', urlparse.unquote(part))
+                self.log.error('    %s', urllib_parse.unquote(part))
            
             raise exceptions.FlickrError('do_upload: Status code %s received' % req.status_code)
         
@@ -258,11 +276,18 @@ class OAuthFlickrInterface(object):
     
     @staticmethod
     def parse_oauth_response(data):
-        '''Parses the data string as OAuth response, returning it as a dict.'''
-        
+        '''Parses the data string as OAuth response, returning it as a dict.
+
+        The keys and values of the dictionary will be text strings (i.e. not binary strings).
+        '''
+
+        if isinstance(data, six.binary_type):
+            data = data.decode('utf-8')
+        qsl = urllib_parse.parse_qsl(data)
+
         resp = {}
-        for key, value in urlparse.parse_qsl(data):
-            resp[key] = value.decode('utf-8')
+        for key, value in qsl:
+            resp[key] = value
         
         return resp
 
@@ -375,7 +400,7 @@ class OAuthFlickrInterface(object):
         
         self.oauth_token = FlickrAccessToken(access_token_resp['oauth_token'],
                                              access_token_resp['oauth_token_secret'],
-                                             self.requested_permissions.decode('utf-8'),
+                                             self.requested_permissions,
                                              access_token_resp['fullname'],
                                              access_token_resp['username'],
                                              access_token_resp['user_nsid'])
