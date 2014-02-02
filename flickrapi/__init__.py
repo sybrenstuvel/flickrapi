@@ -10,12 +10,13 @@ See `the FlickrAPI homepage`_ for more info.
 
 .. _`the FlickrAPI homepage`: http://stuvel.eu/projects/flickrapi
 '''
+from __future__ import unicode_literals
 
 __version__ = '2.0-beta0'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
     'CancelUpload', 'LockingError', 'XMLNode', 'set_log_level', '__version__',
     'SimpleCache', 'TokenCache', 'SimpleTokenCache', 'LockingTokenCache')
-__author__ = u'Sybren St\u00fcvel'.encode('utf-8')
+__author__ = 'Sybren Stüvel'
 
 # Copyright (c) 2007 by the respective coders, see
 # http://www.stuvel.eu/projects/flickrapi
