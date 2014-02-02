@@ -1,7 +1,7 @@
 '''OAuth support functionality
 '''
 
-
+from __future__ import unicode_literals
 # Try importing the Python 3 packages first, falling back to 2.x packages when it fails.
 try:
     from http import server as http_server
@@ -125,7 +125,7 @@ class FlickrAccessToken(object):
         return six.text_type(self).encode('utf-8')
     
     def __unicode__(self):
-        return u'FlickrAccessToken(token=%s, fullname=%s, username=%s, user_nsid=%s)' % (
+        return 'FlickrAccessToken(token=%s, fullname=%s, username=%s, user_nsid=%s)' % (
                    self.token, self.fullname, self.username, self.user_nsid) 
 
     def __repr__(self):
