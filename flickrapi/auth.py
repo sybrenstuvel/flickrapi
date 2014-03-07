@@ -264,11 +264,11 @@ class OAuthFlickrInterface(object):
 
         prepared = dummy_req.prepare()
         headers = prepared.headers
-        auth = {'Authorization': headers.get(six.b('Authorization'))}
 
         params['photo'] = (filename, open(filename, 'rb'))
         m = MultipartEncoder(fields=params)
-        auth['Content-Type'] = m.content_type
+        auth = {'Authorization': headers.get(six.b('Authorization')),
+                'Content-Type' : m.content_type}
         req = requests.post(url, data=m, headers=auth)
 
         # check the response headers / status code.
