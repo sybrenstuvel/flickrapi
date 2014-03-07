@@ -20,6 +20,7 @@ import sys
 import webbrowser
 import six
 
+from requests_toolbelt import MultipartEncoder
 import requests
 from requests_oauthlib import OAuth1
 
@@ -265,9 +266,10 @@ class OAuthFlickrInterface(object):
         headers = prepared.headers
         auth = {'Authorization': headers.get(six.b('Authorization'))}
 
-        req = requests.post(url, data=params, headers=auth,
-                            files={'photo': open(filename, 'rb')})
-        
+        m = MultipartEncoder(fields=params)
+        auth['Content-Type'] = m.content_type
+        req = requests.post(url, data=m, headers=auth)
+
         # check the response headers / status code.
         if req.status_code != 200:
             self.log.error('do_upload: Status code %i received, content:', req.status_code)
