@@ -53,7 +53,8 @@ data = {
     'install_requires': [
         'requests>=1.2.0',
         'six>=1.2.0',
-        'requests_oauthlib'
+        'requests_oauthlib',
+        'requests_toolbelt>=0.2.0'
     ],
     'extras_require': {
         'ElementTree':  ["elementtree>=1.2.6"],
