@@ -249,7 +249,7 @@ class OAuthFlickrInterface(object):
 
         return req.content
     
-    def do_upload(self, filename, url, params=None):
+    def do_upload(self, filename, url, params=None, fileobj=None):
         '''Performs a file upload to the given URL with the given parameters, signed with OAuth.
         
         @return: the response content
@@ -265,7 +265,9 @@ class OAuthFlickrInterface(object):
         prepared = dummy_req.prepare()
         headers = prepared.headers
 
-        params['photo'] = (filename, open(filename, 'rb'))
+        if not fileobj:
+            fileobj = open(filename, 'rb')
+        params['photo'] = (filename, fileobj)
         m = MultipartEncoder(fields=params)
         auth = {'Authorization': headers.get(six.b('Authorization')),
                 'Content-Type' : m.content_type}

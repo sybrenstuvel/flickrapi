@@ -409,7 +409,7 @@ class FlickrAPI(object):
 
         return response_format
 
-    def upload(self, filename, **kwargs):
+    def upload(self, filename, fileobj=None, **kwargs):
         """Upload a file to flickr.
 
         Be extra careful you spell the parameters correctly, or you will
@@ -419,6 +419,8 @@ class FlickrAPI(object):
 
         filename
             name of a file to upload
+        fileobj
+            an optional file-like object from which the data can be read
         title
             title of the photo
         description
@@ -443,22 +445,43 @@ class FlickrAPI(object):
             The response format. You can only choose between the
             parsed responses or 'rest' for plain REST.
 
-        The callback method should take two parameters:
-        ``def callback(progress, done)``
+        The ``fileobj`` parameter can be used to monitor progress via
+        a callback method. For example::
+
+            class FileWithCallback(object):
+                def __init__(self, filename, callback):
+                    self.file = open(filename, 'rb')
+                    self.callback = callback
+                    # the following attributes and methods are required
+                    self.len = os.path.getsize(path)
+                    self.fileno = self.file.fileno
+                    self.tell = self.file.tell
+
+                def read(self, size):
+                    if self.callback:
+                        self.callback(self.tell() * 100 // self.len)
+                    return self.file.read(size)
+
+            fileobj = FileWithCallback(filename, callback)
+            rsp = flickr.upload(filename, fileobj, parameters)
+
+        The callback method takes one parameter:
+        ``def callback(progress)``
         
-        Progress is a number between 0 and 100, and done is a boolean
-        that's true only when the upload is done.
+        Progress is a number between 0 and 100.
         """
 
-        return self._upload_to_form(self.UPLOAD_URL, filename, **kwargs)
+        return self._upload_to_form(self.UPLOAD_URL, filename, fileobj, **kwargs)
     
-    def replace(self, filename, photo_id, **kwargs):
+    def replace(self, filename, photo_id, fileobj=None, **kwargs):
         """Replace an existing photo.
 
         Supported parameters:
 
         filename
             name of a file to upload
+        fileobj
+            an optional file-like object from which the data can be read
         photo_id
             the ID of the photo to replace
         format
@@ -472,9 +495,9 @@ class FlickrAPI(object):
             raise IllegalArgumentException("photo_id must be specified")
 
         kwargs['photo_id'] = photo_id
-        return self._upload_to_form(self.REPLACE_URL, filename, **kwargs)
+        return self._upload_to_form(self.REPLACE_URL, filename, fileobj, **kwargs)
         
-    def _upload_to_form(self, form_url, filename, **kwargs):
+    def _upload_to_form(self, form_url, filename, fileobj=None, **kwargs):
         '''Uploads a photo - can be used to either upload a new photo
         or replace an existing one.
 
@@ -496,7 +519,7 @@ class FlickrAPI(object):
         kwargs = make_bytes(kwargs)
         
         return self._wrap_in_parser(self.flickr_oauth.do_upload, response_format,
-                                    filename, form_url, kwargs)
+                                    filename, form_url, kwargs, fileobj)
     
     def token_valid(self, perms='read'):
         '''Verifies the cached token with Flickr.

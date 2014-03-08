@@ -12,7 +12,11 @@ flickr.upload(...)
 The ``flickr.upload(...)`` method has the following parameters:
 
 ``filename``
-    The filename of the image. The image data is read from this file.
+    The filename of the image. The image data is read from this file or
+    from ``fileobj``.
+
+``fileobj``
+    An optional file-like object from which the image data can be read.
 
 ``title``
     The title of the photo
@@ -44,6 +48,32 @@ The ``flickr.upload(...)`` method has the following parameters:
     The response format. This *must* be either ``rest`` or one of the
     parsed formats ``etree`` / ``xmlnode``.
 
+
+The ``fileobj`` parameter can be used to monitor progress via a
+callback method. For example::
+
+    class FileWithCallback(object):
+        def __init__(self, filename, callback):
+            self.file = open(filename, 'rb')
+            self.callback = callback
+            # the following attributes and methods are required
+            self.len = os.path.getsize(path)
+            self.fileno = self.file.fileno
+            self.tell = self.file.tell
+
+        def read(self, size):
+            if self.callback:
+                self.callback(self.tell() * 100 // self.len)
+            return self.file.read(size)
+
+    params['fileobj'] = FileWithCallback(params['filename'], callback)
+    rsp = flickr.upload(params)
+
+The callback method takes one parameter: ``def callback(progress)``
+        
+Progress is a number between 0 and 100.
+
+
 flickr.replace(...)
 ----------------------------------------------------------------------
 
@@ -55,6 +85,9 @@ The ``flickr.replace(...)`` method has the following parameters:
 ``photo_id``
     The identifier of the photo that is to be replaced. Do not use
     this when uploading a new photo.
+
+``fileobj``
+    An optional file-like object from which the image data can be read.
 
 ``format``
     The response format. This *must* be either ``rest`` or one of the
