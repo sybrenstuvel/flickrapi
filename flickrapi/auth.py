@@ -103,7 +103,8 @@ class FlickrAccessToken(object):
     
     levels = ('read', 'write', 'delete')
     
-    def __init__(self, token, token_secret, access_level, fullname, username, user_nsid):
+    def __init__(self, token, token_secret, access_level,
+                 fullname=u'', username=u'', user_nsid=u''):
         
         assert isinstance(token, six.text_type), 'token should be unicode text'
         assert isinstance(token_secret, six.text_type), 'token_secret should be unicode text'
