@@ -18,7 +18,6 @@ from flickrapi.cache import SimpleCache
 from flickrapi.call_builder import CallBuilder
 
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
 
 
 def make_bytes(dictionary):
@@ -49,8 +48,6 @@ def debug(method):
 
     Using this automatically sets the log level to DEBUG.
     '''
-
-    LOG.setLevel(logging.DEBUG)
 
     def debugged(*args, **kwargs):
         LOG.debug("Call: %s(%s, %s)" % (method.__name__, args,

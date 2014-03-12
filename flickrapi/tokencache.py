@@ -10,7 +10,6 @@ from flickrapi.exceptions import LockingError, CacheDatabaseError
 from flickrapi.auth import FlickrAccessToken
 
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
 
 __all__ = ('SimpleTokenCache', 'OAuthTokenCache')
 

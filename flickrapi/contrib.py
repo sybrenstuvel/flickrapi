@@ -14,7 +14,6 @@ http_client = six.moves.http_client
 from flickrapi import core
 
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
 
 class PersistentFlickrAPI(core.FlickrAPI):
     '''FlickrAPI that uses persistent HTTP connections via httplib.
