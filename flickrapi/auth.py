@@ -413,7 +413,7 @@ class OAuthFlickrInterface(object):
         self.oauth_token = FlickrAccessToken(access_token_resp['oauth_token'],
                                              access_token_resp['oauth_token_secret'],
                                              self.requested_permissions,
-                                             access_token_resp['fullname'],
+                                             access_token_resp.get('fullname', ''),
                                              access_token_resp['username'],
                                              access_token_resp['user_nsid'])
         
