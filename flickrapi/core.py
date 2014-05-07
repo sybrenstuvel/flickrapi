@@ -132,9 +132,9 @@ class FlickrAPI(object):
       sets = flickr.photosets_getList(user_id='73509078@N00')
     """
     
-    REST_URL = 'http://api.flickr.com/services/rest/'
-    UPLOAD_URL = 'http://api.flickr.com/services/upload/'
-    REPLACE_URL = 'http://api.flickr.com/services/replace/'
+    REST_URL = 'https://api.flickr.com/services/rest/'
+    UPLOAD_URL = 'https://api.flickr.com/services/upload/'
+    REPLACE_URL = 'https://api.flickr.com/services/replace/'
     
     def __init__(self, api_key, secret, username=None,
             token=None, format='etree', store_token=True,

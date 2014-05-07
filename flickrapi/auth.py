@@ -144,9 +144,9 @@ class FlickrAccessToken(object):
 class OAuthFlickrInterface(object):
     '''Interface object for handling OAuth-authenticated calls to Flickr.'''
 
-    REQUEST_TOKEN_URL = "http://www.flickr.com/services/oauth/request_token"
-    AUTHORIZE_URL = "http://www.flickr.com/services/oauth/authorize"
-    ACCESS_TOKEN_URL = "http://www.flickr.com/services/oauth/access_token"
+    REQUEST_TOKEN_URL = "https://www.flickr.com/services/oauth/request_token"
+    AUTHORIZE_URL = "https://www.flickr.com/services/oauth/authorize"
+    ACCESS_TOKEN_URL = "https://www.flickr.com/services/oauth/access_token"
 
     
     def __init__(self, api_key, api_secret):
