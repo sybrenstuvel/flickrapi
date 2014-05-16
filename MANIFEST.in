@@ -1,0 +1,7 @@
+include _setup.py
+include setup.py
+include README
+include LICENSE
+include UPGRADING
+recursive-include doc *
+prune doc/index.html
