@@ -57,7 +57,7 @@ data = {
         'access, uploading and replacing photos, and all Flickr API '
         'functions.', 
     'packages': ['flickrapi'],
-    'data_files': ['LICENSE', 'README', 'UPGRADING'],
+    'package_data': {'flickrapi': ['../LICENSE.txt', '../README.txt', '../UPGRADING.txt']},
     'license': 'Python',
     'classifiers': [
         'Development Status :: 6 - Mature',
@@ -65,6 +65,9 @@ data = {
         'License :: OSI Approved :: Python License (CNRI Python License)',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
         'Topic :: Multimedia :: Graphics',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
@@ -90,7 +93,7 @@ alldocs = ['doc/index.html', 'doc/documentation.css', 'doc/html4css1.css']
 if docutils or all(os.path.exists(doc) for doc in alldocs):
     # Only include documentation if it can be built, or if it has been
     # built already
-    data['data_files'].append(('share/doc/flickrapi-%s' % __version__, alldocs))
+    data['data_files'] = [('share/doc/flickrapi-%s' % __version__, alldocs)]
     documentation_available = True
 else:
     print "======================================================================="
