@@ -14,13 +14,14 @@ LOG = logging.getLogger(__name__)
 
 progress_callback = None
 
+
 class ReportingSocket(object):
     '''Wrapper around a socket. Gives progress report through a
     callback function.
     '''
-    
+
     min_chunksize = 10240
-    
+
     def __init__(self, socket):
         self.socket = socket
 
@@ -33,7 +34,7 @@ class ReportingSocket(object):
         total = len(bits)
         sent = 0
         chunksize = max(self.min_chunksize, total // 100)
-        
+
         while len(bits) > 0:
             send = bits[0:chunksize]
             self.socket.sendall(send)
@@ -41,19 +42,20 @@ class ReportingSocket(object):
             if progress_callback:
                 progress = float(sent) / total * 100
                 progress_callback(progress, sent == total)
-            
+
             bits = bits[chunksize:]
-    
+
     def makefile(self, mode, bufsize):
         '''Returns a file-like object for the socket.'''
 
         return self.socket.makefile(mode, bufsize)
-    
+
     def close(self):
         '''Closes the socket.'''
 
         return self.socket.close()
-    
+
+
 class ProgressHTTPConnection(httplib.HTTPConnection):
     '''HTTPConnection that gives regular progress reports during
     sending of data.
@@ -64,7 +66,8 @@ class ProgressHTTPConnection(httplib.HTTPConnection):
 
         httplib.HTTPConnection.connect(self)
         self.sock = ReportingSocket(self.sock)
-        
+
+
 class ProgressHTTPHandler(urllib2.HTTPHandler):
     '''HTTPHandler that gives regular progress reports during sending
     of data.
@@ -72,15 +75,17 @@ class ProgressHTTPHandler(urllib2.HTTPHandler):
     def http_open(self, req):
         return self.do_open(ProgressHTTPConnection, req)
 
+
 def set_callback(method):
     '''Sets the callback function to use for progress reports.'''
 
-    global progress_callback # IGNORE:W0603
+    global progress_callback  # IGNORE:W0603
 
     if not hasattr(method, '__call__'):
         raise ValueError('Callback method must be callable')
-    
+
     progress_callback = method
+
 
 def urlopen(url_or_request, callback, body=None):
     '''Opens an URL using the ProgressHTTPHandler.'''
@@ -94,9 +99,8 @@ if __name__ == '__main__':
         '''Upload progress demo'''
 
         LOG.info("%3.0f - %s" % (progress, finished))
-    
+
     conn = urlopen("http://www.flickr.com/", 'x' * 10245, upload)
     data = conn.read()
     LOG.info("Read data")
     print data[:100].split('\n')[0]
-    

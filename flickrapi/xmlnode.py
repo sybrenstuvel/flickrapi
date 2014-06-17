@@ -10,6 +10,7 @@ import xml.dom.minidom
 
 __all__ = ('XMLNode', )
 
+
 class XMLNode:
     """XMLNode -- generic class for holding an XML node
 
@@ -81,7 +82,7 @@ class XMLNode:
 
             elif a.nodeType == xml.dom.Node.TEXT_NODE:
                 this_node.text += a.nodeValue
-        
+
         return this_node
 
     @classmethod
@@ -97,6 +98,7 @@ class XMLNode:
 
         # get the root
         root_node = XMLNode()
-        if store_xml: root_node.xml = xml_str
+        if store_xml:
+            root_node.xml = xml_str
 
         return cls.__parse_element(dom.firstChild, root_node)

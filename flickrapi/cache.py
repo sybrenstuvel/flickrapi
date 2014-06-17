@@ -12,9 +12,10 @@ thanks to those guys for designing a simple and effective cache!
 import threading
 import time
 
+
 class SimpleCache(object):
     '''Simple response cache for FlickrAPI calls.
-    
+
     This stores max 50 entries, timing them out after 120 seconds:
     >>> cache = SimpleCache(timeout=120, max_entries=50)
     '''
@@ -60,7 +61,7 @@ class SimpleCache(object):
         '''Set a value in the cache. If timeout is given, that timeout will be
         used for the key; otherwise the default cache timeout will be used.
         '''
-        
+
         if len(self.storage) >= self.max_entries:
             self.cull()
         if timeout is None:
@@ -70,7 +71,8 @@ class SimpleCache(object):
 
     @locking
     def delete(self, key):
-        '''Deletes a key from the cache, failing silently if it doesn't exist.'''
+        '''Deletes a key from the cache,
+           failing silently if it doesn't exist.'''
 
         if key in self.storage:
             del self.storage[key]
@@ -92,7 +94,7 @@ class SimpleCache(object):
         '''Reduces the number of cached items'''
 
         doomed = [k for (i, k) in enumerate(self.storage)
-                if i % self.cull_frequency == 0]
+                  if i % self.cull_frequency == 0]
         for k in doomed:
             self.delete(k)
 
@@ -103,4 +105,3 @@ class SimpleCache(object):
         '''
 
         return len(self.storage)
-

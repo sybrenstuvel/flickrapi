@@ -13,9 +13,10 @@ LOG.setLevel(logging.INFO)
 
 __all__ = ('TokenCache', 'SimpleTokenCache')
 
+
 class SimpleTokenCache(object):
     '''In-memory token cache.'''
-    
+
     def __init__(self):
         self.token = None
 
@@ -24,9 +25,10 @@ class SimpleTokenCache(object):
 
         self.token = None
 
+
 class TokenCache(object):
     '''On-disk persistent token cache for a single application.
-    
+
     The application is identified by the API key used. Per
     application multiple users are supported, with a single
     token per user.
@@ -34,9 +36,9 @@ class TokenCache(object):
 
     def __init__(self, api_key, username=None):
         '''Creates a new token cache instance'''
-        
+
         self.api_key = api_key
-        self.username = username        
+        self.username = username
         self.memory = {}
         self.path = os.path.join("~", ".flickr")
 
@@ -46,7 +48,7 @@ class TokenCache(object):
 
     def get_cached_token_filename(self):
         """Return the full pathname of the cached token file."""
-        
+
         if self.username:
             filename = 'auth-%s.token' % self.username
         else:
@@ -89,14 +91,16 @@ class TokenCache(object):
 
     def forget(self):
         '''Removes the cached token'''
-        
+
         if self.username in self.memory:
             del self.memory[self.username]
         filename = self.get_cached_token_filename()
         if os.path.exists(filename):
             os.unlink(filename)
 
-    token = property(get_cached_token, set_cached_token, forget, "The cached token")
+    token = property(get_cached_token, set_cached_token,
+                     forget, "The cached token")
+
 
 class LockingTokenCache(TokenCache):
     '''Locks the token cache when reading or updating it, so that
@@ -115,7 +119,6 @@ class LockingTokenCache(TokenCache):
 
         return os.path.join(self.lock, 'pid')
     pidfile_name = property(get_pidfile_name)
-
 
     def get_lock_pid(self):
         '''Returns the PID that is stored in the lock directory, or
@@ -136,7 +139,6 @@ class LockingTokenCache(TokenCache):
 
         return None
 
-        
     def acquire(self, timeout=60):
         '''Locks the token cache for this key and username.
 
@@ -168,13 +170,13 @@ class LockingTokenCache(TokenCache):
                 # lock. Just bail out then.
                 if not os.path.exists(lock):
                     LOG.error('Unable to acquire lock %s, aborting' %
-                            lock)
+                              lock)
                     raise
 
                 if time.time() - start_time >= timeout:
                     # Timeout has passed, bail out
                     raise LockingError('Unable to acquire lock ' +
-                            '%s, aborting' % lock)
+                                       '%s, aborting' % lock)
 
                 # Wait for a bit, then try again
                 LOG.debug('Unable to acquire lock, waiting')
@@ -201,7 +203,8 @@ class LockingTokenCache(TokenCache):
         lockpid = self.get_lock_pid()
         if lockpid and lockpid != os.getpid():
             raise LockingError(('Lock %s is NOT ours, but belongs ' +
-                'to PID %i, unable to release.') % (lock, lockpid))
+                                'to PID %i, unable to release.') % (lock,
+                                                                    lockpid))
 
         LOG.debug('Releasing lock %s' % lock)
 
@@ -257,7 +260,8 @@ class LockingTokenCache(TokenCache):
     @locked
     def forget(self):
         '''Removes the cached token'''
-        
+
         TokenCache.forget(self)
 
-    token = property(get_cached_token, set_cached_token, forget, "The cached token")
+    token = property(get_cached_token, set_cached_token,
+                     forget, "The cached token")

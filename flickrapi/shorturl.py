@@ -20,7 +20,7 @@ SHORT_URL = u'http://flic.kr/p/%s'
 
 def encode(photo_id):
     '''encode(photo_id) -> short id
-    
+
     >>> encode(u'4325695128')
     u'7Afjsu'
     >>> encode(u'2811466321')
@@ -39,9 +39,10 @@ def encode(photo_id):
 
     return encoded
 
+
 def decode(short_id):
     '''decode(short id) -> photo id
-    
+
     >>> decode(u'7Afjsu')
     u'4325695128'
     >>> decode(u'5hruZg')
@@ -59,9 +60,10 @@ def decode(short_id):
 
     return unicode(decoded)
 
+
 def url(photo_id):
     '''url(photo id) -> short url
-    
+
     >>> url(u'4325695128')
     u'http://flic.kr/p/7Afjsu'
     >>> url(u'2811466321')
@@ -70,6 +72,3 @@ def url(photo_id):
 
     short_id = encode(photo_id)
     return SHORT_URL % short_id
-
-
-
