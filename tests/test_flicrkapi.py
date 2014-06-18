@@ -99,7 +99,7 @@ class FlickrApiTest(SuperTest):
         
         url = self.f.auth_url(args['perms'], args['frob'])
         
-        self.assertUrl('http', flickrapi.FlickrAPI.flickr_host, 
+        self.assertUrl('https', flickrapi.FlickrAPI.flickr_host,
                        flickrapi.FlickrAPI.flickr_auth_form, args, 
                        url)
 
@@ -161,7 +161,7 @@ class FlickrApiTest(SuperTest):
         
         url = self.f.web_login_url(args['perms'])
         
-        self.assertUrl('http', flickrapi.FlickrAPI.flickr_host,
+        self.assertUrl('https', flickrapi.FlickrAPI.flickr_host,
                        flickrapi.FlickrAPI.flickr_auth_form, args,
                        url)
         
@@ -599,10 +599,12 @@ class WalkerTest(SuperTest):
         self.assertEquals(types.GeneratorType, type(gen))
 
         # very unlikely that this result will ever change
-        ids = [p.get('id') for p in gen]
-        self.assertEquals(['2824831549', '2807789315', '2807789039',
-            '2807773797', '2807772503', '2807771401', '2808616234',
-            '2808618120', '2808591736'], ids)
+        ids = sorted([p.get('id') for p in gen])
+        expected_ids = sorted(
+            ['2824831549', '2807789315', '2807789039', '2807773797',
+             '2807772503', '2807771401', '2808616234', '2808618120',
+             '2808591736'])
+        self.assertEquals(expected_ids, ids)
 
 if __name__ == '__main__':
     unittest.main()
