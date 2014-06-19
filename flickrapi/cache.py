@@ -46,7 +46,7 @@ class SimpleCache(object):
         '''
 
         now = time.time()
-        exp = self.expire_info.get(key)
+        exp = self.expire_info.get(repr(key))
         if exp is None:
             return default
         elif exp < now:
@@ -65,8 +65,8 @@ class SimpleCache(object):
             self.cull()
         if timeout is None:
             timeout = self.default_timeout
-        self.storage[key] = value
-        self.expire_info[key] = time.time() + timeout
+        self.storage[repr(key)] = value
+        self.expire_info[repr(key)] = time.time() + timeout
 
     @locking
     def delete(self, key):

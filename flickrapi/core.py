@@ -176,15 +176,13 @@ class FlickrAPI(object):
             >>> f.cache = SimpleCache(timeout=5, max_entries=100)
         """
 
-        self.flickr_oauth = auth.OAuthFlickrInterface(api_key, secret)
 
         self.default_format = format
-        
         self._handler_cache = {}
 
         if token:
             assert isinstance(token, auth.FlickrAccessToken)
-            
+
             # Use a memory-only token cache
             self.token_cache = tokencache.SimpleTokenCache()
             self.token_cache.token = token
@@ -194,6 +192,8 @@ class FlickrAPI(object):
         else:
             # Use a real token cache
             self.token_cache = tokencache.OAuthTokenCache(api_key, username or '')
+
+        self.flickr_oauth = auth.OAuthFlickrInterface(api_key, secret, self.token_cache)
 
         if cache:
             self.cache = SimpleCache()
