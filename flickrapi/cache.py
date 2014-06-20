@@ -50,10 +50,10 @@ class SimpleCache(object):
         if exp is None:
             return default
         elif exp < now:
-            self.delete(key)
+            self.delete(repr(key))
             return default
 
-        return self.storage[key]
+        return self.storage[repr(key)]
 
     @locking
     def set(self, key, value, timeout=None):
@@ -80,12 +80,12 @@ class SimpleCache(object):
     @locking
     def has_key(self, key):
         '''Returns True if the key is in the cache and has not expired.'''
-        return self.get(key) is not None
+        return self.get(repr(key)) is not None
 
     @locking
     def __contains__(self, key):
         '''Returns True if the key is in the cache and has not expired.'''
-        return self.has_key(key)
+        return self.has_key(repr(key))
 
     @locking
     def cull(self):
