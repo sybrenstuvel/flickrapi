@@ -267,8 +267,8 @@ class OAuthFlickrInterface(object):
         headers = prepared.headers
 
         if not fileobj:
-            fileobj = open(os.path.basename(filename), 'rb')
-        params['photo'] = (filename, fileobj)
+            fileobj = open(filename, 'rb')
+        params['photo'] = (os.path.basename(filename), fileobj)
         m = MultipartEncoder(fields=params)
         auth = {'Authorization': headers.get(six.b('Authorization')),
                 'Content-Type' : m.content_type}
