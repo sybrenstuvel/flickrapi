@@ -148,15 +148,20 @@ class OAuthFlickrInterface(object):
     AUTHORIZE_URL = "https://www.flickr.com/services/oauth/authorize"
     ACCESS_TOKEN_URL = "https://www.flickr.com/services/oauth/access_token"
 
-    
-    def __init__(self, api_key, api_secret):
+    def __init__(self, api_key, api_secret, oauth_token=None):
         self.log = logging.getLogger('%s.%s' % (self.__class__.__module__, self.__class__.__name__))
         
         assert isinstance(api_key, six.text_type), 'api_key must be unicode string'
         assert isinstance(api_secret, six.text_type), 'api_secret must be unicode string'
 
-        self.oauth = OAuth1(api_key, api_secret, signature_type='auth_header')
-        self.oauth_token = None
+        token = None
+        secret = None
+        if oauth_token.token:
+            token = oauth_token.token.token
+            secret = oauth_token.token.token_secret
+
+        self.oauth = OAuth1(api_key, api_secret, token, secret, signature_type='auth_header')
+        self.oauth_token = oauth_token
         self.auth_http_server = None
         self.requested_permissions = None
 
