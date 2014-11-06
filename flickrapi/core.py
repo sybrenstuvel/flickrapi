@@ -180,6 +180,11 @@ class FlickrAPI(object):
         self.default_format = format
         self._handler_cache = {}
 
+        if isinstance(api_key, six.binary_type):
+            api_key = api_key.decode('ascii')
+        if isinstance(secret, six.binary_type):
+            secret = secret.decode('ascii')
+
         if token:
             assert isinstance(token, auth.FlickrAccessToken)
 
