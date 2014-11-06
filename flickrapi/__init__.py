@@ -65,7 +65,6 @@ from flickrapi.exceptions import (IllegalArgumentException, FlickrError,
 from flickrapi.cache import SimpleCache
 from flickrapi import reportinghttp
 
-logging.basicConfig()
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 

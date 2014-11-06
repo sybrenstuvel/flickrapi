@@ -9,7 +9,6 @@ import logging
 
 __all__ = ['urlopen']
 
-logging.basicConfig()
 LOG = logging.getLogger(__name__)
 
 progress_callback = None

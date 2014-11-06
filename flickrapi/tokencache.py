@@ -7,7 +7,6 @@ import time
 
 from flickrapi.exceptions import LockingError
 
-logging.basicConfig()
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
