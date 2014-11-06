@@ -237,7 +237,8 @@ class OAuthFlickrInterface(object):
 
         req = requests.get(url,
                            params=params,
-                           auth=self.oauth)
+                           auth=self.oauth,
+                           headers={'Connection': 'close'})
         
         # check the response headers / status code.
         if req.status_code != 200:
@@ -261,17 +262,21 @@ class OAuthFlickrInterface(object):
         #   1. create a dummy request without 'photo'
         #   2. create real request and use auth headers from the dummy one
         dummy_req = requests.Request('POST', url, data=params,
-                                     auth=self.oauth)
+                                     auth=self.oauth,
+                                     headers={'Connection': 'close'})
 
         prepared = dummy_req.prepare()
         headers = prepared.headers
+        self.log.debug('do_upload: prepared headers = %s', headers)
 
         if not fileobj:
             fileobj = open(filename, 'rb')
         params['photo'] = (os.path.basename(filename), fileobj)
         m = MultipartEncoder(fields=params)
-        auth = {'Authorization': headers.get(six.b('Authorization')),
-                'Content-Type' : m.content_type}
+        auth = {'Authorization': headers.get('Authorization'),
+                'Content-Type' : m.content_type,
+                'Connection'   : 'close'}
+        self.log.debug('POST %s', auth)
         req = requests.post(url, data=m, headers=auth)
 
         # check the response headers / status code.
@@ -330,6 +335,8 @@ class OAuthFlickrInterface(object):
             user instead. 
         '''
         
+        self.log.debug('get_request_token(oauth_callback=%s):', oauth_callback)
+
         if oauth_callback is None:
             self._start_http_server()
             oauth_callback = self.auth_http_server.oauth_callback_url
@@ -343,6 +350,7 @@ class OAuthFlickrInterface(object):
         
         # Parse the token data
         request_token = self.parse_oauth_response(token_data)
+        self.log.debug('Request token: %s', request_token)
         
         self.oauth.client.resource_owner_key = request_token['oauth_token']
         self.oauth.client.resource_owner_secret = request_token['oauth_token_secret']

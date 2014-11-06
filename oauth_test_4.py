@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('requests_oauthlib').setLevel(logging.INFO)
+logging.getLogger('oauthlib').setLevel(logging.INFO)
 
 from flickrapi import FlickrAPI
 
@@ -26,9 +28,7 @@ photo_id = resp.findtext('photoid')
 
 # ------------------------------------------------------------------------------
 print('Step 3: Replace photo')
-
-flickr.replace('Vanaf NDSM naar Centrum - begin oktober 2011.jpg', photo_id=photo_id)
-
+flickr.replace('jaguar.jpg', photo_id=photo_id)
 
 # ------------------------------------------------------------------------------
 print('Step 4: Delete photo')

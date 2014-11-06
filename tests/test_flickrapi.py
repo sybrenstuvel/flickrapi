@@ -335,8 +335,9 @@ class WalkerTest(SuperTest):
         # so we'll just go with the flow. Of course, later things changed again,
         # and I had to uncomment the commented-out photos. I left this comment here
         # as a warning to you (and that includes future me) ;-)
-        ids = [p.get('id') for p in gen]
-        self.assertEqual(['2824913799',
+        ids = sorted(p.get('id') for p in gen)
+        self.assertEqual(sorted([
+                          '2824913799',
                           '2824831549',
                           '2807789315',
                           '2807789039',
@@ -346,7 +347,7 @@ class WalkerTest(SuperTest):
                           '2808616234',
                           '2808618120',
                           '2808591736',
-                          '2807741221'], ids)
+                          '2807741221']), ids)
 
 if __name__ == '__main__':
     unittest.main()
