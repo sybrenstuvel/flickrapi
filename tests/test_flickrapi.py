@@ -332,16 +332,18 @@ class WalkerTest(SuperTest):
         # very unlikely that this result will ever change. Until it did, of course.
         # For some reason, the commented-out photos are still there, but not returned
         # by Flickr. It wouldn't be the first time that Flickr's results are buggy,
-        # so we'll just go with the flow. You can test the results at
+        # so we'll just go with the flow. Of course, later things changed again,
+        # and I had to uncomment the commented-out photos. I left this comment here
+        # as a warning to you (and that includes future me) ;-)
         ids = [p.get('id') for p in gen]
         self.assertEqual(['2824913799',
                           '2824831549',
                           '2807789315',
-                       #  '2807789039',
+                          '2807789039',
                           '2807773797',
                           '2807772503',
                           '2807771401',
-                       #  '2808616234',
+                          '2808616234',
                           '2808618120',
                           '2808591736',
                           '2807741221'], ids)
