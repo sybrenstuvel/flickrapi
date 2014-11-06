@@ -8,7 +8,7 @@ Run with "python setup.py install" to install FlickrAPI
 from __future__ import print_function
 
 __author__ = 'Sybren A. Stuvel'
-__version__ = '2.0-beta0'
+__version__ = '2.0'
 
 
 # Check the Python version
@@ -46,19 +46,19 @@ data = {
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Multimedia :: Graphics',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     'install_requires': [
-        'requests>=1.2.0',
-        'six>=1.2.0',
-        'requests_oauthlib',
-        'requests_toolbelt>=0.2.0'
+        'requests>=2.4.3',
+        'six>=1.8.0',
+        'requests_oauthlib>=0.4.2',
+        'requests_toolbelt>=0.3.1'
     ],
     'extras_require': {
         'ElementTree':  ["elementtree>=1.2.6"],
-        'Sphinx': ["sphinx>=1.1.3"],
+        'Sphinx': ["sphinx>=1.2.3"],
     },
     'zip_safe': True,
     'test_suite': 'tests',
