@@ -15,8 +15,8 @@ __version__ = '2.0'
 import sys
 (major, minor) = sys.version_info[:2]
 
-if (major, minor) < (2, 6):
-    raise SystemExit("Sorry, Python 2.6 or newer required")
+if (major, minor) < (2, 7) or (major == 3 and minor < 3):
+    raise SystemExit("Sorry, Python 2.7, or 3.3 or newer required")
 
 from setuptools import setup
 
@@ -46,6 +46,7 @@ data = {
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Topic :: Multimedia :: Graphics',
         'Topic :: Software Development :: Libraries :: Python Modules',
