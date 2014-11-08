@@ -12,7 +12,7 @@ See `the FlickrAPI homepage`_ for more info.
 '''
 from __future__ import unicode_literals
 
-__version__ = '2.0'
+__version__ = '2.0.1'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
     'CancelUpload', 'LockingError', 'XMLNode', 'set_log_level', '__version__',
     'SimpleCache', 'TokenCache', 'SimpleTokenCache', 'LockingTokenCache')
