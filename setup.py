@@ -51,14 +51,14 @@ data = {
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     'install_requires': [
-        'requests>=2.4.3',
-        'six>=1.8.0',
-        'requests_oauthlib>=0.4.2',
-        'requests_toolbelt>=0.3.1'
+        'six>=1.5.2',
+        'requests>=2.2.1',
+        'requests_oauthlib>=0.4.0',
+        'requests_toolbelt>=0.3.1',
     ],
     'extras_require': {
         'ElementTree':  ["elementtree>=1.2.6"],
-        'Sphinx': ["sphinx>=1.2.3"],
+        'Sphinx': ["sphinx>=1.1.3"],
     },
     'zip_safe': True,
     'test_suite': 'tests',
