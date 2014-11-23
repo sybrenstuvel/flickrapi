@@ -14,8 +14,7 @@ if (major, minor) < (2, 4):
     raise SystemExit("Sorry, Python 2.4 or newer 2.x version required")
 
 if major >= 3:
-    raise SystemExit('Sorry, Python 3.x is not supported. Support will be '
-    'introduced in version 2.0; for now try the version from our Mercurial '
-    'repository at https://bitbucket.org/sybren/flickrapi or use Python 2.7.')
+    raise SystemExit('Sorry, Python 3.x is not supported. Support was '
+    'introduced in version 2.0; you may want to upgrade to that one.')
 
 import _setup
