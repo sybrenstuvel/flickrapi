@@ -262,6 +262,11 @@ class OAuthFlickrInterface(object):
         @return: the response content
         '''
 
+        # work-around to allow non-ascii characters in file name
+        # Flickr doesn't store the name but does use it as a default title
+        if 'title' not in params:
+            params['title'] = os.path.basename(filename)
+
         # work-around for Flickr expecting 'photo' to be excluded
         # from the oauth signature:
         #   1. create a dummy request without 'photo'
@@ -276,7 +281,7 @@ class OAuthFlickrInterface(object):
 
         if not fileobj:
             fileobj = open(filename, 'rb')
-        params['photo'] = (os.path.basename(filename), fileobj)
+        params['photo'] = ('dummy name', fileobj)
         m = MultipartEncoder(fields=params)
         auth = {'Authorization': headers.get('Authorization'),
                 'Content-Type' : m.content_type,
