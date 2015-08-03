@@ -24,7 +24,8 @@ flickr = FlickrAPI(keys.apikey, keys.apisecret)
 
 # ------------------------------------------------------------------------------
 print('Step 1: authenticate')
-flickr.authenticate_via_browser(perms='read')
+# flickr.authenticate_via_browser(perms='read')
+flickr.authenticate_console(perms='read')
 
 # ------------------------------------------------------------------------------
 print('Step 2: user Flickr')
