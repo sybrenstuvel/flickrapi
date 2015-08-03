@@ -1,9 +1,9 @@
-'''Contributed FlickrAPI extensions.
+"""Contributed FlickrAPI extensions.
 
 These FlickrAPI extensions have been contributed by other developers. They may
 not be as thoroughly tested as the core Python FlickrAPI modules.
 
-'''
+"""
 
 import logging
 import threading
@@ -16,7 +16,7 @@ from flickrapi import core
 LOG = logging.getLogger(__name__)
 
 class PersistentFlickrAPI(core.FlickrAPI):
-    '''FlickrAPI that uses persistent HTTP connections via httplib.
+    """FlickrAPI that uses persistent HTTP connections via httplib.
     
     The HTTP connection is persisted in a thread-local way.
 
@@ -25,7 +25,7 @@ class PersistentFlickrAPI(core.FlickrAPI):
     re-establish the connection. Re-trying the call in such a case is the
     responsibility of the caller.
    
-    '''
+    """
 
     def __init__(self, *args, **kwargs):
         core.FlickrAPI.__init__(self, *args, **kwargs)
@@ -34,11 +34,11 @@ class PersistentFlickrAPI(core.FlickrAPI):
         self.thr = threading.local()
 
     def _http_post(self, post_data):
-        '''Performs a HTTP POST call to the Flickr REST URL.
+        """Performs a HTTP POST call to the Flickr REST URL.
         
         Raises a httplib.ImproperConnectionState exception when the connection
         was closed unexpectedly.
-        '''
+        """
 
         # Thread-local persistent connection
         try:

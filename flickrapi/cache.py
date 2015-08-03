@@ -1,23 +1,23 @@
 # -*- encoding: utf-8 -*-
 
-'''Call result cache.
+"""Call result cache.
 
 Designed to have the same interface as the `Django low-level cache API`_.
 Heavily inspired (read: mostly copied-and-pasted) from the Django framework -
 thanks to those guys for designing a simple and effective cache!
 
 .. _`Django low-level cache API`: http://www.djangoproject.com/documentation/cache/#the-low-level-cache-api
-'''
+"""
 
 import threading
 import time
 
 class SimpleCache(object):
-    '''Simple response cache for FlickrAPI calls.
+    """Simple response cache for FlickrAPI calls.
     
     This stores max 50 entries, timing them out after 120 seconds:
     >>> cache = SimpleCache(timeout=120, max_entries=50)
-    '''
+    """
 
     def __init__(self, timeout=300, max_entries=200):
         self.storage = {}
@@ -28,7 +28,7 @@ class SimpleCache(object):
         self.cull_frequency = 3
 
     def locking(method):
-        '''Method decorator, ensures the method call is locked'''
+        """Method decorator, ensures the method call is locked"""
 
         def locked(self, *args, **kwargs):
             self.lock.acquire()
@@ -41,9 +41,9 @@ class SimpleCache(object):
 
     @locking
     def get(self, key, default=None):
-        '''Fetch a given key from the cache. If the key does not exist, return
+        """Fetch a given key from the cache. If the key does not exist, return
         default, which itself defaults to None.
-        '''
+        """
 
         now = time.time()
         exp = self.expire_info.get(repr(key))
@@ -57,9 +57,9 @@ class SimpleCache(object):
 
     @locking
     def set(self, key, value, timeout=None):
-        '''Set a value in the cache. If timeout is given, that timeout will be
+        """Set a value in the cache. If timeout is given, that timeout will be
         used for the key; otherwise the default cache timeout will be used.
-        '''
+        """
         
         if len(self.storage) >= self.max_entries:
             self.cull()
@@ -70,7 +70,7 @@ class SimpleCache(object):
 
     @locking
     def delete(self, key):
-        '''Deletes a key from the cache, failing silently if it doesn't exist.'''
+        """Deletes a key from the cache, failing silently if it doesn't exist."""
 
         if key in self.storage:
             del self.storage[key]
@@ -79,17 +79,17 @@ class SimpleCache(object):
 
     @locking
     def has_key(self, key):
-        '''Returns True if the key is in the cache and has not expired.'''
+        """Returns True if the key is in the cache and has not expired."""
         return self.get(repr(key)) is not None
 
     @locking
     def __contains__(self, key):
-        '''Returns True if the key is in the cache and has not expired.'''
+        """Returns True if the key is in the cache and has not expired."""
         return self.has_key(repr(key))
 
     @locking
     def cull(self):
-        '''Reduces the number of cached items'''
+        """Reduces the number of cached items"""
 
         doomed = [k for (i, k) in enumerate(self.storage)
                 if i % self.cull_frequency == 0]
@@ -98,9 +98,9 @@ class SimpleCache(object):
 
     @locking
     def __len__(self):
-        '''Returns the number of cached items -- they might be expired
+        """Returns the number of cached items -- they might be expired
         though.
-        '''
+        """
 
         return len(self.storage)
 

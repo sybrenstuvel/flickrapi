@@ -1,5 +1,5 @@
-'''OAuth support functionality
-'''
+"""OAuth support functionality
+"""
 
 from __future__ import unicode_literals
 # Try importing the Python 3 packages first, falling back to 2.x packages when it fails.
@@ -54,7 +54,7 @@ class OAuthTokenHTTPHandler(http_server.BaseHTTPRequestHandler):
         self.wfile.write(html.auth_okay_html)
 
 class OAuthTokenHTTPServer(http_server.HTTPServer):
-    '''HTTP server on a random port, which will receive the OAuth verifier.'''
+    """HTTP server on a random port, which will receive the OAuth verifier."""
     
     def __init__(self):
         
@@ -68,10 +68,10 @@ class OAuthTokenHTTPServer(http_server.HTTPServer):
         self.oauth_verifier = None
     
     def listen_port(self):
-        '''Returns the hostname and TCP/IP port number to listen on.
+        """Returns the hostname and TCP/IP port number to listen on.
         
         By default finds a random free port between 1100 and 20000.
-        '''
+        """
 
         # Find a random free port
         local_addr = ('localhost', int(random.uniform(1100, 20000)))
@@ -80,7 +80,7 @@ class OAuthTokenHTTPServer(http_server.HTTPServer):
         return sockutil.find_free_port(local_addr)
 
     def wait_for_oauth_verifier(self, timeout=None):
-        '''Starts the HTTP server, waits for the OAuth verifier.'''
+        """Starts the HTTP server, waits for the OAuth verifier."""
             
         if self.oauth_verifier is None:
             self.timeout = timeout
@@ -96,10 +96,10 @@ class OAuthTokenHTTPServer(http_server.HTTPServer):
         return 'http://localhost:%i/' % (self.local_addr[1], )
 
 class FlickrAccessToken(object):
-    '''Flickr access token.
+    """Flickr access token.
     
     Contains the token, token secret, and the user's full name, username and NSID.
-    '''
+    """
     
     levels = ('read', 'write', 'delete')
     
@@ -134,7 +134,7 @@ class FlickrAccessToken(object):
         return str(self)
 
     def has_level(self, access_level):
-        '''Returns True iff the token's access level implies the given access level.'''
+        """Returns True iff the token's access level implies the given access level."""
         
         my_idx = self.levels.index(self.access_level)
         q_idx = self.levels.index(access_level)
@@ -142,7 +142,7 @@ class FlickrAccessToken(object):
         return q_idx <= my_idx
 
 class OAuthFlickrInterface(object):
-    '''Interface object for handling OAuth-authenticated calls to Flickr.'''
+    """Interface object for handling OAuth-authenticated calls to Flickr."""
 
     REQUEST_TOKEN_URL = "https://www.flickr.com/services/oauth/request_token"
     AUTHORIZE_URL = "https://www.flickr.com/services/oauth/authorize"
@@ -167,37 +167,37 @@ class OAuthFlickrInterface(object):
 
     @property
     def key(self):
-        '''Returns the OAuth key'''
+        """Returns the OAuth key"""
         return self.oauth.client.client_key
 
     @property
     def resource_owner_key(self):
-        '''Returns the OAuth resource owner key'''
+        """Returns the OAuth resource owner key"""
         return self.oauth.client.resource_owner_key
 
     @resource_owner_key.setter
     def resource_owner_key(self, new_key):
-        '''Stores the OAuth resource owner key'''
+        """Stores the OAuth resource owner key"""
         self.oauth.client.resource_owner_key = new_key
 
     @property
     def resource_owner_secret(self):
-        '''Returns the OAuth resource owner secret'''
+        """Returns the OAuth resource owner secret"""
         return self.oauth.client.resource_owner_secret
 
     @resource_owner_secret.setter
     def resource_owner_secret(self, new_secret):
-        '''Stores the OAuth resource owner secret'''
+        """Stores the OAuth resource owner secret"""
         self.oauth.client.resource_owner_secret = new_secret
 
     @property
     def verifier(self):
-        '''Returns the OAuth verifier.'''
+        """Returns the OAuth verifier."""
         return self.oauth.client.verifier
     
     @verifier.setter
     def verifier(self, new_verifier):
-        '''Sets the OAuth verifier'''
+        """Sets the OAuth verifier"""
         
         assert isinstance(new_verifier, six.text_type), 'verifier must be unicode text type'
         self.oauth.client.verifier = new_verifier
@@ -227,7 +227,7 @@ class OAuthFlickrInterface(object):
         self.requested_permissions = new_token.access_level
 
     def _find_cache_dir(self):
-        '''Returns the appropriate directory for the HTTP cache.'''
+        """Returns the appropriate directory for the HTTP cache."""
         
         if sys.platform.startswith('win'):
             return os.path.expandvars('%APPDATA%/flickrapi/cache')
@@ -235,10 +235,10 @@ class OAuthFlickrInterface(object):
         return os.path.expanduser('~/.flickrapi/cache')
 
     def do_request(self, url, params=None):
-        '''Performs the HTTP request, signed with OAuth.
+        """Performs the HTTP request, signed with OAuth.
         
         @return: the response content
-        '''
+        """
 
         req = requests.post(url,
                             params=params,
@@ -257,10 +257,10 @@ class OAuthFlickrInterface(object):
         return req.content
     
     def do_upload(self, filename, url, params=None, fileobj=None):
-        '''Performs a file upload to the given URL with the given parameters, signed with OAuth.
+        """Performs a file upload to the given URL with the given parameters, signed with OAuth.
         
         @return: the response content
-        '''
+        """
 
         # work-around to allow non-ascii characters in file name
         # Flickr doesn't store the name but does use it as a default title
@@ -303,10 +303,10 @@ class OAuthFlickrInterface(object):
     
     @staticmethod
     def parse_oauth_response(data):
-        '''Parses the data string as OAuth response, returning it as a dict.
+        """Parses the data string as OAuth response, returning it as a dict.
 
         The keys and values of the dictionary will be text strings (i.e. not binary strings).
-        '''
+        """
 
         if isinstance(data, six.binary_type):
             data = data.decode('utf-8')
@@ -319,19 +319,19 @@ class OAuthFlickrInterface(object):
         return resp
 
     def _start_http_server(self):
-        '''Starts the HTTP server, if it wasn't started already.'''
+        """Starts the HTTP server, if it wasn't started already."""
         
         if self.auth_http_server is not None: return
         self.auth_http_server = OAuthTokenHTTPServer()
 
     def _stop_http_server(self):
-        '''Stops the HTTP server, if one was started.'''
+        """Stops the HTTP server, if one was started."""
         
         if self.auth_http_server is None: return
         self.auth_http_server = None
 
     def get_request_token(self, oauth_callback=None):
-        '''Requests a new request token.
+        """Requests a new request token.
         
         Updates this OAuthFlickrInterface object to use the request token on the following
         authentication calls.
@@ -343,7 +343,7 @@ class OAuthFlickrInterface(object):
             If you do not have a web-app and you also do not want to start a local web server,
             pass oauth_callback='oob' and have your application accept the verifier from the
             user instead. 
-        '''
+        """
         
         self.log.debug('get_request_token(oauth_callback=%s):', oauth_callback)
 
@@ -366,7 +366,7 @@ class OAuthFlickrInterface(object):
         self.oauth.client.resource_owner_secret = request_token['oauth_token_secret']
 
     def auth_url(self, perms='read'):
-        '''Returns the URL the user should visit to authenticate the given oauth Token.
+        """Returns the URL the user should visit to authenticate the given oauth Token.
         
         Use this method in webapps, where you can redirect the user to the returned URL.
         After authorization by the user, the browser is redirected to the callback URL,
@@ -374,7 +374,7 @@ class OAuthFlickrInterface(object):
         in order to use it.
         
         In stand-alone apps, use open_browser_for_authentication instead.
-        '''
+        """
         
         if self.oauth.client.resource_owner_key is None:
             raise FlickrError('No resource owner key set, you probably forgot to call get_request_token(...)')
@@ -387,13 +387,13 @@ class OAuthFlickrInterface(object):
         return "%s?oauth_token=%s&perms=%s" % (self.AUTHORIZE_URL, self.oauth.client.resource_owner_key, perms)
 
     def auth_via_browser(self, perms='read'):
-        '''Opens the webbrowser to authenticate the given request request_token, sets the verifier.
+        """Opens the webbrowser to authenticate the given request request_token, sets the verifier.
         
         Use this method in stand-alone apps. In webapps, use auth_url(...) instead,
         and redirect the user to the returned URL.
         
         Updates the given request_token by setting the OAuth verifier.
-        '''
+        """
         
         # The HTTP server may have been started already, but we're not sure. Just start
         # it if it needs to be started.
@@ -409,13 +409,13 @@ class OAuthFlickrInterface(object):
         self._stop_http_server()
 
     def auth_via_console(self, perms='read'):
-        '''Waits for the user to authenticate the app, sets the verifier.
+        """Waits for the user to authenticate the app, sets the verifier.
 
         Use this method in stand-alone apps. In webapps, use auth_url(...) instead,
         and redirect the user to the returned URL.
 
         Updates the given request_token by setting the OAuth verifier.
-        '''
+        """
 
         # The HTTP server may have been started already, but we're not sure. Just start
         # it if it needs to be started.
@@ -432,12 +432,12 @@ class OAuthFlickrInterface(object):
         self._stop_http_server()
 
     def get_access_token(self):
-        '''Exchanges the request token for an access token.
+        """Exchanges the request token for an access token.
 
         Also stores the access token in 'self' for easy authentication of subsequent calls.
         
         @return: Access token, a FlickrAccessToken object.
-        '''
+        """
         
         if self.oauth.client.resource_owner_key is None:
             raise FlickrError('No resource owner key set, you probably forgot to call get_request_token(...)')

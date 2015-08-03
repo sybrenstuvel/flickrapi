@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-'''HTML code.'''
+"""HTML code."""
 
-auth_okay_html = '''<!DOCTYPE html>
+auth_okay_html = """<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -78,7 +78,7 @@ auth_okay_html = '''<!DOCTYPE html>
 </body>
 
 </html>
-'''
+"""
 
 import six
 if six.PY3:

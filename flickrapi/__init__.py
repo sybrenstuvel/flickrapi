@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''A FlickrAPI interface.
+"""A FlickrAPI interface.
 
 The main functionality can be found in the `flickrapi.FlickrAPI`
 class.
@@ -9,7 +9,7 @@ class.
 See `the FlickrAPI homepage`_ for more info.
 
 .. _`the FlickrAPI homepage`: http://stuvel.eu/projects/flickrapi
-'''
+"""
 from __future__ import unicode_literals
 
 __version__ = '2.1'
@@ -60,12 +60,12 @@ from flickrapi.tokencache import OAuthTokenCache, TokenCache, SimpleTokenCache, 
 
 
 def set_log_level(level):
-    '''Sets the log level of the logger used by the FlickrAPI module.
+    """Sets the log level of the logger used by the FlickrAPI module.
     
     >>> import flickrapi
     >>> import logging
     >>> flickrapi.set_log_level(logging.INFO)
-    '''
+    """
     
     import flickrapi.core
     import flickrapi.tokencache

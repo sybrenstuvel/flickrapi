@@ -1,6 +1,6 @@
 
 class CallBuilder(object):
-    '''Builds a method name for FlickrAPI calls.
+    """Builds a method name for FlickrAPI calls.
 
     >>> class Faker(object):
     ...     def do_flickr_call(self, method_name, **kwargs):
@@ -14,14 +14,14 @@ class CallBuilder(object):
     >>> c.photos.getInfo(photo_id='1234')
     flickr.photos.getInfo({'photo_id': '1234'})
 
-    '''
+    """
 
     def __init__(self, flickrapi_object, method_name='flickr'):
         self.flickrapi_object = flickrapi_object
         self.method_name = method_name
 
     def __getattr__(self, name):
-        '''Returns a CallBuilder for the given name.'''
+        """Returns a CallBuilder for the given name."""
 
         # Refuse to act as a proxy for unimplemented special methods
         if name.startswith('_'):
