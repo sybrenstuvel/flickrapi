@@ -240,10 +240,10 @@ class OAuthFlickrInterface(object):
         @return: the response content
         '''
 
-        req = requests.get(url,
-                           params=params,
-                           auth=self.oauth,
-                           headers={'Connection': 'close'})
+        req = requests.post(url,
+                            params=params,
+                            auth=self.oauth,
+                            headers={'Connection': 'close'})
         
         # check the response headers / status code.
         if req.status_code != 200:
