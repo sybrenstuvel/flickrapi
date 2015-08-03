@@ -123,6 +123,8 @@ the verifier code::
     resp = flickr.photos.getInfo(photo_id='7658567128')
 
 
+.. todo:: convert example to Python 3
+
 Authenticating web applications
 ----------------------------------------------------------------------
 
