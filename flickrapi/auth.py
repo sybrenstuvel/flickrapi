@@ -249,7 +249,7 @@ class OAuthFlickrInterface(object):
         if req.status_code != 200:
             self.log.error('do_request: Status code %i received, content:', req.status_code)
 
-            for part in req.content.split('&'):
+            for part in req.text.split('&'):
                 self.log.error('    %s', urllib_parse.unquote(part))
            
             raise exceptions.FlickrError('do_request: Status code %s received' % req.status_code)
@@ -293,7 +293,7 @@ class OAuthFlickrInterface(object):
         if req.status_code != 200:
             self.log.error('do_upload: Status code %i received, content:', req.status_code)
 
-            for part in req.content.split('&'):
+            for part in req.text.split('&'):
                 self.log.error('    %s', urllib_parse.unquote(part))
            
             raise exceptions.FlickrError('do_upload: Status code %s received' % req.status_code)
