@@ -567,14 +567,11 @@ class FlickrAPI(object):
         the program.
         '''
 
+        if isinstance(perms, six.binary_type):
+            perms = six.u(perms)
+
         self.flickr_oauth.get_request_token()
-        authorize_url = self.flickr_oauth.auth_url(perms=perms)
-
-        print("Go to the following link in your browser to authorize this application:")
-        print(authorize_url)
-        print()
-
-        self.flickr_oauth.verifier = self.auth_http_server.wait_for_oauth_verifier()
+        self.flickr_oauth.auth_via_console(perms=perms)
         token = self.flickr_oauth.get_access_token()
         self.token_cache.token = token
 

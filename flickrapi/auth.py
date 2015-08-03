@@ -407,7 +407,30 @@ class OAuthFlickrInterface(object):
 
         # We're now done with the HTTP server, so close it down again.
         self._stop_http_server()
-        
+
+    def auth_via_console(self, perms='read'):
+        '''Waits for the user to authenticate the app, sets the verifier.
+
+        Use this method in stand-alone apps. In webapps, use auth_url(...) instead,
+        and redirect the user to the returned URL.
+
+        Updates the given request_token by setting the OAuth verifier.
+        '''
+
+        # The HTTP server may have been started already, but we're not sure. Just start
+        # it if it needs to be started.
+        self._start_http_server()
+        auth_url = self.auth_url(perms=perms)
+
+        print("Go to the following link in your browser to authorize this application:")
+        print(auth_url)
+        print()
+
+        self.verifier = self.auth_http_server.wait_for_oauth_verifier()
+
+        # We're now done with the HTTP server, so close it down again.
+        self._stop_http_server()
+
     def get_access_token(self):
         '''Exchanges the request token for an access token.
 
