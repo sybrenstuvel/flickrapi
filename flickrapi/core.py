@@ -242,8 +242,11 @@ class FlickrAPI(object):
             json_string = json_string.decode('utf-8')
 
         import json
-        return json.loads(json_string)
-
+        parsed = json.loads(json_string)
+        if parsed.get('stat', '') == 'fail':
+            raise FlickrError(six.u('Error: %(code)s: %(message)s') % parsed,
+                              code=parsed['code'])
+        return parsed
 
     @rest_parser('etree')
     def parse_etree(self, rest_xml):
