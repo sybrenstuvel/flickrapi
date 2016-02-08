@@ -27,7 +27,7 @@ data = {
     'author_email': 'sybren@stuvel.eu', 
     'maintainer': 'Sybren A. Stuvel',
     'maintainer_email': 'sybren@stuvel.eu',
-    'url': 'http://stuvel.eu/projects/flickrapi',
+    'url': 'https://stuvel.eu/flickrapi',
     'description': 'The Python interface to the Flickr API',
     'long_description': 'The easiest to use, most complete, and '
         'most actively developed Python interface to the Flickr API.'
