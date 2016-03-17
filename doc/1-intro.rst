@@ -61,10 +61,7 @@ Requirements and compatibility
 ----------------------------------------------------------------------
 
 The Python Flickr API uses two external libraries, Requests_ and Six_,
-and is compatible with Python 2.6 and 2.7. As of this moment Requests
-has (at least) one `bug <https://github.com/kennethreitz/requests/issues/944>`_
-that makes it incompatible with Python 3.2. When that is fixed, we will
-make Python Flick API compatible with Python 3.2+ too.
+and is compatible with Python 2.7 and 3.3+.
 
 Rendering the documentation requires `Sphinx <http://sphinx-doc.org/>`_.
 
