@@ -1,6 +1,11 @@
 Python FlickrAPI
 ================
 
+[![Build
+Status](https://travis-ci.org/sybrenstuvel/flickrapi.svg?branch=master)](https://travis-ci.org/sybrenstuvel/flickrapi)
+[![Coverage
+Status](https://coveralls.io/repos/github/sybrenstuvel/flickrapi/badge.svg?branch=master)](https://coveralls.io/github/sybrenstuvel/flickrapi?branch=master)
+
 Most of the info can be found in the `doc` directory, or on
 https://stuvel.eu/flickrapi
 
