@@ -1,0 +1,16 @@
+Changelog
+=========
+
+Version 2.2: in development
+---------------------------
+
+- Added this changelog file.
+- Added explicit support for Python 3.5.
+- Moved from a Mercurial repository at BitBucket to a Git repository
+  at GitHub.
+- Mocking some calls to Flickr, so that unit tests can run without
+  requiring the user to authenticate via the browser. This also
+  prevents the upload of the test photo.
+- More serious testing, using py.test and Tox to test on all support
+  versions of Python.
+- Automated builds are performed with Travis-CI.
