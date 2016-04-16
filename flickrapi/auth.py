@@ -431,6 +431,16 @@ class OAuthFlickrInterface(object):
         # We're now done with the HTTP server, so close it down again.
         self._stop_http_server()
 
+    def auth_for_test(self, perms='read'):
+        """Doesn't wait for anything, sets the verifier to something silly.
+
+        Only use this in unit tests.
+        """
+
+        auth_url = self.auth_url(perms=perms)
+        # Normally we would direct the user to this URL. Now we don't.
+        self.verifier = u'test'
+
     def get_access_token(self):
         """Exchanges the request token for an access token.
 

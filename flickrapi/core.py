@@ -592,6 +592,19 @@ class FlickrAPI(object):
         token = self.flickr_oauth.get_access_token()
         self.token_cache.token = token
 
+    @authenticator
+    def authenticate_for_test(self, perms='read'):
+        """Skips a bit of the authentication/authorization, for unit tests.
+        """
+
+        if isinstance(perms, six.binary_type):
+            perms = six.u(perms)
+
+        self.flickr_oauth.get_request_token()
+        self.flickr_oauth.auth_for_test(perms=perms)
+        token = self.flickr_oauth.get_access_token()
+        self.token_cache.token = token
+
     def get_request_token(self, oauth_callback=None):
         """Requests a new request token.
         

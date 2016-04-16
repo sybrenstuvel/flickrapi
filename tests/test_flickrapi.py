@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 
 '''Unittest for the FlickrAPI.
 
@@ -13,13 +14,15 @@ import types
 import unittest
 import urllib
 import six
-
-# Make sure the flickrapi module from the source distribution is used
-sys.path.insert(0, '..')
+import responses
+import functools
+from six.moves.urllib.parse import quote_plus
 
 import flickrapi
-flickrapi.set_log_level(logging.FATAL)
-#flickrapi.set_log_level(logging.DEBUG)
+#flickrapi.set_log_level(logging.FATAL)
+flickrapi.set_log_level(logging.DEBUG)
+
+from common_responses import *
 
 print("Testing FlickrAPI version %s" % flickrapi.__version__)
 
@@ -100,7 +103,58 @@ class SuperTest(unittest.TestCase):
         attribs = dict(av.split('=') for av in attrvalues)
         self.assertEqual(expected_query_arguments, attribs)
     
+    def expect(self, params=None, body='', status=200, content_type='text/xml', method='POST',
+               match_querystring=True, urlbase=None):
+        """Mocks an expected HTTP query with Responses."""
+
+        if urlbase is None:
+            urlbase = self.f.REST_URL
+
+        if params:
+            params.setdefault('format', 'rest')
+            params.setdefault('nojsoncallback', '1')
+
+            qp = quote_plus
+            qs = '&'.join('%s=%s' % (qp(key), qp(six.text_type(value).encode('utf-8')))
+                          for key, value in sorted(params.items()))
+            url = '%s?%s' % (urlbase, qs)
+        else:
+            url = urlbase
+
+        if isinstance(body, six.text_type):
+            body = body.encode('utf-8')
+
+        responses.add(method=method, url=url,
+                      body=body, status=status,
+                      content_type=content_type,
+                      match_querystring=match_querystring)
+
+    def expect_auth(self, perms):
+        responses.add(
+            method='POST',
+            url=self.f.flickr_oauth.REQUEST_TOKEN_URL,
+            body=b'oauth_callback_confirmed=true&'
+                 b'oauth_token=cafef00d089843641-e04b4114a40fe037&'
+                 b'oauth_token_secret=cafef00dc551b5d7',
+            status=200,
+            content_type='text/plain;charset=UTF-8',
+            match_querystring=False)
+
+        responses.add(
+            method='POST',
+            url=self.f.flickr_oauth.ACCESS_TOKEN_URL,
+            body=u'fullname=एकाइ परीक्षकs&&'
+                 u'oauth_token=cafef00d089843641-e04b4114a40fe037&'
+                 u'oauth_token_secret=cafef00dc551b5d7&'
+                 u'username=unittester&'
+                 u'user_nsid=1234'.encode('utf-8'),
+            status=200,
+            content_type='text/plain;charset=UTF-8',
+            match_querystring=False)
+
+
 class FlickrApiTest(SuperTest):
+    @responses.activate
     def test_repr(self):
         '''Class name and API key should be in repr output'''
 
@@ -108,6 +162,7 @@ class FlickrApiTest(SuperTest):
         self.assertTrue('FlickrAPI' in r)
         self.assertTrue(key in r)
 
+    @responses.activate
     def test_defaults(self):
         '''Tests _supply_defaults.'''
         
@@ -116,22 +171,31 @@ class FlickrApiTest(SuperTest):
         self.assertEqual({'foo': 'bar', 'room': 'door'}, data)
 
 
+    @responses.activate
     def test_unauthenticated(self):
         '''Test we can access public photos without any authentication/authorization.'''
         
         # make sure this test is made without a valid token in the cache        
         del self.f.token_cache.token
 
+        self.expect({'method': 'flickr.photos.getInfo', 'photo_id': '7955646798'},
+                    PHOTO_XML)
+
         self.f.photos.getInfo(photo_id='7955646798')
 
+    @responses.activate
     def test_simple_search(self):
         '''Test simple Flickr search'''
+
+        self.expect({'method': 'flickr.photos.search', 'tags': 'kitten'},
+                    KITTEN_SEARCH_XML)
         
         # We expect to be able to find kittens
         result = self.f.photos.search(tags='kitten')
         total = int(result.find('photos').attrib['total'])
         self.assertTrue(total > 0)
     
+    @responses.activate
     def test_token_constructor(self):
         '''Test passing a token to the constructor'''
         
@@ -147,6 +211,7 @@ class FlickrApiTest(SuperTest):
         # But not in the on-disk token cache
         self.assertNotEqual(token, flickrapi.OAuthTokenCache(key))              
 
+    @responses.activate
     def test_upload_without_filename(self):
         '''Uploading a file without filename is impossible'''
         
@@ -156,16 +221,18 @@ class FlickrApiTest(SuperTest):
         self.assertRaises(flickrapi.IllegalArgumentException,
                           self.f.upload, None)
 
+    @responses.activate
     def test_upload(self):
         photo = pkg_resources.resource_filename(__name__, 'photo.jpg')
 
-        self.f.authenticate_via_browser(perms='delete')
+        self.expect_auth(perms='delete')
+        self.expect(urlbase=self.f.UPLOAD_URL,
+                    body=UPLOAD_XML)
+
+        self.f.authenticate_for_test(perms='delete')
         result = self.f.upload(photo, is_public=0, is_friend=0, is_family=0, content_type=2)
 
-        # Now remove the photo from the stream again
-        photo_id = result.find('photoid').text
-        self.f.photos.delete(photo_id=photo_id)
-
+    @responses.activate
     def test_store_token(self):
         '''Tests that store_token=False FlickrAPI uses SimpleTokenCache'''
 
@@ -174,6 +241,7 @@ class FlickrApiTest(SuperTest):
         self.assertTrue(isinstance(flickr.token_cache, flickrapi.SimpleTokenCache),
                         'Token cache should be SimpleTokenCache, not %r' % flickr.token_cache)
 
+    @responses.activate
     def test_wrap_in_parser(self):
         '''Tests wrap_in_parser'''
 
@@ -192,6 +260,7 @@ class FlickrApiTest(SuperTest):
         self.assertTrue(test['wrapped'],
                         'Expected wrapped function to be called')
 
+    @responses.activate
     def test_wrap_in_parser_no_format(self):
         '''Tests wrap_in_parser without a format in the wrapped arguments'''
 
@@ -321,7 +390,6 @@ class WalkerTest(SuperTest):
 
     def test_walk(self):
         # Check that we get a generator
-        self.f.authenticate_via_browser()
         gen = self.f.walk(tag_mode='all',
                 tags='sybren,365,threesixtyfive,me',
                 min_taken_date='2008-08-19',
