@@ -21,7 +21,7 @@ For development, install extra dependencies using:
     
     pip install -r requirements.txt 
 
-then run `nosetest` in the top-level directory.
+then run `py.test` in the top-level directory.
 
 Generating the documentation
 ----------------------------
