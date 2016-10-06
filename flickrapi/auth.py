@@ -382,7 +382,7 @@ class OAuthFlickrInterface(object):
         if perms not in ('read', 'write', 'delete'):
             raise ValueError('Invalid parameter perms=%r' % perms)
         
-        self.requested_permissions = perms
+        self.requested_permissions = six.text_type(perms)
         
         return "%s?oauth_token=%s&perms=%s" % (self.AUTHORIZE_URL, self.oauth.client.resource_owner_key, perms)
 
