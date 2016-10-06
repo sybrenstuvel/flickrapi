@@ -101,7 +101,7 @@ class FlickrAccessToken(object):
     Contains the token, token secret, and the user's full name, username and NSID.
     """
     
-    levels = ('read', 'write', 'delete')
+    levels = (u'read', u'write', u'delete')
     
     def __init__(self, token, token_secret, access_level,
                  fullname=u'', username=u'', user_nsid=u''):
@@ -365,7 +365,7 @@ class OAuthFlickrInterface(object):
         self.oauth.client.resource_owner_key = request_token['oauth_token']
         self.oauth.client.resource_owner_secret = request_token['oauth_token_secret']
 
-    def auth_url(self, perms='read'):
+    def auth_url(self, perms=u'read'):
         """Returns the URL the user should visit to authenticate the given oauth Token.
         
         Use this method in webapps, where you can redirect the user to the returned URL.
@@ -379,14 +379,14 @@ class OAuthFlickrInterface(object):
         if self.oauth.client.resource_owner_key is None:
             raise FlickrError('No resource owner key set, you probably forgot to call get_request_token(...)')
 
-        if perms not in ('read', 'write', 'delete'):
+        if perms not in (u'read', u'write', u'delete'):
             raise ValueError('Invalid parameter perms=%r' % perms)
         
-        self.requested_permissions = six.text_type(perms)
+        self.requested_permissions = perms
         
         return "%s?oauth_token=%s&perms=%s" % (self.AUTHORIZE_URL, self.oauth.client.resource_owner_key, perms)
 
-    def auth_via_browser(self, perms='read'):
+    def auth_via_browser(self, perms=u'read'):
         """Opens the webbrowser to authenticate the given request request_token, sets the verifier.
         
         Use this method in stand-alone apps. In webapps, use auth_url(...) instead,
@@ -408,7 +408,7 @@ class OAuthFlickrInterface(object):
         # We're now done with the HTTP server, so close it down again.
         self._stop_http_server()
 
-    def auth_via_console(self, perms='read'):
+    def auth_via_console(self, perms=u'read'):
         """Waits for the user to authenticate the app, sets the verifier.
 
         Use this method in stand-alone apps. In webapps, use auth_url(...) instead,
@@ -431,7 +431,7 @@ class OAuthFlickrInterface(object):
         # We're now done with the HTTP server, so close it down again.
         self._stop_http_server()
 
-    def auth_for_test(self, perms='read'):
+    def auth_for_test(self, perms=u'read'):
         """Doesn't wait for anything, sets the verifier to something silly.
 
         Only use this in unit tests.
