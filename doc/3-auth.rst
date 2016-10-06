@@ -114,7 +114,7 @@ the verifier code::
         
         # Get the verifier code from the user. Do this however you
         # want, as long as the user gives the application the code.
-        verifier = unicode(raw_input('Verifier code: '))
+        verifier = str(input('Verifier code: '))
         
         # Trade the request token for an access token
         flickr.get_access_token(verifier)
@@ -122,8 +122,6 @@ the verifier code::
     print('Step 2: use Flickr')
     resp = flickr.photos.getInfo(photo_id='7658567128')
 
-
-.. todo:: convert example to Python 3
 
 Authenticating web applications
 ----------------------------------------------------------------------
