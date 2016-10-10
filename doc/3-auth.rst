@@ -170,28 +170,6 @@ stored, pass ``store_token=False`` as constructor parameter. Use this
 if you want to be absolutely sure that the FlickrAPI instance doesn't
 use any previously stored tokens, nor that it will store new tokens.
 
-Controlling the location of the on-disk token cache
-----------------------------------------------------------------------
-
-.. todo:: allow changing the OAuth token DB location
-
-By default the authentication tokens are stored in the directory
-``~/.flickr``. If you want to change this directory, you can do so
-by changing the ``flickr.token.path`` variable after you have created
-the ``FlickrAPI`` instance::
-
-    import flickrapi
-
-    api_key = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-    api_secret = 'YYYYYYYYYYYYYYYY'
-
-    flickr = flickrapi.FlickrAPI(api_key, api_secret)
-    flickr.token.path = '/tmp/flickrtokens'
-
-    (token, frob) = flickr.get_token_part_one(perms='write')
-    if not token: raw_input("Press ENTER after you authorized this program")
-    flickr.get_token_part_two((token, frob))
- 
 Multiple processes using the same key
 ----------------------------------------------------------------------
 
@@ -202,8 +180,6 @@ Example using Django
 ----------------------------------------------------------------------
 
 .. todo:: Update this example.
-
-.. todo:: add an example using Flask, as it's smaller and simpler.
 
 Here is a simple example in `Django <https://www.djangoproject.com/>`_::
 
