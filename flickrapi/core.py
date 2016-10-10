@@ -137,8 +137,8 @@ class FlickrAPI(object):
     REPLACE_URL = 'https://up.flickr.com/services/replace/'
     
     def __init__(self, api_key, secret, username=None,
-            token=None, format='etree', store_token=True,
-            cache=False):
+                 token=None, format='etree', store_token=True,
+                 cache=False, timeout=None):
         """Construct a new FlickrAPI instance for a given API key
         and secret.
         
@@ -174,6 +174,9 @@ class FlickrAPI(object):
 
             >>> f = FlickrAPI(u'123', u'123')
             >>> f.cache = SimpleCache(timeout=5, max_entries=100)
+
+        timeout
+            Timeout to use for the HTTP requests. Default is None, i.e. no timeout.
         """
 
 
@@ -204,6 +207,8 @@ class FlickrAPI(object):
             self.cache = SimpleCache()
         else:
             self.cache = None
+
+        self.timeout = timeout if timeout > 0 else None
 
     def __repr__(self):
         """Returns a string representation of this object."""
@@ -359,7 +364,8 @@ class FlickrAPI(object):
         if self.cache and self.cache.get(kwargs):
             return self.cache.get(kwargs)
 
-        reply = self.flickr_oauth.do_request(self.REST_URL, kwargs)
+        reply = self.flickr_oauth.do_request(self.REST_URL, kwargs,
+                                             self.timeout)
 
         # Store in cache, if we have one
         if self.cache is not None:

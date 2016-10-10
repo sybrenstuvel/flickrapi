@@ -234,7 +234,7 @@ class OAuthFlickrInterface(object):
         
         return os.path.expanduser('~/.flickrapi/cache')
 
-    def do_request(self, url, params=None):
+    def do_request(self, url, params=None, timeout=None):
         """Performs the HTTP request, signed with OAuth.
         
         @return: the response content
@@ -243,7 +243,8 @@ class OAuthFlickrInterface(object):
         req = requests.post(url,
                             params=params,
                             auth=self.oauth,
-                            headers={'Connection': 'close'})
+                            headers={'Connection': 'close'},
+                            timeout=timeout)
         
         # check the response headers / status code.
         if req.status_code != 200:
