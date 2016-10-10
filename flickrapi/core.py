@@ -23,10 +23,10 @@ LOG = logging.getLogger(__name__)
 def make_bytes(dictionary):
     """Encodes all Unicode strings in the dictionary to UTF-8 bytes. Converts
     all other objects to regular bytes.
-    
+
     Returns a copy of the dictionary, doesn't touch the original.
     """
-    
+
     result = {}
 
     for (key, value) in six.iteritems(dictionary):
@@ -40,9 +40,10 @@ def make_bytes(dictionary):
             value = six.text_type(value)
 
         result[key] = value.encode('utf-8')
-    
+
     return result
-    
+
+
 def debug(method):
     """Method decorator for debugging method calls.
 
@@ -51,7 +52,7 @@ def debug(method):
 
     def debugged(*args, **kwargs):
         LOG.debug("Call: %s(%s, %s)" % (method.__name__, args,
-            kwargs))
+                                        kwargs))
         result = method(*args, **kwargs)
         LOG.debug("\tResult: %s" % result)
         return result
@@ -62,6 +63,8 @@ def debug(method):
 # REST parsers, {format: (parser_method, request format), ...}. Fill by using the
 # @rest_parser(format) function decorator
 rest_parsers = {}
+
+
 def rest_parser(parsed_format, request_format='rest'):
     """Method decorator, use this to mark a function as the parser for
     REST as returned by Flickr.
@@ -72,6 +75,7 @@ def rest_parser(parsed_format, request_format='rest'):
         return method
 
     return decorate_parser
+
 
 def require_format(required_format):
     """Method decorator, raises a ValueError when the decorated method
@@ -92,66 +96,67 @@ def require_format(required_format):
             raise ValueError(msg % (method.func_name, self.default_format))
 
         return decorated
+
     return decorator
+
 
 def authenticator(method):
     """Method wrapper, assumed the wrapped method has a 'perms' parameter.
-    
+
     Only calls the wrapped method if the token cache doesn't contain a valid token.
     """
-    
+
     @functools.wraps(method)
     def decorated(self, *args, **kwargs):
         assert isinstance(self, FlickrAPI)
-        
+
         if 'perms' in kwargs:
             perms = kwargs['perms']
         elif len(args):
             perms = args[0]
         else:
             perms = 'read'
-        
+
         if self.token_valid(perms=perms):
             # Token is valid, and for the expected permissions, so no
             # need to continue authentication.
             return
-        
+
         method(self, *args, **kwargs)
-    
+
     return decorated
-    
-    
+
 
 class FlickrAPI(object):
     """Encapsulates Flickr functionality.
-    
+
     Example usage::
-      
+
       flickr = flickrapi.FlickrAPI(api_key)
       photos = flickr.photos_search(user_id='73509078@N00', per_page='10')
       sets = flickr.photosets_getList(user_id='73509078@N00')
     """
-    
+
     REST_URL = 'https://api.flickr.com/services/rest/'
     UPLOAD_URL = 'https://up.flickr.com/services/upload/'
     REPLACE_URL = 'https://up.flickr.com/services/replace/'
-    
+
     def __init__(self, api_key, secret, username=None,
-            token=None, format='etree', store_token=True,
-            cache=False):
+                 token=None, format='etree', store_token=True,
+                 cache=False):
         """Construct a new FlickrAPI instance for a given API key
         and secret.
-        
+
         api_key
             The API key as obtained from Flickr.
-        
+
         secret
             The secret belonging to the API key.
-        
+
         username
             Used to identify the appropriate authentication token for a
             certain user.
-        
+
         token
             If you already have an authentication token, you can give
             it here. It won't be stored on disk by the FlickrAPI instance.
@@ -175,7 +180,6 @@ class FlickrAPI(object):
             >>> f = FlickrAPI(u'123', u'123')
             >>> f.cache = SimpleCache(timeout=5, max_entries=100)
         """
-
 
         self.default_format = format
         self._handler_cache = {}
@@ -209,6 +213,7 @@ class FlickrAPI(object):
         """Returns a string representation of this object."""
 
         return '[FlickrAPI for key "%s"]' % self.flickr_oauth.key
+
     __str__ = __repr__
 
     def trait_names(self):
@@ -230,7 +235,7 @@ class FlickrAPI(object):
         rsp = XMLNode.parse(rest_xml, store_xml=True)
         if rsp['stat'] == 'ok':
             return rsp
-        
+
         err = rsp.err[0]
         raise FlickrError(six.u('Error: %(code)s: %(msg)s') % err, code=err['code'])
 
@@ -272,12 +277,12 @@ class FlickrAPI(object):
                             import elementtree.ElementTree as ElementTree
                         except ImportError:
                             raise ImportError("You need to install "
-                                "ElementTree to use the etree format")
+                                              "ElementTree to use the etree format")
 
         rsp = ElementTree.fromstring(rest_xml)
         if rsp.attrib['stat'] == 'ok':
             return rsp
-        
+
         err = rsp.find('err')
         code = err.attrib.get('code', None)
         raise FlickrError(six.u('Error: %(code)s: %(msg)s') % err.attrib, code=code)
@@ -288,7 +293,7 @@ class FlickrAPI(object):
         # Refuse to do anything with special methods
         if method_name.startswith('_'):
             raise AttributeError(method_name)
-        
+
         # Compatibility with old way of calling, i.e. flickrobj.photos_getInfo(...)
         if '_' in method_name:
             method_name = method_name.replace('_', '.')
@@ -297,7 +302,7 @@ class FlickrAPI(object):
 
     def do_flickr_call(self, method_name, **kwargs):
         """Handle all the regular Flickr API calls.
-        
+
         Example::
 
             etree = flickr.photos.getInfo(photo_id='1234')
@@ -340,13 +345,13 @@ class FlickrAPI(object):
             # pass None to Flickr anyway.
             if value is None:
                 del result[key]
-        
+
         return result
 
     def _flickr_call(self, **kwargs):
         """Performs a Flickr API call with the given arguments. The method name
         itself should be passed as the 'method' parameter.
-        
+
         Returns the unparsed data from Flickr::
 
             data = self._flickr_call(method='flickr.photos.getInfo',
@@ -391,7 +396,6 @@ class FlickrAPI(object):
         parser = rest_parsers[parse_format][0]
         return parser(self, data)
 
-    
     def _extract_upload_response_format(self, kwargs):
         """Returns the response format given in kwargs['format'], or
         the default format if there is no such key.
@@ -471,12 +475,12 @@ class FlickrAPI(object):
 
         The callback method takes one parameter:
         ``def callback(progress)``
-        
+
         Progress is a number between 0 and 100.
         """
 
         return self._upload_to_form(self.UPLOAD_URL, filename, fileobj, **kwargs)
-    
+
     def replace(self, filename, photo_id, fileobj=None, **kwargs):
         """Replace an existing photo.
 
@@ -494,13 +498,13 @@ class FlickrAPI(object):
             format passed to the constructor.
 
         """
-        
+
         if not photo_id:
             raise IllegalArgumentException("photo_id must be specified")
 
         kwargs['photo_id'] = photo_id
         return self._upload_to_form(self.REPLACE_URL, filename, fileobj, **kwargs)
-        
+
     def _upload_to_form(self, form_url, filename, fileobj=None, **kwargs):
         """Uploads a photo - can be used to either upload a new photo
         or replace an existing one.
@@ -521,27 +525,27 @@ class FlickrAPI(object):
 
         # Convert to UTF-8 if an argument is an Unicode string
         kwargs = make_bytes(kwargs)
-        
+
         return self._wrap_in_parser(self.flickr_oauth.do_upload, response_format,
                                     filename, form_url, kwargs, fileobj)
-    
+
     def token_valid(self, perms=u'read'):
         """Verifies the cached token with Flickr.
-        
+
         If the token turns out to be invalid, or with permissions lower than required,
         the token is erased from the token cache.
-        
+
         @return: True if the token is valid for the requested parameters, False otherwise.
         """
-        
+
         token = self.token_cache.token
-        
+
         if not token:
             return False
-    
+
         # Check token for validity
         self.flickr_oauth.token = token
-        
+
         try:
             resp = self.auth.oauth.checkToken(format='etree')
             token_perms = resp.findtext('oauth/perms')
@@ -553,14 +557,14 @@ class FlickrAPI(object):
             # There was an error talking to Flickr, we assume this is due
             # to an invalid token.
             pass
-        
+
         # Token was for other permissions, so erase it as it is
         # not usable for this request.
         self.flickr_oauth.token = None
         del self.token_cache.token
 
         return False
-    
+
     @authenticator
     def authenticate_console(self, perms=u'read'):
         """Performs the authentication/authorization, assuming a console program.
@@ -607,39 +611,39 @@ class FlickrAPI(object):
 
     def get_request_token(self, oauth_callback=None):
         """Requests a new request token.
-        
+
         Updates this OAuthFlickrInterface object to use the request token on the following
         authentication calls.
-        
+
         @param oauth_callback: the URL the user is sent to after granting the token access.
             If the callback is None, a local web server is started on a random port, and the
             callback will be http://localhost:randomport/
-            
+
             If you do not have a web-app and you also do not want to start a local web server,
             pass oauth_callback='oob' and have your application accept the verifier from the
-            user instead. 
+            user instead.
         """
 
         self.flickr_oauth.get_request_token(oauth_callback=oauth_callback)
 
     def auth_url(self, perms=u'read'):
         """Returns the URL the user should visit to authenticate the given oauth Token.
-        
+
         Use this method in webapps, where you can redirect the user to the returned URL.
         After authorization by the user, the browser is redirected to the callback URL,
         which will contain the OAuth verifier. Set the 'verifier' property on this object
         in order to use it.
-        
+
         In stand-alone apps, authenticate_via_browser(...) may be easier instead.
         """
-        
+
         return self.flickr_oauth.auth_url(perms=perms)
 
     def get_access_token(self, verifier=None):
         """Exchanges the request token for an access token.
 
         Also stores the access token for easy authentication of subsequent calls.
-        
+
         @param verifier: the verifier code, in case you used out-of-band communication
             of the verifier code.
         """
@@ -654,19 +658,19 @@ class FlickrAPI(object):
         """Calls 'method' with page=0, page=1 etc. until the total
         number of pages has been visited. Yields the photos
         returned.
-        
+
         Assumes that ``method(page=n, **params).findall(searchstring)``
-        results in a list of interesting elements (defaulting to photos), 
-        and that the toplevel element of the result contains a 'pages' 
+        results in a list of interesting elements (defaulting to photos),
+        and that the toplevel element of the result contains a 'pages'
         attribute with the total number of pages.
         """
 
         page = 1
-        total = 1 # We don't know that yet, update when needed
+        total = 1  # We don't know that yet, update when needed
         while page <= total:
             # Fetch a single page of photos
             LOG.debug('Calling %s(page=%i of %i, %s)' %
-                    (method.func_name, page, total, params))
+                      (method.func_name, page, total, params))
             rsp = method(page=page, **params)
 
             photoset = rsp.getchildren()[0]
@@ -685,52 +689,50 @@ class FlickrAPI(object):
     def walk_contacts(self, per_page=50, **kwargs):
         """walk_contacts(self, per_page=50, ...) -> \
                 generator, yields each contact of the calling user.
-    
+
         :Parameters:
             per_page
                 the number of contacts that are fetched in one call to
                 Flickr.
-    
+
         Other arguments can be passed, as documented in the
         flickr.contacts.getList_ API call in the Flickr API
         documentation, except for ``page`` because all pages will be
         returned eventually.
-    
+
         .. _flickr.contacts.getList:
             http://www.flickr.com/services/api/flickr.contacts.getList.html
-    
+
         Uses the ElementTree format, incompatible with other formats.
         """
-        
+
         return self.data_walker(self.contacts_getList, searchstring='*/contact',
                                 per_page=per_page, **kwargs)
 
-    
     @require_format('etree')
     def walk_photosets(self, per_page=50, **kwargs):
         """walk_photosets(self, per_page=50, ...) -> \
                 generator, yields each photoset belonging to a user.
-    
+
         :Parameters:
             per_page
                 the number of photosets that are fetched in one call to
                 Flickr.
-    
+
         Other arguments can be passed, as documented in the
         flickr.photosets.getList_ API call in the Flickr API
         documentation, except for ``page`` because all pages will be
         returned eventually.
-    
+
         .. _flickr.photosets.getList:
             http://www.flickr.com/services/api/flickr.photosets.getList.html
-    
+
         Uses the ElementTree format, incompatible with other formats.
         """
-        
+
         return self.data_walker(self.photosets_getList, searchstring='*/photoset',
                                 per_page=per_page, **kwargs)
 
-    
     @require_format('etree')
     def walk_set(self, photoset_id, per_page=50, **kwargs):
         """walk_set(self, photoset_id, per_page=50, ...) -> \
@@ -750,12 +752,12 @@ class FlickrAPI(object):
 
         .. _flickr.photosets.getPhotos:
             http://www.flickr.com/services/api/flickr.photosets.getPhotos.html
-        
+
         Uses the ElementTree format, incompatible with other formats.
         """
 
         return self.data_walker(self.photosets_getPhotos,
-                photoset_id=photoset_id, per_page=per_page, **kwargs)
+                                photoset_id=photoset_id, per_page=per_page, **kwargs)
 
     @require_format('etree')
     def walk_user(self, user_id='me', per_page=50, **kwargs):
@@ -776,12 +778,12 @@ class FlickrAPI(object):
 
         .. _flickr.people.getPhotos:
             http://www.flickr.com/services/api/flickr.people.getPhotos.html
-        
+
         Uses the ElementTree format, incompatible with other formats.
         """
 
         return self.data_walker(self.people_getPhotos,
-                                 user_id=user_id, per_page=per_page, **kwargs)
+                                user_id=user_id, per_page=per_page, **kwargs)
 
     @require_format('etree')
     def walk_user_updates(self, min_date, per_page=50, **kwargs):
@@ -791,7 +793,7 @@ class FlickrAPI(object):
 
         :Parameters:
             min_date
-                
+
             per_page
                 the number of photos that are fetched in one call to
                 Flickr.
@@ -803,12 +805,12 @@ class FlickrAPI(object):
 
         .. _flickr.photos.recentlyUpdated:
             http://www.flickr.com/services/api/flickr.photos.recentlyUpdated.html
-        
+
         Uses the ElementTree format, incompatible with other formats.
         """
 
         return self.data_walker(self.photos_recentlyUpdated,
-                min_date=min_date, per_page=per_page, **kwargs)
+                                min_date=min_date, per_page=per_page, **kwargs)
 
     @require_format('etree')
     def walk(self, per_page=50, **kwargs):
@@ -826,5 +828,4 @@ class FlickrAPI(object):
         """
 
         return self.data_walker(self.photos.search,
-                per_page=per_page, **kwargs)
-
+                                per_page=per_page, **kwargs)

@@ -1,10 +1,9 @@
-
-'''FlickrAPI uses its own in-memory XML representation, to be able to easily
+"""FlickrAPI uses its own in-memory XML representation, to be able to easily
 use the info returned from Flickr.
 
 There is no need to use this module directly, you'll get XMLNode instances
 from the FlickrAPI method calls.
-'''
+"""
 
 import xml.dom.minidom
 
