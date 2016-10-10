@@ -525,7 +525,7 @@ class FlickrAPI(object):
         return self._wrap_in_parser(self.flickr_oauth.do_upload, response_format,
                                     filename, form_url, kwargs, fileobj)
     
-    def token_valid(self, perms='read'):
+    def token_valid(self, perms=u'read'):
         """Verifies the cached token with Flickr.
         
         If the token turns out to be invalid, or with permissions lower than required,
@@ -562,7 +562,7 @@ class FlickrAPI(object):
         return False
     
     @authenticator
-    def authenticate_console(self, perms='read'):
+    def authenticate_console(self, perms=u'read'):
         """Performs the authentication/authorization, assuming a console program.
 
         Shows the URL the user should visit on stdout, then waits for the user to authorize
@@ -578,7 +578,7 @@ class FlickrAPI(object):
         self.token_cache.token = token
 
     @authenticator
-    def authenticate_via_browser(self, perms='read'):
+    def authenticate_via_browser(self, perms=u'read'):
         """Performs the authentication/authorization, assuming a console program.
 
         Starts the browser and waits for the user to authorize the app before continuing.
@@ -593,7 +593,7 @@ class FlickrAPI(object):
         self.token_cache.token = token
 
     @authenticator
-    def authenticate_for_test(self, perms='read'):
+    def authenticate_for_test(self, perms=u'read'):
         """Skips a bit of the authentication/authorization, for unit tests.
         """
 
@@ -622,7 +622,7 @@ class FlickrAPI(object):
 
         self.flickr_oauth.get_request_token(oauth_callback=oauth_callback)
 
-    def auth_url(self, perms='read'):
+    def auth_url(self, perms=u'read'):
         """Returns the URL the user should visit to authenticate the given oauth Token.
         
         Use this method in webapps, where you can redirect the user to the returned URL.
