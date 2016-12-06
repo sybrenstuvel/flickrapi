@@ -149,6 +149,8 @@ class FlickrAccessToken(object):
 class OAuthFlickrInterface(object):
     """Interface object for handling OAuth-authenticated calls to Flickr."""
 
+    session = requests.Session()
+
     REQUEST_TOKEN_URL = "https://www.flickr.com/services/oauth/request_token"
     AUTHORIZE_URL = "https://www.flickr.com/services/oauth/authorize"
     ACCESS_TOKEN_URL = "https://www.flickr.com/services/oauth/access_token"
@@ -245,10 +247,9 @@ class OAuthFlickrInterface(object):
         @return: the response content
         """
 
-        req = requests.post(url,
+        req = self.session.post(url,
                             params=params,
-                            auth=self.oauth,
-                            headers={'Connection': 'close'})
+                            auth=self.oauth)
 
         # check the response headers / status code.
         if req.status_code != 200:
@@ -277,8 +278,7 @@ class OAuthFlickrInterface(object):
         #   1. create a dummy request without 'photo'
         #   2. create real request and use auth headers from the dummy one
         dummy_req = requests.Request('POST', url, data=params,
-                                     auth=self.oauth,
-                                     headers={'Connection': 'close'})
+                                     auth=self.oauth)
 
         prepared = dummy_req.prepare()
         headers = prepared.headers
@@ -289,10 +289,9 @@ class OAuthFlickrInterface(object):
         params['photo'] = ('dummy name', fileobj)
         m = MultipartEncoder(fields=params)
         auth = {'Authorization': headers.get('Authorization'),
-                'Content-Type': m.content_type,
-                'Connection': 'close'}
+                'Content-Type': m.content_type}
         self.log.debug('POST %s', auth)
-        req = requests.post(url, data=m, headers=auth)
+        req = self.session.post(url, data=m, headers=auth)
 
         # check the response headers / status code.
         if req.status_code != 200:
