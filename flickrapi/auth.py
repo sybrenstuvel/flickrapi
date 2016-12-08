@@ -246,7 +246,7 @@ class OAuthFlickrInterface(object):
         """
 
         req = requests.post(url,
-                            params=params,
+                            data=params,
                             auth=self.oauth,
                             headers={'Connection': 'close'})
 
