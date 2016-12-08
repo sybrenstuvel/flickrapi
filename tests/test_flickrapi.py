@@ -178,7 +178,7 @@ class FlickrApiTest(SuperTest):
         # make sure this test is made without a valid token in the cache        
         del self.f.token_cache.token
 
-        self.expect(body={'method': 'flickr.photos.getInfo', 'photo_id': '7955646798'},
+        self.expect({'method': 'flickr.photos.getInfo', 'photo_id': '7955646798'},
                     PHOTO_XML)
 
         self.f.photos.getInfo(photo_id='7955646798')
@@ -187,7 +187,7 @@ class FlickrApiTest(SuperTest):
     def test_simple_search(self):
         '''Test simple Flickr search'''
 
-        self.expect(body={'method': 'flickr.photos.search', 'tags': 'kitten'},
+        self.expect({'method': 'flickr.photos.search', 'tags': 'kitten'},
                     KITTEN_SEARCH_XML)
         
         # We expect to be able to find kittens
