@@ -270,7 +270,7 @@ class OAuthFlickrInterface(object):
         # work-around to allow non-ascii characters in file name
         # Flickr doesn't store the name but does use it as a default title
         if 'title' not in params:
-            params['title'] = os.path.basename(filename)
+            params['title'] = os.path.basename(filename).encode('utf8')
 
         # work-around for Flickr expecting 'photo' to be excluded
         # from the oauth signature:
