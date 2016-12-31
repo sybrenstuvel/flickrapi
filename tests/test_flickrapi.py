@@ -16,7 +16,7 @@ import urllib
 import six
 import responses
 import functools
-from six.moves.urllib.parse import quote_plus
+from six.moves.urllib.parse import quote_plus, parse_qs
 
 import flickrapi
 #flickrapi.set_log_level(logging.FATAL)
@@ -103,6 +103,19 @@ class SuperTest(unittest.TestCase):
         attribs = dict(av.split('=') for av in attrvalues)
         self.assertEqual(expected_query_arguments, attribs)
 
+class MockedTest(SuperTest):
+    """Flickr test in which all HTTP requests are mocked."""
+
+    def setUp(self):
+        super(MockedTest, self).setUp()
+        self.mock = responses.RequestsMock(assert_all_requests_are_fired=True)
+        self.mock.start()
+
+    def tearDown(self):
+        self.mock.stop()
+        self.mock.reset()
+        super(MockedTest, self).tearDown()
+
     def expect(self, params=None, body='', status=200, content_type='text/xml', method='POST',
                match_querystring=True, urlbase=None):
         """Mocks an expected HTTP query with Responses."""
@@ -110,32 +123,50 @@ class SuperTest(unittest.TestCase):
         if urlbase is None:
             urlbase = self.f.REST_URL
 
-        if method in {'POST', 'PUT'}:
-            # The parameters should be in the request body, not on the URL.
-            # TODO: get Responses to actually test the parameters.
-            params = None
+        param_test_callback = None
+        url = urlbase
 
         if params:
             params.setdefault('format', 'rest')
             params.setdefault('nojsoncallback', '1')
 
+        if method == 'GET':
+            # The parameters should be on the URL.
             qp = quote_plus
             qs = '&'.join('%s=%s' % (qp(key), qp(six.text_type(value).encode('utf-8')))
                           for key, value in sorted(params.items()))
-            url = '%s?%s' % (urlbase, qs)
+            if qs:
+                url = '%s?%s' % (urlbase, qs)
+
+            self.mock.add(method=method, url=url,
+                          body=body, status=status,
+                          content_type=content_type,
+                          match_querystring=match_querystring)
         else:
-            url = urlbase
+            # The parameters should be in the request body, not on the URL.
+            if params is not None:
+                expect_params = {key.encode('utf8'): [value.encode('utf8')]
+                                 for key, value in params.items()}
+            def param_test_callback(request):
+                # This callback can only handle x-www-form-urlencoded requests.
+                self.assertEqual('application/x-www-form-urlencoded',
+                                 request.headers['Content-Type'].decode('utf8'))
+                actual_params = parse_qs(request.body)
+                if params is None:
+                    self.assertFalse(actual_params)
+                else:
+                    self.assertEqual(actual_params, expect_params)
 
-        if isinstance(body, six.text_type):
-            body = body.encode('utf-8')
+                headers = {'Content-Type': 'text/xml'}
+                return (status, headers, body)
 
-        responses.add(method=method, url=url,
-                      body=body, status=status,
-                      content_type=content_type,
-                      match_querystring=match_querystring)
+            self.mock.add_callback(method=method, url=url,
+                                   callback=param_test_callback,
+                                   content_type=content_type,
+                                   match_querystring=match_querystring)
 
     def expect_auth(self, perms):
-        responses.add(
+        self.mock.add(
             method='POST',
             url=self.f.flickr_oauth.REQUEST_TOKEN_URL,
             body=b'oauth_callback_confirmed=true&'
@@ -145,7 +176,7 @@ class SuperTest(unittest.TestCase):
             content_type='text/plain;charset=UTF-8',
             match_querystring=False)
 
-        responses.add(
+        self.mock.add(
             method='POST',
             url=self.f.flickr_oauth.ACCESS_TOKEN_URL,
             body=u'fullname=एकाइ परीक्षकs&&'
@@ -158,8 +189,7 @@ class SuperTest(unittest.TestCase):
             match_querystring=False)
 
 
-class FlickrApiTest(SuperTest):
-    @responses.activate
+class FlickrApiTest(MockedTest):
     def test_repr(self):
         '''Class name and API key should be in repr output'''
 
@@ -167,7 +197,6 @@ class FlickrApiTest(SuperTest):
         self.assertTrue('FlickrAPI' in r)
         self.assertTrue(key in r)
 
-    @responses.activate
     def test_defaults(self):
         '''Tests _supply_defaults.'''
 
@@ -175,8 +204,6 @@ class FlickrApiTest(SuperTest):
                                        {'baz': 'foobar', 'room': 'door'})
         self.assertEqual({'foo': 'bar', 'room': 'door'}, data)
 
-
-    @responses.activate
     def test_unauthenticated(self):
         '''Test we can access public photos without any authentication/authorization.'''
 
@@ -188,7 +215,6 @@ class FlickrApiTest(SuperTest):
 
         self.f.photos.getInfo(photo_id='7955646798')
 
-    @responses.activate
     def test_simple_search(self):
         '''Test simple Flickr search'''
 
@@ -200,7 +226,6 @@ class FlickrApiTest(SuperTest):
         total = int(result.find('photos').attrib['total'])
         self.assertTrue(total > 0)
 
-    @responses.activate
     def test_token_constructor(self):
         '''Test passing a token to the constructor'''
 
@@ -216,7 +241,6 @@ class FlickrApiTest(SuperTest):
         # But not in the on-disk token cache
         self.assertNotEqual(token, flickrapi.OAuthTokenCache(key))
 
-    @responses.activate
     def test_upload_without_filename(self):
         '''Uploading a file without filename is impossible'''
 
@@ -226,18 +250,35 @@ class FlickrApiTest(SuperTest):
         self.assertRaises(flickrapi.IllegalArgumentException,
                           self.f.upload, None)
 
-    @responses.activate
     def test_upload(self):
         photo = pkg_resources.resource_filename(__name__, 'photo.jpg')
 
+        from requests_toolbelt.multipart.encoder import MultipartEncoder
+
+        def upload_test_callback(request):
+            ct = request.headers['Content-Type']
+            self.assertTrue(ct.startswith('multipart/form-data; boundary='))
+            self.assertIsInstance(request.body, MultipartEncoder)
+
+            self.assertEqual(request.body.fields['is_public'], b'0')
+            self.assertEqual(request.body.fields['is_friend'], b'0')
+            self.assertEqual(request.body.fields['is_family'], b'0')
+            self.assertEqual(request.body.fields['content_type'], b'2')
+            self.assertEqual(request.body.fields['title'], b'photo.jpg')
+            self.assertEqual(request.body.fields['api_key'], key.encode('utf8'))
+            self.assertIn('photo', request.body.fields)
+
+            headers = {'Content-Type': 'text/xml'}
+            return (200, headers, UPLOAD_XML)
+
         self.expect_auth(perms='delete')
-        self.expect(urlbase=self.f.UPLOAD_URL,
-                    body=UPLOAD_XML)
+        self.mock.add_callback(method='POST',
+                               url=self.f.UPLOAD_URL,
+                               callback=upload_test_callback)
 
         self.f.authenticate_for_test(perms='delete')
         result = self.f.upload(photo, is_public=0, is_friend=0, is_family=0, content_type=2)
 
-    @responses.activate
     def test_store_token(self):
         '''Tests that store_token=False FlickrAPI uses SimpleTokenCache'''
 
@@ -246,7 +287,6 @@ class FlickrApiTest(SuperTest):
         self.assertTrue(isinstance(flickr.token_cache, flickrapi.SimpleTokenCache),
                         'Token cache should be SimpleTokenCache, not %r' % flickr.token_cache)
 
-    @responses.activate
     def test_wrap_in_parser(self):
         '''Tests wrap_in_parser'''
 
@@ -265,7 +305,6 @@ class FlickrApiTest(SuperTest):
         self.assertTrue(test['wrapped'],
                         'Expected wrapped function to be called')
 
-    @responses.activate
     def test_wrap_in_parser_no_format(self):
         '''Tests wrap_in_parser without a format in the wrapped arguments'''
 
@@ -379,12 +418,11 @@ class FormatsTest(SuperTest):
         decoded = data.decode('utf-8')
         self.assertEqual('foobar({', decoded[:8])
 
-
-class WalkerTest(SuperTest):
-    '''Tests walk* functions.'''
+class RealWalkerTest(SuperTest):
+    """Test walk* functions, on the real, live Flickr API."""
 
     def test_walk_set(self):
-        # Check that we get a generator
+        # Check that we get a generator, and not a list of results.
         gen = self.f.walk_set('72157611690250298', per_page=8)
         self.assertEqual(types.GeneratorType, type(gen))
 
@@ -393,34 +431,32 @@ class WalkerTest(SuperTest):
         # event)
         self.assertEqual(24, len(list(gen)))
 
+class MockedWalkerTest(MockedTest):
+    """Tests walk* functions on a mocked API for data stability."""
+
     def test_walk(self):
-        # Check that we get a generator
-        gen = self.f.walk(tag_mode='all',
-                tags='sybren,365,threesixtyfive,me',
-                min_taken_date='2008-08-19',
-                max_taken_date='2008-08-31', per_page=7,
-                sort='date-taken-desc')
+        # We expect the API to be called more than once, given that there are more results
+        # than the per_page parameter allows to fetch in one request.
+        self.expect({'method': 'flickr.photos.search', 'per_page': '4', 'page': '1'}, WALK_PAGE_1_XML)
+        self.expect({'method': 'flickr.photos.search', 'per_page': '4', 'page': '2'}, WALK_PAGE_2_XML)
+        self.expect({'method': 'flickr.photos.search', 'per_page': '4', 'page': '3'}, WALK_PAGE_3_XML)
+
+        # Check that we get a generator, and not a list of results.
+        gen = self.f.walk(per_page=4)
         self.assertEqual(types.GeneratorType, type(gen))
 
-        # very unlikely that this result will ever change. Until it did, of course.
-        # For some reason, the commented-out photos are still there, but not returned
-        # by Flickr. It wouldn't be the first time that Flickr's results are buggy,
-        # so we'll just go with the flow. Of course, later things changed again,
-        # and I had to uncomment the commented-out photos. I left this comment here
-        # as a warning to you (and that includes future me) ;-)
-        ids = sorted(p.get('id') for p in gen)
-        self.assertEqual(sorted([
-                          '2824913799',
-                          '2824831549',
-                          '2807789315',
-                          '2807789039',
-                          '2807773797',
-                        #   '2807772503',
-                          '2807771401',
-                          '2808616234',
-                          '2808618120',
-                          '2808591736',
-                          '2807741221']), ids)
+        ids = [p.get('id') for p in gen]
+        self.assertEqual(['11192308693',
+                          '11853287542',
+                          '11627471650',
+                          '11161255944',
+                          '21627488910',
+                          '21884772401',
+                          '21161270134',
+                          '21964432216',
+                          '32001923265',
+                          '31964437076',
+                          '32001922675'], ids)
 
 if __name__ == '__main__':
     unittest.main()

@@ -142,3 +142,31 @@ UPLOAD_XML = u'''<?xml version="1.0" encoding="utf-8" ?>
     <photoid>1234</photoid>
 </rsp>'''
 
+WALK_PAGE_1_XML = u'''<?xml version="1.0" encoding="utf-8" ?>
+<rsp stat="ok">
+  <photos page="1" pages="3" perpage="4" total="31">
+    <photo id="11192308693" owner="147501035@N04" secret="1466927631" server="753" farm="1" title="DSC_3393.jpg" ispublic="1" isfriend="0" isfamily="0" />
+    <photo id="11853287542" owner="92763341@N00" secret="80e61860a7" server="486" farm="1" title="PC310058.jpg" ispublic="1" isfriend="0" isfamily="0" />
+    <photo id="11627471650" owner="145345281@N05" secret="74492150ae" server="632" farm="1" title="Photo" ispublic="1" isfriend="0" isfamily="0" />
+    <photo id="11161255944" owner="126092434@N02" secret="8c049e3198" server="465" farm="1" title="source @Project Blowed•LA" ispublic="1" isfriend="0" isfamily="0" />
+  </photos>
+</rsp>'''
+
+WALK_PAGE_2_XML = u'''<?xml version="1.0" encoding="utf-8" ?>
+<rsp stat="ok">
+  <photos page="2" pages="3" perpage="4" total="22">
+    <photo id="21627488910" owner="25021694@N08" secret="a89d891a4c" server="606" farm="1" title="" ispublic="1" isfriend="0" isfamily="0" />
+    <photo id="21884772401" owner="145760962@N05" secret="30b39b4646" server="268" farm="1" title="PICTURE 1 (134)" ispublic="1" isfriend="0" isfamily="0" />
+    <photo id="21161270134" owner="142776300@N05" secret="85d181ec10" server="5760" farm="6" title="Nekoliko promena u dnevnoj rutini i poboljšajte metabolizam!" ispublic="1" isfriend="0" isfamily="0" />
+    <photo id="21964432216" owner="146860704@N06" secret="96302704ef" server="750" farm="1" title="1004-2" ispublic="1" isfriend="0" isfamily="0" />
+  </photos>
+</rsp>'''
+
+WALK_PAGE_3_XML = u'''<?xml version="1.0" encoding="utf-8" ?>
+<rsp stat="ok">
+  <photos page="3" pages="3" perpage="4" total="11">
+    <photo id="32001923265" owner="147501035@N04" secret="125a110f5a" server="437" farm="1" title="DSC_3394.jpg" ispublic="1" isfriend="0" isfamily="0" />
+    <photo id="31964437076" owner="81296978@N00" secret="326214aa88" server="257" farm="1" title="" ispublic="1" isfriend="0" isfamily="0" />
+    <photo id="32001922675" owner="147501035@N04" secret="b360d5c383" server="567" farm="1" title="DSC_3380.jpg" ispublic="1" isfriend="0" isfamily="0" />
+  </photos>
+</rsp>'''
