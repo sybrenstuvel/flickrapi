@@ -72,7 +72,7 @@ class OAuthTokenHTTPServer(http_server.HTTPServer):
 
     def listen_port(self):
         """Returns the hostname and TCP/IP port number to listen on.
-        
+
         By default finds a random free port between 1100 and 20000.
         """
 
@@ -101,7 +101,7 @@ class OAuthTokenHTTPServer(http_server.HTTPServer):
 
 class FlickrAccessToken(object):
     """Flickr access token.
-    
+
     Contains the token, token secret, and the user's full name, username and NSID.
     """
 
@@ -241,7 +241,7 @@ class OAuthFlickrInterface(object):
 
     def do_request(self, url, params=None):
         """Performs the HTTP request, signed with OAuth.
-        
+
         @return: the response content
         """
 
@@ -263,7 +263,7 @@ class OAuthFlickrInterface(object):
 
     def do_upload(self, filename, url, params=None, fileobj=None):
         """Performs a file upload to the given URL with the given parameters, signed with OAuth.
-        
+
         @return: the response content
         """
 
@@ -336,17 +336,17 @@ class OAuthFlickrInterface(object):
 
     def get_request_token(self, oauth_callback=None):
         """Requests a new request token.
-        
+
         Updates this OAuthFlickrInterface object to use the request token on the following
         authentication calls.
-        
+
         @param oauth_callback: the URL the user is sent to after granting the token access.
             If the callback is None, a local web server is started on a random port, and the
             callback will be http://localhost:randomport/
-            
+
             If you do not have a web-app and you also do not want to start a local web server,
             pass oauth_callback='oob' and have your application accept the verifier from the
-            user instead. 
+            user instead.
         """
 
         self.log.debug('get_request_token(oauth_callback=%s):', oauth_callback)
@@ -371,12 +371,12 @@ class OAuthFlickrInterface(object):
 
     def auth_url(self, perms=u'read'):
         """Returns the URL the user should visit to authenticate the given oauth Token.
-        
+
         Use this method in webapps, where you can redirect the user to the returned URL.
         After authorization by the user, the browser is redirected to the callback URL,
         which will contain the OAuth verifier. Set the 'verifier' property on this object
         in order to use it.
-        
+
         In stand-alone apps, use open_browser_for_authentication instead.
         """
 
@@ -392,10 +392,10 @@ class OAuthFlickrInterface(object):
 
     def auth_via_browser(self, perms=u'read'):
         """Opens the webbrowser to authenticate the given request request_token, sets the verifier.
-        
+
         Use this method in stand-alone apps. In webapps, use auth_url(...) instead,
         and redirect the user to the returned URL.
-        
+
         Updates the given request_token by setting the OAuth verifier.
         """
 
@@ -449,7 +449,7 @@ class OAuthFlickrInterface(object):
         """Exchanges the request token for an access token.
 
         Also stores the access token in 'self' for easy authentication of subsequent calls.
-        
+
         @return: Access token, a FlickrAccessToken object.
         """
 

@@ -65,7 +65,7 @@ except ImportError:
 
 class SuperTest(unittest.TestCase):
     '''Superclass for unittests, provides useful methods.'''
-    
+
     def setUp(self):
         super(SuperTest, self).setUp()
 
@@ -88,21 +88,21 @@ class SuperTest(unittest.TestCase):
     def assertUrl(self, expected_protocol, expected_host, expected_path,
                   expected_query_arguments, actual_url):
         '''Asserts that the 'actual_url' matches the given parts.'''
-            
+
         # Test the URL part by part
         (urltype, rest) = urllib.splittype(actual_url)
         self.assertEqual(expected_protocol, urltype)
-        
+
         (hostport, path) = urllib.splithost(rest)
         self.assertEqual(expected_host, hostport)
-        
+
         (path, query) = urllib.splitquery(path)
         self.assertEqual(expected_path, path)
-        
+
         attrvalues = query.split('&')
         attribs = dict(av.split('=') for av in attrvalues)
         self.assertEqual(expected_query_arguments, attribs)
-    
+
     def expect(self, params=None, body='', status=200, content_type='text/xml', method='POST',
                match_querystring=True, urlbase=None):
         """Mocks an expected HTTP query with Responses."""
@@ -165,7 +165,7 @@ class FlickrApiTest(SuperTest):
     @responses.activate
     def test_defaults(self):
         '''Tests _supply_defaults.'''
-        
+
         data = self.f._supply_defaults({'foo': 'bar', 'baz': None, 'token': None},
                                        {'baz': 'foobar', 'room': 'door'})
         self.assertEqual({'foo': 'bar', 'room': 'door'}, data)
@@ -174,8 +174,8 @@ class FlickrApiTest(SuperTest):
     @responses.activate
     def test_unauthenticated(self):
         '''Test we can access public photos without any authentication/authorization.'''
-        
-        # make sure this test is made without a valid token in the cache        
+
+        # make sure this test is made without a valid token in the cache
         del self.f.token_cache.token
 
         self.expect({'method': 'flickr.photos.getInfo', 'photo_id': '7955646798'},
@@ -189,35 +189,35 @@ class FlickrApiTest(SuperTest):
 
         self.expect({'method': 'flickr.photos.search', 'tags': 'kitten'},
                     KITTEN_SEARCH_XML)
-        
+
         # We expect to be able to find kittens
         result = self.f.photos.search(tags='kitten')
         total = int(result.find('photos').attrib['total'])
         self.assertTrue(total > 0)
-    
+
     @responses.activate
     def test_token_constructor(self):
         '''Test passing a token to the constructor'''
-        
+
         token = flickrapi.auth.FlickrAccessToken(u'123-abc-def', u'token_secret', u'read',
                                                  u'fullname', u'username', u'user_nsid')
-        
+
         # Pass the token
         flickr = self.clasz(key, secret, token=token)
-        
+
         # It should be in the in-memory token cache now
         self.assertEqual(token, flickr.token_cache.token)
-        
+
         # But not in the on-disk token cache
-        self.assertNotEqual(token, flickrapi.OAuthTokenCache(key))              
+        self.assertNotEqual(token, flickrapi.OAuthTokenCache(key))
 
     @responses.activate
     def test_upload_without_filename(self):
         '''Uploading a file without filename is impossible'''
-        
+
         self.assertRaises(flickrapi.IllegalArgumentException,
                           self.f.upload, '')
-        
+
         self.assertRaises(flickrapi.IllegalArgumentException,
                           self.f.upload, None)
 
@@ -281,7 +281,7 @@ class FlickrApiTest(SuperTest):
 
 class FormatsTest(SuperTest):
     '''Tests the different parsed formats.
-    
+
     We have to test ElementTree in a bit of a strange way in order to support all
     current flavours of (c)ElementTree.
     '''
@@ -302,7 +302,7 @@ class FormatsTest(SuperTest):
 
     def test_etree_format_error(self):
         '''Test ETree format in error conditions'''
- 
+
         self.assertRaises(flickrapi.exceptions.FlickrError,
                 self.f_noauth.photos_getInfo, format='etree')
 
@@ -322,17 +322,17 @@ class FormatsTest(SuperTest):
 
     def test_xmlnode_format_error(self):
         '''Test XMLNode format in error conditions'''
- 
+
         self.assertRaises(flickrapi.exceptions.FlickrError,
                 self.f_noauth.photos_getInfo, format='xmlnode')
-        
+
     def test_explicit_format(self):
         '''Test explicitly requesting a certain unparsed format'''
-        
+
         xml = self.f.photos_search(tags='kitten', format='rest')
         self.assertTrue(isinstance(xml, six.binary_type),
                         'XML is type %r, not %r' % (type(xml), six.binary_type))
-        
+
         # Try to parse it
         rst = flickrapi.XMLNode.parse(xml, False)
         self.assertTrue(int(rst.photos[0]['total']) > 0)
