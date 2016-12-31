@@ -51,7 +51,7 @@ class TokenCache(object):
         self.api_key = api_key
         self.username = username
         self.memory = {}
-        self.path = os.path.join("~", ".flickr")
+        self.path = os.path.expanduser(os.path.join("~", ".flickr"))
 
     def get_cached_token_path(self):
         """Return the directory holding the app data."""
