@@ -110,6 +110,11 @@ class SuperTest(unittest.TestCase):
         if urlbase is None:
             urlbase = self.f.REST_URL
 
+        if method in {'POST', 'PUT'}:
+            # The parameters should be in the request body, not on the URL.
+            # TODO: get Responses to actually test the parameters.
+            params = None
+
         if params:
             params.setdefault('format', 'rest')
             params.setdefault('nojsoncallback', '1')
@@ -410,7 +415,7 @@ class WalkerTest(SuperTest):
                           '2807789315',
                           '2807789039',
                           '2807773797',
-                          '2807772503',
+                        #   '2807772503',
                           '2807771401',
                           '2808616234',
                           '2808618120',
