@@ -1,5 +1,9 @@
-Changelog
-=========
+Python FlickrAPI Changelog
+==========================
+
+This is the changelog of the Python FlickrAPI package. All changes were made by
+Sybren A. Stüvel, unless noted otherwise.
+
 
 Version 2.x: in development
 ---------------------------
@@ -36,6 +40,34 @@ Version 2.2: released 2017-01-15
   [[ Bug report #74]](https://github.com/sybrenstuvel/flickrapi/issues/74)
 - Converted requested_permissions to unicode and ported authentication
   example to Python 3 (Michael Klich).
+
+
+Version 2.1.2: released 2015-10-27
+----------------------------------
+
+- Added error checking (and raising of `FlickrError`) from the parsed-json handler
+
+
+Version 2.1.1: released 2015-08-03
+----------------------------------
+
+- Bumped version to 2.1.1 due to some mistake with pypi
+
+
+Version 2.1: released 2015-08-03
+--------------------------------
+
+- solved issue with `autenticate_console()` [[ Bug report #58 ]](https://github.com/sybrenstuvel/flickrapi/issues/58)
+- Using POST instead of GET [[ Bug report #59 ]](https://github.com/sybrenstuvel/flickrapi/issues/59)
+- Fix: use req.text for text-based interpretation of HTTP response.
+
+
+Version 2.0.1: released 2014-12-18
+----------------------------------
+
+- Lowered dependency versions to those shipped with Ubuntu 14.04 LTS
+- Added Python 3.3 to the list of supported versions, rejecting Python <=2.6 and <=3.2.
+- Allow non-ascii characters in file names (Jim Easterbrook)
 
 
 Version 2.0: released 2014-11-06
