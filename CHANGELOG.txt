@@ -14,3 +14,9 @@ Version 2.2: in development
 - More serious testing, using py.test and Tox to test on all support
   versions of Python.
 - Automated builds are performed with Travis-CI.
+- Feature request #68: Make flickrapi token storage directory configurable.
+- Alexandre L: Put requests in a session to benefit from connection reuse.
+- When uploading a photo, send the title as UTF8
+- Fixed issue #74 Sort many photosets with 'flickr.photosets.orderSets' failed.
+- Michael Klich convert requested_permissions to unicode and ported authentication
+  example to Python 3.
