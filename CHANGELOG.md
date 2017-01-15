@@ -125,7 +125,7 @@ Version 1.2: released 2008-11-15
   [[ Patch 2007996 ]](http://sourceforge.net/tracker/index.php?func=detail&aid=2007996&group_id=203043&atid=984008)
 - Made ElementTree the default response parser.
 - The upload and replace methods now take a `format` parameter.
-  [[ Feature request 1912606 ]](http://sourceforge.net/tracker/index.php?func=detail&aid=1912606&group_id=203043&atid=984009")
+  [[ Feature request 1912606 ]](http://sourceforge.net/tracker/index.php?func=detail&aid=1912606&group_id=203043&atid=984009)
 - Removed deprecated methods.
 - `upload` and `replace` methods no longer report progress on their callback
   regarding the HTTP headers.
