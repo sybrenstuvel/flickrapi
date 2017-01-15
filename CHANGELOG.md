@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 2.x: in development
+---------------------------
+
+- Include README.md and CHANGELOG.md in the package data.
+
+
 Version 2.2.1: released 2017-01-15
 ----------------------------------
 
