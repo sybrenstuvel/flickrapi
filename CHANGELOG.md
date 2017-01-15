@@ -54,6 +54,11 @@ Version 1.4.4: released 2014-06-18
 - Replaced Distribute with Setuptools.
 
 
+Versions 1.4.1 .. 1.4.3: unreleased
+-----------------------------------
+
+- Lots of messy changes to smoothen release procedure.
+
 Version 1.4: released 2010-02-03
 --------------------------------
 
