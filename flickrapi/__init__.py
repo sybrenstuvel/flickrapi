@@ -69,11 +69,9 @@ def set_log_level(level):
 
     import flickrapi.core
     import flickrapi.tokencache
-    import flickrapi.contrib
 
     flickrapi.core.LOG.setLevel(level)
     flickrapi.tokencache.LOG.setLevel(level)
-    flickrapi.contrib.LOG.setLevel(level)
 
 
 if __name__ == "__main__":
