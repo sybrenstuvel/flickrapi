@@ -170,6 +170,14 @@ stored, pass ``store_token=False`` as constructor parameter. Use this
 if you want to be absolutely sure that the FlickrAPI instance doesn't
 use any previously stored tokens, nor that it will store new tokens.
 
+Configuring location of on-disk token cache
+----------------------------------------------------------------------
+
+By default the authentication tokens are stored in ``~/.flickr``. If
+you want to change this, just pass
+``token_cache_location='/path/to/token/cache/dir'`` as constructor
+parameter.
+
 Multiple processes using the same key
 ----------------------------------------------------------------------
 

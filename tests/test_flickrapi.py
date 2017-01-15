@@ -458,5 +458,29 @@ class MockedWalkerTest(MockedTest):
                           '31964437076',
                           '32001922675'], ids)
 
+
+class TokenCachePathTest(MockedTest):
+    def test_token_cache_path(self):
+        """Test that the FlickrAPI actually uses the token cache location."""
+
+        import tempfile
+        import shutil
+        import os.path
+
+        tmpdir = tempfile.mkdtemp()
+        try:
+            self.f = flickrapi.FlickrAPI(key, secret, token_cache_location=tmpdir)
+
+            # We have to authenticate so that a token is actually written.
+            self.expect_auth(perms=u'read')
+            self.f.authenticate_for_test(perms=u'read')
+
+            # Check the token cache exists on disk.
+            cache_path = os.path.join(tmpdir, 'oauth-tokens.sqlite')
+            self.assertTrue(os.path.exists(cache_path))
+        finally:
+            shutil.rmtree(tmpdir)
+
+
 if __name__ == '__main__':
     unittest.main()

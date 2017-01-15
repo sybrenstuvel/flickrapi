@@ -143,7 +143,7 @@ class FlickrAPI(object):
 
     def __init__(self, api_key, secret, username=None,
                  token=None, format='etree', store_token=True,
-                 cache=False):
+                 cache=False, token_cache_location=None):
         """Construct a new FlickrAPI instance for a given API key
         and secret.
 
@@ -179,6 +179,9 @@ class FlickrAPI(object):
 
             >>> f = FlickrAPI(u'123', u'123')
             >>> f.cache = SimpleCache(timeout=5, max_entries=100)
+
+        token_cache_location
+            If not None, determines where the authentication tokens are stored.
         """
 
         self.default_format = format
@@ -200,7 +203,8 @@ class FlickrAPI(object):
             self.token_cache = tokencache.SimpleTokenCache()
         else:
             # Use a real token cache
-            self.token_cache = tokencache.OAuthTokenCache(api_key, username or '')
+            self.token_cache = tokencache.OAuthTokenCache(api_key, username or '',
+                                                          path=token_cache_location)
 
         self.flickr_oauth = auth.OAuthFlickrInterface(api_key, secret, self.token_cache)
 

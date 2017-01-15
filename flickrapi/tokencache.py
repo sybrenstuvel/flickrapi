@@ -45,13 +45,13 @@ class TokenCache(object):
     token per user.
     """
 
-    def __init__(self, api_key, username=None):
+    def __init__(self, api_key, username=None, path=''):
         """Creates a new token cache instance"""
 
         self.api_key = api_key
         self.username = username
         self.memory = {}
-        self.path = os.path.expanduser(os.path.join("~", ".flickr"))
+        self.path = path or os.path.expanduser(os.path.join("~", ".flickr"))
 
     def get_cached_token_path(self):
         """Return the directory holding the app data."""
@@ -120,14 +120,15 @@ class OAuthTokenCache(object):
     # Mapping from (api_key, lookup_key) to FlickrAccessToken object.
     RAM_CACHE = {}
 
-    def __init__(self, api_key, lookup_key=''):
+    def __init__(self, api_key, lookup_key='', path=''):
         """Creates a new token cache instance"""
 
         assert lookup_key is not None
 
         self.api_key = api_key
         self.lookup_key = lookup_key
-        self.path = os.path.expanduser(os.path.join("~", ".flickr"))
+
+        self.path = path or os.path.expanduser(os.path.join("~", ".flickr"))
         self.filename = os.path.join(self.path, 'oauth-tokens.sqlite')
 
         if not os.path.exists(self.path):
