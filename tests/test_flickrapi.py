@@ -478,6 +478,10 @@ class TokenCachePathTest(MockedTest):
             # Check the token cache exists on disk.
             cache_path = os.path.join(tmpdir, 'oauth-tokens.sqlite')
             self.assertTrue(os.path.exists(cache_path))
+
+            # Check the token is stored correctly.
+            self.assertEqual('cafef00d089843641-e04b4114a40fe037',
+                             self.f.token_cache.token.token)
         finally:
             shutil.rmtree(tmpdir)
 
