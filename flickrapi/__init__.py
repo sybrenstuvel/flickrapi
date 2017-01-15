@@ -61,12 +61,12 @@ from flickrapi.tokencache import OAuthTokenCache, TokenCache, SimpleTokenCache, 
 
 def set_log_level(level):
     """Sets the log level of the logger used by the FlickrAPI module.
-    
+
     >>> import flickrapi
     >>> import logging
     >>> flickrapi.set_log_level(logging.INFO)
     """
-    
+
     import flickrapi.core
     import flickrapi.tokencache
     import flickrapi.contrib

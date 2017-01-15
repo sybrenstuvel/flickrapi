@@ -21,10 +21,10 @@ if (major, minor) < (2, 7) or (major == 3 and minor < 3):
 from setuptools import setup
 
 data = {
-    'name': 'flickrapi', 
-    'version': __version__, 
+    'name': 'flickrapi',
+    'version': __version__,
     'author': 'Sybren A. Stuvel',
-    'author_email': 'sybren@stuvel.eu', 
+    'author_email': 'sybren@stuvel.eu',
     'maintainer': 'Sybren A. Stuvel',
     'maintainer_email': 'sybren@stuvel.eu',
     'url': 'https://stuvel.eu/flickrapi',
@@ -33,7 +33,7 @@ data = {
         'most actively developed Python interface to the Flickr API.'
         'It includes support for authorized and non-authorized '
         'access, uploading and replacing photos, and all Flickr API '
-        'functions.', 
+        'functions.',
     'packages': ['flickrapi'],
     'package_data': {'flickrapi': ['../LICENSE.txt', '../README.txt', '../UPGRADING.txt']},
 
