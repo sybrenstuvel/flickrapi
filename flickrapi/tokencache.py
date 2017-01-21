@@ -165,6 +165,8 @@ class OAuthTokenCache(object):
                         user_nsid varchar(64) not null,
                         PRIMARY KEY(api_key, lookup_key))''')
 
+        db.commit()
+
     @property
     def token(self):
         """Return the cached token for this API key, or None if not found."""
