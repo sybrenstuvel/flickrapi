@@ -18,7 +18,6 @@ import logging
 import random
 import os.path
 import sys
-import webbrowser
 import six
 
 from requests_toolbelt import MultipartEncoder
@@ -397,6 +396,7 @@ class OAuthFlickrInterface(object):
 
         Updates the given request_token by setting the OAuth verifier.
         """
+        import webbrowser
 
         # The HTTP server may have been started already, but we're not sure. Just start
         # it if it needs to be started.
