@@ -24,6 +24,8 @@ from requests_toolbelt import MultipartEncoder
 import requests
 from requests_oauthlib import OAuth1
 
+from requests_futures.sessions import FuturesSession
+
 from . import sockutil, exceptions, html
 from .exceptions import FlickrError
 
@@ -148,7 +150,7 @@ class FlickrAccessToken(object):
 class OAuthFlickrInterface(object):
     """Interface object for handling OAuth-authenticated calls to Flickr."""
 
-    session = requests.Session()
+    session = FuturesSession()
 
     REQUEST_TOKEN_URL = "https://www.flickr.com/services/oauth/request_token"
     AUTHORIZE_URL = "https://www.flickr.com/services/oauth/authorize"
@@ -250,16 +252,18 @@ class OAuthFlickrInterface(object):
                             data=params,
                             auth=self.oauth)
 
-        # check the response headers / status code.
-        if req.status_code != 200:
-            self.log.error('do_request: Status code %i received, content:', req.status_code)
+        response = req.result()
 
-            for part in req.text.split('&'):
+        # check the response headers / status code.
+        if response.status_code != 200:
+            self.log.error('do_request: Status code %i received, content:', response.status_code)
+
+            for part in response.text.split('&'):
                 self.log.error('    %s', urllib_parse.unquote(part))
 
-            raise exceptions.FlickrError('do_request: Status code %s received' % req.status_code)
+            raise exceptions.FlickrError('do_request: Status code %s received' % response.status_code)
 
-        return req.content
+        return response.content
 
     def do_upload(self, filename, url, params=None, fileobj=None):
         """Performs a file upload to the given URL with the given parameters, signed with OAuth.
@@ -292,16 +296,18 @@ class OAuthFlickrInterface(object):
         self.log.debug('POST %s', auth)
         req = self.session.post(url, data=m, headers=auth)
 
-        # check the response headers / status code.
-        if req.status_code != 200:
-            self.log.error('do_upload: Status code %i received, content:', req.status_code)
+        response = req.result()
 
-            for part in req.text.split('&'):
+        # check the response headers / status code.
+        if response.status_code != 200:
+            self.log.error('do_upload: Status code %i received, content:', response.status_code)
+
+            for part in response.text.split('&'):
                 self.log.error('    %s', urllib_parse.unquote(part))
 
-            raise exceptions.FlickrError('do_upload: Status code %s received' % req.status_code)
+            raise exceptions.FlickrError('do_upload: Status code %s received' % response.status_code)
 
-        return req.content
+        return response.content
 
     @staticmethod
     def parse_oauth_response(data):
