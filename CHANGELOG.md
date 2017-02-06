@@ -16,6 +16,7 @@ Version 2.x: in development
 - Perform explicit commit after inserting auth token (Joshua Hunter)
   [[ Bug report #75 ]](https://github.com/sybrenstuvel/flickrapi/pull/75)
   [[ Pull request #76 ]](https://github.com/sybrenstuvel/flickrapi/pull/76)
+- Configured Tox & Travis to test on Python 3.6 as well.
 
 
 Version 2.2.1: released 2017-01-15
