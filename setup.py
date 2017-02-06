@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-'''Python distutils install script.
+"""Python setuptools install script.
 
 Run with "python setup.py install" to install FlickrAPI
-'''
+"""
 
 from __future__ import print_function
 
