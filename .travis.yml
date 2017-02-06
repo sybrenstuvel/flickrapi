@@ -2,22 +2,23 @@ language: python
 
 # Python versions specified to make tox environment 'py35' and 'py36' work.
 # See: https://github.com/travis-ci/travis-ci/issues/4794
-python:
-  - 2.7
-  - 3.3
-  - 3.4
-  - 3.5
-  - 3.6
-
 # Environment changes have to be manually synced with 'tox.ini'.
 # See: https://github.com/travis-ci/travis-ci/issues/3024
-env:
-  - TOXENV=py27
-  - TOXENV=py33
-  - TOXENV=py34
-  - TOXENV=py35
-  - TOXENV=py36
-  - TOXENV=pypy
+
+matrix:
+  include:
+  - python: '2.7'
+    env: TOXENV=py27
+  - python: '3.3'
+    env: TOXENV=py33
+  - python: '3.4'
+    env: TOXENV=py34
+  - python: '3.5'
+    env: TOXENV=py35
+  - python: '3.6'
+    env: TOXENV=py36
+  - python: 'pypy'
+    env: TOXENV=pypy
 
 install:
   - pip install tox-travis
