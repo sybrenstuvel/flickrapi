@@ -13,6 +13,10 @@ Version 2.x: in development
   by requests (since cdeb6ffea26).
 - Late-import module `webbrowser`, only when needed (Thijs Triemstra)
   [[ Pull request #78 ]](https://github.com/sybrenstuvel/flickrapi/pull/78)
+- Perform explicit commit after inserting auth token (Joshua Hunter)
+  [[ Bug report #75 ]](https://github.com/sybrenstuvel/flickrapi/pull/75)
+  [[ Pull request #76 ]](https://github.com/sybrenstuvel/flickrapi/pull/76)
+
 
 Version 2.2.1: released 2017-01-15
 ----------------------------------
