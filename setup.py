@@ -10,9 +10,9 @@ from __future__ import print_function
 __author__ = 'Sybren A. Stuvel'
 __version__ = '2.2.1'
 
-
 # Check the Python version
 import sys
+
 (major, minor) = sys.version_info[:2]
 
 if (major, minor) < (2, 7) or (major == 3 and minor < 3):
@@ -30,10 +30,10 @@ data = {
     'url': 'https://stuvel.eu/flickrapi',
     'description': 'The Python interface to the Flickr API',
     'long_description': 'The easiest to use, most complete, and '
-        'most actively developed Python interface to the Flickr API.'
-        'It includes support for authorized and non-authorized '
-        'access, uploading and replacing photos, and all Flickr API '
-        'functions.',
+                        'most actively developed Python interface to the Flickr API.'
+                        'It includes support for authorized and non-authorized '
+                        'access, uploading and replacing photos, and all Flickr API '
+                        'functions.',
     'packages': ['flickrapi'],
     'package_data': {'flickrapi': ['../LICENSE.txt', '../README.md', '../UPGRADING.txt', '../CHANGELOG.md']},
 
@@ -59,7 +59,7 @@ data = {
         'requests_toolbelt>=0.3.1',
     ],
     'extras_require': {
-        'ElementTree':  ["elementtree>=1.2.6"],
+        'ElementTree': ["elementtree>=1.2.6"],
         'Sphinx': ["sphinx>=1.1.3"],
     },
     'zip_safe': True,
