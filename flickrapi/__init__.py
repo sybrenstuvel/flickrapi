@@ -12,12 +12,6 @@ See `the FlickrAPI homepage`_ for more info.
 """
 from __future__ import unicode_literals
 
-__version__ = '2.2.1'
-__all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
-    'CancelUpload', 'LockingError', 'XMLNode', 'set_log_level', '__version__',
-    'SimpleCache', 'TokenCache', 'SimpleTokenCache', 'LockingTokenCache')
-__author__ = 'Sybren Stüvel'
-
 # Copyright (c) 2007 by the respective coders, see
 # http://www.stuvel.eu/projects/flickrapi
 #
@@ -51,10 +45,16 @@ from flickrapi.core import FlickrAPI
 
 from flickrapi.xmlnode import XMLNode
 from flickrapi.exceptions import IllegalArgumentException, \
-        FlickrError, CancelUpload, LockingError
+    FlickrError, CancelUpload, LockingError
 from flickrapi.cache import SimpleCache
 from flickrapi.tokencache import OAuthTokenCache, TokenCache, SimpleTokenCache, \
-        LockingTokenCache
+    LockingTokenCache
+
+__version__ = '2.2.1'
+__all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
+           'CancelUpload', 'LockingError', 'XMLNode', 'set_log_level', '__version__',
+           'SimpleCache', 'TokenCache', 'SimpleTokenCache', 'LockingTokenCache')
+__author__ = 'Sybren Stüvel'
 
 
 def set_log_level(level):
@@ -75,5 +75,6 @@ def set_log_level(level):
 if __name__ == "__main__":
     print("Running doctests")
     import doctest
+
     doctest.testmod()
     print("Tests OK")
