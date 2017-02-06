@@ -143,7 +143,8 @@ class FlickrAPI(object):
 
     def __init__(self, api_key, secret, username=None,
                  token=None, format='etree', store_token=True,
-                 cache=False, token_cache_location=None):
+                 cache=False, token_cache_location=None,
+                 timeout=None):
         """Construct a new FlickrAPI instance for a given API key
         and secret.
 
@@ -182,6 +183,9 @@ class FlickrAPI(object):
 
         token_cache_location
             If not None, determines where the authentication tokens are stored.
+
+        timeout
+            Optional request timeout as float in seconds.
         """
 
         self.default_format = format
@@ -206,7 +210,8 @@ class FlickrAPI(object):
             self.token_cache = tokencache.OAuthTokenCache(api_key, username or '',
                                                           path=token_cache_location)
 
-        self.flickr_oauth = auth.OAuthFlickrInterface(api_key, secret, self.token_cache)
+        self.flickr_oauth = auth.OAuthFlickrInterface(api_key, secret, self.token_cache,
+                                                      default_timeout=timeout)
 
         if cache:
             self.cache = SimpleCache()
@@ -304,7 +309,7 @@ class FlickrAPI(object):
 
         return CallBuilder(self, method_name='flickr.' + method_name)
 
-    def do_flickr_call(self, method_name, **kwargs):
+    def do_flickr_call(self, method_name, timeout=None, **kwargs):
         """Handle all the regular Flickr API calls.
 
         Example::
@@ -328,6 +333,7 @@ class FlickrAPI(object):
 
         return self._wrap_in_parser(self._flickr_call,
                                     parse_format=params['format'],
+                                    timeout=timeout,
                                     **params)
 
     def _supply_defaults(self, args, defaults):
@@ -352,7 +358,7 @@ class FlickrAPI(object):
 
         return result
 
-    def _flickr_call(self, **kwargs):
+    def _flickr_call(self, timeout=None, **kwargs):
         """Performs a Flickr API call with the given arguments. The method name
         itself should be passed as the 'method' parameter.
 
@@ -368,7 +374,7 @@ class FlickrAPI(object):
         if self.cache and self.cache.get(kwargs):
             return self.cache.get(kwargs)
 
-        reply = self.flickr_oauth.do_request(self.REST_URL, kwargs)
+        reply = self.flickr_oauth.do_request(self.REST_URL, kwargs, timeout=timeout)
 
         # Store in cache, if we have one
         if self.cache is not None:
@@ -422,7 +428,7 @@ class FlickrAPI(object):
 
         return response_format
 
-    def upload(self, filename, fileobj=None, **kwargs):
+    def upload(self, filename, fileobj=None, timeout=None, **kwargs):
         """Upload a file to flickr.
 
         Be extra careful you spell the parameters correctly, or you will
@@ -456,6 +462,8 @@ class FlickrAPI(object):
         format
             The response format. You can only choose between the
             parsed responses or 'rest' for plain REST.
+        timeout
+            Optional timeout for the HTTP request, as float in seconds.
 
         The ``fileobj`` parameter can be used to monitor progress via
         a callback method. For example::
@@ -483,9 +491,9 @@ class FlickrAPI(object):
         Progress is a number between 0 and 100.
         """
 
-        return self._upload_to_form(self.UPLOAD_URL, filename, fileobj, **kwargs)
+        return self._upload_to_form(self.UPLOAD_URL, filename, fileobj, timeout=timeout, **kwargs)
 
-    def replace(self, filename, photo_id, fileobj=None, **kwargs):
+    def replace(self, filename, photo_id, fileobj=None, timeout=None, **kwargs):
         """Replace an existing photo.
 
         Supported parameters:
@@ -500,6 +508,8 @@ class FlickrAPI(object):
             The response format. You can only choose between the
             parsed responses or 'rest' for plain REST. Defaults to the
             format passed to the constructor.
+        timeout
+            Optional timeout for the HTTP request, as float in seconds.
 
         """
 
@@ -507,9 +517,9 @@ class FlickrAPI(object):
             raise IllegalArgumentException("photo_id must be specified")
 
         kwargs['photo_id'] = photo_id
-        return self._upload_to_form(self.REPLACE_URL, filename, fileobj, **kwargs)
+        return self._upload_to_form(self.REPLACE_URL, filename, fileobj, timeout=timeout, **kwargs)
 
-    def _upload_to_form(self, form_url, filename, fileobj=None, **kwargs):
+    def _upload_to_form(self, form_url, filename, fileobj=None, timeout=None, **kwargs):
         """Uploads a photo - can be used to either upload a new photo
         or replace an existing one.
 
@@ -531,7 +541,7 @@ class FlickrAPI(object):
         kwargs = make_bytes(kwargs)
 
         return self._wrap_in_parser(self.flickr_oauth.do_upload, response_format,
-                                    filename, form_url, kwargs, fileobj)
+                                    filename, form_url, kwargs, fileobj, timeout=timeout)
 
     def token_valid(self, perms=u'read'):
         """Verifies the cached token with Flickr.

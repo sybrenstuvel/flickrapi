@@ -154,7 +154,7 @@ class OAuthFlickrInterface(object):
     AUTHORIZE_URL = "https://www.flickr.com/services/oauth/authorize"
     ACCESS_TOKEN_URL = "https://www.flickr.com/services/oauth/access_token"
 
-    def __init__(self, api_key, api_secret, oauth_token=None):
+    def __init__(self, api_key, api_secret, oauth_token=None, default_timeout=None):
         self.log = logging.getLogger('%s.%s' % (self.__class__.__module__, self.__class__.__name__))
 
         assert isinstance(api_key, six.text_type), 'api_key must be unicode string'
@@ -170,6 +170,7 @@ class OAuthFlickrInterface(object):
         self.oauth_token = oauth_token
         self.auth_http_server = None
         self.requested_permissions = None
+        self.default_timeout = default_timeout
 
     @property
     def key(self):
@@ -240,15 +241,19 @@ class OAuthFlickrInterface(object):
 
         return os.path.expanduser('~/.flickrapi/cache')
 
-    def do_request(self, url, params=None):
+    def do_request(self, url, params=None, timeout=None):
         """Performs the HTTP request, signed with OAuth.
+
+        :param timeout: optional request timeout, in seconds.
+        :type timeout: float
 
         @return: the response content
         """
 
         req = self.session.post(url,
                                 data=params,
-                                auth=self.oauth)
+                                auth=self.oauth,
+                                timeout=timeout or self.default_timeout)
 
         # check the response headers / status code.
         if req.status_code != 200:
@@ -261,8 +266,11 @@ class OAuthFlickrInterface(object):
 
         return req.content
 
-    def do_upload(self, filename, url, params=None, fileobj=None):
+    def do_upload(self, filename, url, params=None, fileobj=None, timeout=None):
         """Performs a file upload to the given URL with the given parameters, signed with OAuth.
+
+        :param timeout: optional request timeout, in seconds.
+        :type timeout: float
 
         @return: the response content
         """
@@ -290,7 +298,7 @@ class OAuthFlickrInterface(object):
         auth = {'Authorization': headers.get('Authorization'),
                 'Content-Type': m.content_type}
         self.log.debug('POST %s', auth)
-        req = self.session.post(url, data=m, headers=auth)
+        req = self.session.post(url, data=m, headers=auth, timeout=timeout or self.default_timeout)
 
         # check the response headers / status code.
         if req.status_code != 200:
