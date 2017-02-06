@@ -12,8 +12,8 @@ See `the FlickrAPI homepage`_ for more info.
 """
 from __future__ import unicode_literals
 
-# Copyright (c) 2007 by the respective coders, see
-# http://www.stuvel.eu/projects/flickrapi
+# Copyright (c) 2007-2017 by the respective coders, see
+# http://stuvel.eu/flickrapi
 #
 # This code is subject to the Python licence, as can be read on
 # http://www.python.org/download/releases/2.5.2/license/
