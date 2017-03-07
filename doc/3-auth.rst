@@ -98,27 +98,27 @@ the verifier code::
     api_secret = u'YYYYYYYYYYYYYYYY'
 
     flickr = flickrapi.FlickrAPI(api_key, api_secret)
-    
+
     print('Step 1: authenticate')
-    
+
     # Only do this if we don't have a valid token already
     if not flickr.token_valid(perms='read'):
-    
+
         # Get a request token
         flickr.get_request_token(oauth_callback='oob')
-        
+
         # Open a browser at the authentication URL. Do this however
         # you want, as long as the user visits that URL.
         authorize_url = flickr.auth_url(perms='read')
         webbrowser.open_new_tab(authorize_url)
-        
+
         # Get the verifier code from the user. Do this however you
         # want, as long as the user gives the application the code.
         verifier = str(input('Verifier code: '))
-        
+
         # Trade the request token for an access token
         flickr.get_access_token(verifier)
-  
+
     print('Step 2: use Flickr')
     resp = flickr.photos.getInfo(photo_id='7658567128')
 
@@ -222,9 +222,9 @@ Here is a simple example in `Django <https://www.djangoproject.com/>`_::
              # We have a token, but it might not be valid
              log.info('Verifying token')
              try:
-                 f.auth_checkToken() 
+                 f.auth_checkToken()
              except flickrapi.FlickrError:
-                 token = None 
+                 token = None
                  del request.session['token']
 
          if not token:
@@ -235,7 +235,7 @@ Here is a simple example in `Django <https://www.djangoproject.com/>`_::
 
          # If the token is valid, we can call the decorated view.
          log.info('Token is valid')
-         
+
          return view(request, *args, **kwargs)
 
      return protected_view
@@ -264,4 +264,3 @@ The ``callback`` view should be called when the user is sent to the
 callback URL as defined in your Flickr API key. The key and secret
 should be configured in your settings.py, in the properties
 ``FLICKR_API_KEY`` and ``FLICKR_API_SECRET``.
-
