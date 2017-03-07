@@ -230,7 +230,7 @@ Here is a simple example in `Django <https://www.djangoproject.com/>`_::
          if not token:
              # No valid token, so redirect to Flickr
              log.info('Redirecting user to Flickr to get frob')
-             url = f.web_login_url(perms='read')
+             url = f.auth_url(perms='read')
              return HttpResponseRedirect(url)
 
          # If the token is valid, we can call the decorated view.
