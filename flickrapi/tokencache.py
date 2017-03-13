@@ -3,7 +3,6 @@
 import os.path
 import logging
 import time
-import sqlite3
 
 from flickrapi.exceptions import LockingError, CacheDatabaseError
 from flickrapi.auth import FlickrAccessToken
@@ -78,8 +77,8 @@ class TokenCache(object):
             return self.memory[self.username]
 
         try:
-            f = open(self.get_cached_token_filename(), "r")
-            token = f.read()
+            f = open(self.get_cached_token_filename(), 'rb')
+            token = f.read().decode('utf8')
             f.close()
 
             return token.strip()
@@ -96,8 +95,10 @@ class TokenCache(object):
         if not os.path.exists(path):
             os.makedirs(path)
 
-        f = open(self.get_cached_token_filename(), "w")
-        f.write(token)
+        # Open in binary mode for backward compatibility with Python 2.7,
+        # as that version's open() doesn't have the 'encoding' parameter.
+        f = open(self.get_cached_token_filename(), 'wb')
+        f.write(token.encode('utf8'))
         f.close()
 
     def forget(self):
@@ -139,6 +140,8 @@ class OAuthTokenCache(object):
     def create_table(self):
         """Creates the DB table, if it doesn't exist already."""
 
+        import sqlite3
+
         db = sqlite3.connect(self.filename)
         curs = db.cursor()
 
@@ -175,6 +178,8 @@ class OAuthTokenCache(object):
         if (self.api_key, self.lookup_key) in self.RAM_CACHE:
             return self.RAM_CACHE[self.api_key, self.lookup_key]
 
+        import sqlite3
+
         db = sqlite3.connect(self.filename)
         curs = db.cursor()
         curs.execute('''SELECT oauth_token, oauth_token_secret, access_level, fullname, username, user_nsid
@@ -192,6 +197,7 @@ class OAuthTokenCache(object):
         """Cache a token for later use."""
 
         assert isinstance(token, FlickrAccessToken)
+        import sqlite3
 
         # Remember for later use
         self.RAM_CACHE[self.api_key, self.lookup_key] = token
@@ -210,6 +216,8 @@ class OAuthTokenCache(object):
     @token.deleter
     def token(self):
         """Removes the cached token"""
+
+        import sqlite3
 
         # Delete from ram cache
         if (self.api_key, self.lookup_key) in self.RAM_CACHE:

@@ -19,6 +19,8 @@ Version 2.x: in development
 - Configured Tox & Travis to test on Python 3.6 as well.
 - Timeout for API calls.
   [[ Feature Request #27 ]](https://github.com/sybrenstuvel/flickrapi/issues/27)
+- Late-import SQLite3 to allow running on Heroku (and other systems).
+  [[ Feature Request #81 ]](https://github.com/sybrenstuvel/flickrapi/issues/81)
 
 
 Version 2.2.1: released 2017-01-15
