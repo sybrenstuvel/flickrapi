@@ -21,6 +21,8 @@ Version 2.x: in development
   [[ Feature Request #27 ]](https://github.com/sybrenstuvel/flickrapi/issues/27)
 - Late-import SQLite3 to allow running on Heroku (and other systems).
   [[ Feature Request #81 ]](https://github.com/sybrenstuvel/flickrapi/issues/81)
+- Fixed using obsolete `func_name` attribute.
+  [[ Bug report #80 ]](https://github.com/sybrenstuvel/flickrapi/issues/80)
 
 
 Version 2.2.1: released 2017-01-15

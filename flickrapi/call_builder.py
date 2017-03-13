@@ -19,6 +19,7 @@ class CallBuilder(object):
     def __init__(self, flickrapi_object, method_name='flickr'):
         self.flickrapi_object = flickrapi_object
         self.method_name = method_name
+        self.__name__ = method_name.split('.')[-1]
 
     def __getattr__(self, name):
         """Returns a CallBuilder for the given name."""

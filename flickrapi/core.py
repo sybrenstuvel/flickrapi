@@ -93,7 +93,7 @@ def require_format(required_format):
             msg = 'Function %s requires that you use ' \
                   'ElementTree ("etree") as the communication format, ' \
                   'while the current format is set to "%s".'
-            raise ValueError(msg % (method.func_name, self.default_format))
+            raise ValueError(msg % (method.__name__, self.default_format))
 
         return decorated
 
@@ -684,7 +684,7 @@ class FlickrAPI(object):
         while page <= total:
             # Fetch a single page of photos
             LOG.debug('Calling %s(page=%i of %i, %s)' %
-                      (method.func_name, page, total, params))
+                      (method.__name__, page, total, params))
             rsp = method(page=page, **params)
 
             photoset = rsp.getchildren()[0]
