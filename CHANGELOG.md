@@ -10,7 +10,7 @@ Version 2.x: in development
 
 - Include README.md and CHANGELOG.md in the package data.
 - Removed flickrapi/contrib.py, as a persistent connection is now managed (much better)
-  by requests (since cdeb6ffea26).
+  by requests (since [cdeb6ffea26](https://github.com/sybrenstuvel/flickrapi/commit/cdeb6ffea26)).
 - Late-import module `webbrowser`, only when needed (Thijs Triemstra)
   [[ Pull request #78 ]](https://github.com/sybrenstuvel/flickrapi/pull/78)
 - Perform explicit commit after inserting auth token (Joshua Hunter)
