@@ -52,12 +52,14 @@ The ``flickr.upload(...)`` method has the following parameters:
 The ``fileobj`` parameter can be used to monitor progress via a
 callback method. For example::
 
+    import os.path
+
     class FileWithCallback(object):
         def __init__(self, filename, callback):
             self.file = open(filename, 'rb')
             self.callback = callback
             # the following attributes and methods are required
-            self.len = os.path.getsize(path)
+            self.len = os.path.getsize(filename)
             self.fileno = self.file.fileno
             self.tell = self.file.tell
 
@@ -69,9 +71,12 @@ callback method. For example::
     params['fileobj'] = FileWithCallback(params['filename'], callback)
     rsp = flickr.upload(params)
 
-The callback method takes one parameter: ``def callback(progress)``
+The callback method takes one parameter::
+
+    def callback(progress):
+        print(progress)
         
-Progress is a number between 0 and 100.
+``progress`` is a number between 0 and 100.
 
 
 flickr.replace(...)
