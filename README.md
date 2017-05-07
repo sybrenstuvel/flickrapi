@@ -41,6 +41,6 @@ at which time this library will also stop supporting it.
 Generating the documentation
 ----------------------------
 
-The documentation is written in Sphynx. Execute `make html` in the `doc`
+The documentation is written using [Sphinx](http://www.sphinx-doc.org). Execute `make html` in the `doc`
 directory to generate the HTML pages. They can then be found in
 `doc/_build/html`.
