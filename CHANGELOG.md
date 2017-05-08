@@ -5,8 +5,8 @@ This is the changelog of the Python FlickrAPI package. All changes were made by
 Sybren A. Stüvel, unless noted otherwise.
 
 
-Version 2.x: in development
----------------------------
+Version 2.3: released 2017-05-08
+--------------------------------
 
 - Include README.md and CHANGELOG.md in the package data.
 - Removed flickrapi/contrib.py, as a persistent connection is now managed (much better)
