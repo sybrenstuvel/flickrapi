@@ -62,7 +62,7 @@ Non-web applications
 --------------------------------------------------
 
 OAuth was designed for web-based applications. After authorizing the
-application the browser is sent to an papplication-specific callback
+application the browser is sent to an application-specific callback
 URL with a verification code appended. When your application is not
 web-based, you have two options:
 
@@ -182,7 +182,7 @@ Multiple processes using the same key
 ----------------------------------------------------------------------
 
 The token database uses SQLite3, so it should be safe to access using
-mutiple processes at the same time.
+multiple processes at the same time.
 
 Example using Django
 ----------------------------------------------------------------------
