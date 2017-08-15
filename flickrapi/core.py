@@ -309,7 +309,7 @@ class FlickrAPI(object):
 
         return CallBuilder(self, method_name='flickr.' + method_name)
 
-    def do_flickr_call(self, method_name, timeout=None, **kwargs):
+    def do_flickr_call(self, _method_name, timeout=None, **kwargs):
         """Handle all the regular Flickr API calls.
 
         Example::
@@ -323,7 +323,7 @@ class FlickrAPI(object):
         params = kwargs.copy()
 
         # Set some defaults
-        defaults = {'method': method_name,
+        defaults = {'method': _method_name,
                     'format': self.default_format}
         if 'jsoncallback' not in kwargs:
             defaults['nojsoncallback'] = 1
