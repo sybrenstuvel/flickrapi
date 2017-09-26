@@ -127,11 +127,8 @@ class FlickrAccessToken(object):
         self.user_nsid = user_nsid
 
     def __str__(self):
-        return six.text_type(self).encode('utf-8')
-
-    def __unicode__(self):
-        return 'FlickrAccessToken(token=%s, fullname=%s, username=%s, user_nsid=%s)' % (
-            self.token, self.fullname, self.username, self.user_nsid)
+        fmt = 'FlickrAccessToken(token=%s, fullname=%s, username=%s, user_nsid=%s)'
+        return six.text_type(fmt % (self.token, self.fullname, self.username, self.user_nsid))
 
     def __repr__(self):
         return str(self)
