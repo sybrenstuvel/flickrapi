@@ -18,24 +18,24 @@ To install the latest version from PyPi:
     pip install flickrapi
 
 For development, install extra dependencies using:
-    
-    pip install -r requirements.txt 
+
+    pip install -r requirements.txt
 
 then run `py.test` in the top-level directory.
 
 Supported Python versions
 -------------------------
 
-The minimum Python versions that are supported are 2.7 and 3.3.
+The minimum Python versions that are supported are 2.7 and 3.4.
 
 [Python 2.7 will be discontinued in 2020](http://www.i-programmer.info/news/216-python/7179-python-27-to-be-maintained-until-2020.html),
 which also marks the end of the support for Python 2.x for this
 library. We might discontinue supporting Python 2.x earlier than that,
 but only if there is a very compelling reason to do so.
 
-As of September 2017, [Python 3.3 will stop receiving security
+As of September 2017, [Python 3.3 stopped receiving security
 updates](https://www.python.org/dev/peps/pep-0398/#lifespan),
-at which time this library will also stop supporting it.
+at which time this library also stopped supporting it.
 
 
 Generating the documentation
