@@ -15,8 +15,8 @@ import sys
 
 (major, minor) = sys.version_info[:2]
 
-if (major, minor) < (2, 7) or (major == 3 and minor < 3):
-    raise SystemExit("Sorry, Python 2.7, or 3.3 or newer required")
+if (major, minor) < (2, 7) or (major == 3 and minor < 4):
+    raise SystemExit("Sorry, Python 2.7, or 3.4 or newer required")
 
 from setuptools import setup
 
@@ -44,12 +44,14 @@ data = {
         'License :: OSI Approved :: Python License (CNRI Python License)',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Multimedia :: Graphics',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
