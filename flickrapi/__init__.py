@@ -50,7 +50,7 @@ from flickrapi.cache import SimpleCache
 from flickrapi.tokencache import OAuthTokenCache, TokenCache, SimpleTokenCache, \
     LockingTokenCache
 
-__version__ = '2.2.1'
+__version__ = '2.3'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
            'CancelUpload', 'LockingError', 'XMLNode', 'set_log_level', '__version__',
            'SimpleCache', 'TokenCache', 'SimpleTokenCache', 'LockingTokenCache')
