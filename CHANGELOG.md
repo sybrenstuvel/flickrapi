@@ -5,6 +5,12 @@ This is the changelog of the Python FlickrAPI package. All changes were made by
 Sybren A. Stüvel, unless noted otherwise.
 
 
+Version 2.3.1: released 2017-11-14
+----------------------------------
+
+- Fixed inconsistency in version numbering.
+
+
 Version 2.3: released 2017-05-08
 --------------------------------
 
