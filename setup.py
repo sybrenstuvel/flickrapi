@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """Python setuptools install script.
 
@@ -8,7 +9,7 @@ Run with "python setup.py install" to install FlickrAPI
 from __future__ import print_function
 
 __author__ = 'Sybren A. Stuvel'
-__version__ = '2.3'
+__version__ = '2.3.2'
 
 # Check the Python version
 import sys
