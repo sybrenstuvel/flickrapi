@@ -19,6 +19,8 @@ matrix:
     env: TOXENV=py36
   - python: 'pypy'
     env: TOXENV=pypy
+  - python: 3.5
+    env: TOXENV=qa,doc
 
 install:
   - pip install --ignore-installed --upgrade setuptools pip tox-travis coveralls
