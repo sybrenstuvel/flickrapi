@@ -20,12 +20,21 @@ if (major, minor) < (2, 7) or (major == 3 and minor < 4):
 
 from setuptools import setup
 
+needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
+pytest_runner = ['pytest-runner'] if needs_pytest else []
+test_deps = [
+    'mock;python_version<"3.3"',
+    "pytest>=3.1",
+    "pytest-cov",
+    "responses"
+]
+
 data = {
     'name': 'flickrapi',
     'version': __version__,
     'author': 'Sybren A. Stuvel',
     'author_email': 'sybren@stuvel.eu',
-    'maintainer': 'Sybren A. Stuvel',
+    'maintainer': __author__,
     'maintainer_email': 'sybren@stuvel.eu',
     'url': 'https://stuvel.eu/flickrapi',
     'description': 'The Python interface to the Flickr API',
@@ -35,8 +44,12 @@ data = {
                         'access, uploading and replacing photos, and all Flickr API '
                         'functions.',
     'packages': ['flickrapi'],
-    'package_data': {'flickrapi': ['../LICENSE.txt', '../README.md', '../UPGRADING.txt', '../CHANGELOG.md']},
-
+    'package_data': {'flickrapi': [
+        '../LICENSE.txt',
+        '../README.md',
+        '../UPGRADING.txt',
+        '../CHANGELOG.md'
+    ]},
     'license': 'Python',
     'classifiers': [
         'Development Status :: 6 - Mature',
@@ -55,6 +68,8 @@ data = {
         'Topic :: Multimedia :: Graphics',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
+    'setup_requires': pytest_runner,
+    'tests_require': test_deps,
     'install_requires': [
         'six>=1.5.2',
         'requests>=2.2.1',
@@ -62,8 +77,13 @@ data = {
         'requests_toolbelt>=0.3.1',
     ],
     'extras_require': {
-        'ElementTree': ["elementtree>=1.2.6"],
-        'Sphinx': ["sphinx>=1.1.3"],
+        'docs': [
+            'sphinx >= 1.5.1'
+        ],
+        'qa': [
+            'flake8'
+        ],
+        'test': test_deps
     },
     'zip_safe': True,
     'test_suite': 'tests',
