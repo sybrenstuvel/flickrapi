@@ -1,0 +1,7 @@
+# .coveragerc to control coverage.py
+[run]
+source = flickrapi
+omit =
+    setup.py
+    .tox/*
+    doc/*
