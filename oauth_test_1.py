@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 
-import time
 import requests
 from requests_oauthlib import OAuth1
 import six
@@ -17,9 +16,11 @@ else:
 
 url = "http://www.flickr.com/services/oauth/request_token"
 
+
 class keys:
     apikey = u'a233c66549c9fb5e40a68c1ae156b370'
     apisecret = u'03fbb3ea705fe096'
+
 
 class OAuthTokenHTTPHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -42,6 +43,7 @@ class OAuthTokenHTTPHandler(BaseHTTPRequestHandler):
 
 http_server = HTTPServer(('', 8000), OAuthTokenHTTPHandler)
 
+
 def wait_for_http_request():
 
     http_server.oauth_verifier = None
@@ -52,12 +54,11 @@ def wait_for_http_request():
     return http_server.oauth_verifier
 
 
-
-print(120*'=')
+print(120 * '=')
 print("Part 1: Obtain request token")
 
 params = {
-    'oauth_callback': 'oob', #"http://localhost:8000/",
+    'oauth_callback': 'oob',  # "http://localhost:8000/",
 }
 
 import sys
@@ -77,7 +78,7 @@ print(50 * '-')
 # Part 2
 ############################################################
 
-print(120*'=')
+print(120 * '=')
 print("Part 2: Authorize the request token")
 
 authorize_url = "http://www.flickr.com/services/oauth/authorize"
@@ -109,7 +110,7 @@ if http_server.oauth_token != request_token['oauth_token']:
 # Part 3
 ############################################################
 
-print(120*'=')
+print(120 * '=')
 print("Part 3: Exchange request token for an access token")
 # url to get access token
 access_token_url = "http://www.flickr.com/services/oauth/access_token"
@@ -134,5 +135,3 @@ with open('token', 'w') as f:
         keyvalue = key.encode('utf-8') + '=' + value.encode('utf-8') + '\n'
         f.write(keyvalue)
         sys.stdout.write(keyvalue)
-        
-        

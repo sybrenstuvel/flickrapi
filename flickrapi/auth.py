@@ -328,13 +328,15 @@ class OAuthFlickrInterface(object):
     def _start_http_server(self):
         """Starts the HTTP server, if it wasn't started already."""
 
-        if self.auth_http_server is not None: return
+        if self.auth_http_server is not None:
+            return
         self.auth_http_server = OAuthTokenHTTPServer()
 
     def _stop_http_server(self):
         """Stops the HTTP server, if one was started."""
 
-        if self.auth_http_server is None: return
+        if self.auth_http_server is None:
+            return
         self.auth_http_server = None
 
     def get_request_token(self, oauth_callback=None):
@@ -445,7 +447,7 @@ class OAuthFlickrInterface(object):
         Only use this in unit tests.
         """
 
-        auth_url = self.auth_url(perms=perms)
+        auth_url = self.auth_url(perms=perms)  # noqa: F841
         # Normally we would direct the user to this URL. Now we don't.
         self.verifier = u'test'
 

@@ -16,6 +16,7 @@ api_secret = u'2ee3f558fd79f292'
 def index():
     return render_template('index.html')
 
+
 @app.route('/login')
 def login():
     flickr = flickrapi.FlickrAPI(api_key, api_secret)
@@ -41,6 +42,7 @@ def login():
     print('Redirecting to %s.' % authorize_url)
     return redirect(authorize_url)
 
+
 @app.route('/auth_ok')
 def auth_ok():
     flickr = flickrapi.FlickrAPI(api_key, api_secret)
@@ -53,8 +55,8 @@ def auth_ok():
     flickr.get_access_token(verifier)
     return 'Verifier is %s' % verifier
 
+
 if __name__ == "__main__":
     app.debug = True
     app.secret_key = 'je moeder'
     app.run()
-

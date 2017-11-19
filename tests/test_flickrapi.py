@@ -15,7 +15,6 @@ import unittest
 import urllib
 import six
 import responses
-import functools
 from six.moves.urllib.parse import quote_plus, parse_qs
 
 import flickrapi
@@ -37,7 +36,6 @@ secret = u'2ee3f558fd79f292'
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
-
 
 
 try:
@@ -103,6 +101,7 @@ class SuperTest(unittest.TestCase):
         attribs = dict(av.split('=') for av in attrvalues)
         self.assertEqual(expected_query_arguments, attribs)
 
+
 class MockedTest(SuperTest):
     """Flickr test in which all HTTP requests are mocked."""
 
@@ -147,6 +146,7 @@ class MockedTest(SuperTest):
             if params is not None:
                 expect_params = {key.encode('utf8'): [value.encode('utf8')]
                                  for key, value in params.items()}
+
             def param_test_callback(request):
                 # This callback can only handle x-www-form-urlencoded requests.
                 self.assertEqual('application/x-www-form-urlencoded',
@@ -277,11 +277,10 @@ class FlickrApiTest(MockedTest):
                                callback=upload_test_callback)
 
         self.f.authenticate_for_test(perms='delete')
-        result = self.f.upload(photo, is_public=0, is_friend=0, is_family=0, content_type=2)
+        self.f.upload(photo, is_public=0, is_friend=0, is_family=0, content_type=2)
 
     def test_store_token(self):
         '''Tests that store_token=False FlickrAPI uses SimpleTokenCache'''
-
 
         flickr = self.clasz(key, secret, store_token=False)
         self.assertTrue(isinstance(flickr.token_cache, flickrapi.SimpleTokenCache),
@@ -418,6 +417,7 @@ class FormatsTest(SuperTest):
         decoded = data.decode('utf-8')
         self.assertEqual('foobar({', decoded[:8])
 
+
 class RealWalkerTest(SuperTest):
     """Test walk* functions, on the real, live Flickr API."""
 
@@ -430,6 +430,7 @@ class RealWalkerTest(SuperTest):
         # very unlikely that this will ever change (photos of a past
         # event)
         self.assertEqual(24, len(list(gen)))
+
 
 class MockedWalkerTest(MockedTest):
     """Tests walk* functions on a mocked API for data stability."""

@@ -12,6 +12,7 @@ sys.path.insert(0, '..')
 
 import flickrapi
 
+
 class TestCache(unittest.TestCase):
     def test_store_retrieve(self):
         cache = flickrapi.SimpleCache()

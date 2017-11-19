@@ -71,7 +71,6 @@ class TokenCacheTest(unittest.TestCase):
         self.assertIn(u'frøbel', user_path)
 
 
-
 class OAuthTokenCache(unittest.TestCase):
     def setUp(self):
         import tempfile
