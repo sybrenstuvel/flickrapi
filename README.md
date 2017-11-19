@@ -17,9 +17,9 @@ To install the latest version from PyPi:
 
     pip install flickrapi
 
-For development, install extra dependencies using:
+For development, install the extra dependencies using:
 
-    pip install -r requirements.txt
+    pip install tox .[docs] .[qa] .[test]
 
 then run `py.test` in the top-level directory.
 
@@ -37,10 +37,21 @@ As of September 2017, [Python 3.3 stopped receiving security
 updates](https://www.python.org/dev/peps/pep-0398/#lifespan),
 at which time this library also stopped supporting it.
 
-
 Generating the documentation
 ----------------------------
 
-The documentation is written using [Sphinx](http://www.sphinx-doc.org). Execute `make html` in the `doc`
-directory to generate the HTML pages. They can then be found in
-`doc/_build/html`.
+The documentation is written using [Sphinx](http://www.sphinx-doc.org).
+Execute `make html` in the `doc` directory to generate the HTML pages.
+They can then be found in the `doc/_build/html` directory.
+
+Tests
+-----
+
+Run the tests on all supported Python versions with tox
+(`pip install tox`)::
+
+  tox
+
+To run the tests for a specific Python version, e.g. 2.7::
+
+  tox -e py27
