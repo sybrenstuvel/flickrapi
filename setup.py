@@ -9,9 +9,11 @@ Run with "python setup.py install" to install FlickrAPI
 from __future__ import print_function
 
 __author__ = 'Sybren A. Stuvel'
-__version__ = '2.3.2'
 
 # Check the Python version
+import re
+import io
+import os
 import sys
 
 (major, minor) = sys.version_info[:2]
@@ -20,6 +22,22 @@ if (major, minor) < (2, 7) or (major == 3 and minor < 4):
     raise SystemExit("Sorry, Python 2.7, or 3.4 or newer required")
 
 from setuptools import setup
+
+def read(*names, **kwargs):
+    with io.open(
+        os.path.join(os.path.dirname(__file__), *names),
+        encoding=kwargs.get("encoding", "utf8")
+    ) as fp:
+        return fp.read()
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
 
 needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
 pytest_runner = ['pytest-runner'] if needs_pytest else []
@@ -32,8 +50,8 @@ test_deps = [
 
 data = {
     'name': 'flickrapi',
-    'version': __version__,
-    'author': 'Sybren A. Stuvel',
+    'version': find_version("flickrapi", "__init__.py"),
+    'author': __author__,
     'author_email': 'sybren@stuvel.eu',
     'maintainer': __author__,
     'maintainer_email': 'sybren@stuvel.eu',

@@ -126,7 +126,7 @@ html_theme = 'default'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -190,7 +190,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'PythonFlickrAPI.tex', u'Python Flickr API Documentation',
-   u'Sybren A. Stüvel', 'manual'),
+   __author__, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -220,7 +220,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'pythonflickrapi', u'Python Flickr API Documentation',
-     [u'Sybren A. Stüvel'], 1)
+     [__author__], 1)
 ]
 
 # If true, show URL addresses after external links.
