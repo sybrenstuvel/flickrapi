@@ -6,6 +6,7 @@ logging.basicConfig(level=logging.INFO)
 
 from flickrapi import FlickrAPI
 
+
 class keys:
     apikey = u'a233c66549c9fb5e40a68c1ae156b370'
     apisecret = u'03fbb3ea705fe096'

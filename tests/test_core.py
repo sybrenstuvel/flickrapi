@@ -4,6 +4,7 @@ import unittest
 
 from flickrapi import core
 
+
 class TestFlickrapiCore(unittest.TestCase):
     def test_make_bytes(self):
 
@@ -22,8 +23,6 @@ class TestFlickrapiCore(unittest.TestCase):
         self.assertEqual(d['integer value'], b'1431')
         self.assertEqual(d['nonascii-ključ'],
              b'nonascii-\xd0\xb2\xd1\x80\xd0\xb5\xd0\xb4\xd0\xbd\xd0\xbe\xd1\x81\xd1\x82')
-
-
 
 
 if __name__ == '__main__':

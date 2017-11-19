@@ -83,4 +83,3 @@ auth_okay_html = """<!DOCTYPE html>
 import six
 if six.PY3:
     auth_okay_html = auth_okay_html.encode('utf-8')
-

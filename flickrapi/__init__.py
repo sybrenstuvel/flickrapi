@@ -44,11 +44,11 @@ from __future__ import unicode_literals
 from flickrapi.core import FlickrAPI
 
 from flickrapi.xmlnode import XMLNode
-from flickrapi.exceptions import IllegalArgumentException, \
-    FlickrError, CancelUpload, LockingError
+from flickrapi.exceptions import (IllegalArgumentException,
+    FlickrError, CancelUpload, LockingError)
 from flickrapi.cache import SimpleCache
-from flickrapi.tokencache import OAuthTokenCache, TokenCache, SimpleTokenCache, \
-    LockingTokenCache
+from flickrapi.tokencache import (OAuthTokenCache, TokenCache, SimpleTokenCache,
+    LockingTokenCache)  # noqa: F401
 
 __version__ = '2.3'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',

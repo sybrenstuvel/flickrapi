@@ -4,6 +4,7 @@ import unittest
 
 from flickrapi import shorturl
 
+
 class ShortUrlTest(unittest.TestCase):
     '''Tests the shorturl module.'''
 

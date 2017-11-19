@@ -12,9 +12,10 @@ thanks to those guys for designing a simple and effective cache!
 import threading
 import time
 
+
 class SimpleCache(object):
     """Simple response cache for FlickrAPI calls.
-    
+
     This stores max 50 entries, timing them out after 120 seconds:
     >>> cache = SimpleCache(timeout=120, max_entries=50)
     """
@@ -60,7 +61,7 @@ class SimpleCache(object):
         """Set a value in the cache. If timeout is given, that timeout will be
         used for the key; otherwise the default cache timeout will be used.
         """
-        
+
         if len(self.storage) >= self.max_entries:
             self.cull()
         if timeout is None:
@@ -103,4 +104,3 @@ class SimpleCache(object):
         """
 
         return len(self.storage)
-
