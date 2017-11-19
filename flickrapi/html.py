@@ -78,7 +78,7 @@ auth_okay_html = """<!DOCTYPE html>
 </body>
 
 </html>
-"""
+"""  # noqa: W293
 
 import six
 if six.PY3:
