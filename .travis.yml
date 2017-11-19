@@ -1,3 +1,4 @@
+sudo: false
 language: python
 cache: pip
 
@@ -20,12 +21,10 @@ matrix:
     env: TOXENV=pypy
 
 install:
-  - pip install --ignore-installed --upgrade setuptools pip tox-travis
-  - pip install -r requirements.txt
-  - pip install coveralls
+  - pip install --ignore-installed --upgrade setuptools pip tox-travis coveralls
 
 script:
-  - tox
+  - tox -v
 
 after_success:
   # Coveralls submission only for py36 environment, because of being the only
