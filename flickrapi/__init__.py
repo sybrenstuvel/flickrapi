@@ -47,8 +47,8 @@ from flickrapi.xmlnode import XMLNode
 from flickrapi.exceptions import (IllegalArgumentException,
     FlickrError, CancelUpload, LockingError)
 from flickrapi.cache import SimpleCache
-from flickrapi.tokencache import (OAuthTokenCache, TokenCache, SimpleTokenCache,
-    LockingTokenCache)  # noqa: F401
+from flickrapi.tokencache import (OAuthTokenCache, TokenCache, SimpleTokenCache,  # noqa: F401
+    LockingTokenCache)
 
 __version__ = '2.3'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
