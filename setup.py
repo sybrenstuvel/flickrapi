@@ -23,12 +23,14 @@ if (major, minor) < (2, 7) or (major == 3 and minor < 4):
 
 from setuptools import setup
 
+
 def read(*names, **kwargs):
     with io.open(
         os.path.join(os.path.dirname(__file__), *names),
         encoding=kwargs.get("encoding", "utf8")
     ) as fp:
         return fp.read()
+
 
 def find_version(*file_paths):
     version_file = read(*file_paths)
