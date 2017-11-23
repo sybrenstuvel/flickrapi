@@ -45,9 +45,9 @@ needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
 pytest_runner = ['pytest-runner'] if needs_pytest else []
 test_deps = [
     'mock;python_version<"3.3"',
-    "pytest==2.9.1",
-    "pytest-cov==2.2.1",
-    "responses==0.5.1"
+    "pytest>=2.9.1",
+    "pytest-cov>=2.2.1",
+    "responses>=0.5.1"
 ]
 
 data = {
@@ -92,10 +92,10 @@ data = {
     'setup_requires': pytest_runner,
     'tests_require': test_deps,
     'install_requires': [
-        'six==1.9.0',
-        'requests==2.2.1',
-        'requests_oauthlib==0.4.0',
-        'requests_toolbelt==0.3.1',
+        'six>=1.5.2',
+        'requests>=2.2.1',
+        'requests_oauthlib>=0.4.0',
+        'requests_toolbelt>=0.3.1',
     ],
     'extras_require': {
         'docs': [
