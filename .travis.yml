@@ -23,7 +23,7 @@ matrix:
     env: TOXENV=qa,doc
 
 install:
-  - pip install --ignore-installed --upgrade setuptools pip tox-travis coveralls
+  - pip install --upgrade setuptools pip tox-travis coveralls
 
 script:
   - tox -v
