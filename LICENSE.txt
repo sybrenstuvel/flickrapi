@@ -1,4 +1,4 @@
-Copyright (c) 2012, Sybren A. Stüvel <sybren@stuvel.eu>
+Copyright (c) 2012-2018, Sybren A. Stüvel <sybren@stuvel.eu>
 
 This code is subject to the Python licence, as can be read on
 http://www.python.org/download/releases/3.3.0/license/
