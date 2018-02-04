@@ -12,7 +12,7 @@ See `the FlickrAPI homepage`_ for more info.
 """
 from __future__ import unicode_literals
 
-# Copyright (c) 2007-2017 by the respective coders, see
+# Copyright (c) 2007-2018 by the respective coders, see
 # http://stuvel.eu/flickrapi
 #
 # This code is subject to the Python licence, as can be read on
@@ -50,7 +50,7 @@ from flickrapi.cache import SimpleCache
 from flickrapi.tokencache import (OAuthTokenCache, TokenCache, SimpleTokenCache,  # noqa: F401
     LockingTokenCache)
 
-__version__ = '2.3.2'
+__version__ = '2.4.0'
 __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
            'CancelUpload', 'LockingError', 'XMLNode', 'set_log_level', '__version__',
            'SimpleCache', 'TokenCache', 'SimpleTokenCache', 'LockingTokenCache')
