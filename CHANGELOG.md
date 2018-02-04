@@ -4,8 +4,8 @@ Python FlickrAPI Changelog
 This is the changelog of the Python FlickrAPI package. All changes were made by
 Sybren A. Stüvel, unless noted otherwise.
 
-Version 2.4: unreleased
------------------------
+Version 2.4: released 2018-02-04
+--------------------------------
 
 - Fix parameter naming conflict: 'method_name' parameter from `do_flickr_call()` clashed with
   'method_name' parameter required by the Flickr API method `flickr.reflection.getMethodInfo` (since [952c133](https://github.com/sybrenstuvel/flickrapi/commit/952c133)
