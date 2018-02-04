@@ -4,6 +4,19 @@ Python FlickrAPI Changelog
 This is the changelog of the Python FlickrAPI package. All changes were made by
 Sybren A. Stüvel, unless noted otherwise.
 
+Version 2.4: unreleased
+-----------------------
+
+- Fix parameter naming conflict: 'method_name' parameter from `do_flickr_call()` clashed with
+  'method_name' parameter required by the Flickr API method `flickr.reflection.getMethodInfo` (since [952c133](https://github.com/sybrenstuvel/flickrapi/commit/952c133)
+- Fixed typos [[ Pull request #86 ]](https://github.com/sybrenstuvel/flickrapi/pull/86) (Daniel Hohard)
+- Fixed infinite recursion calling `FlickrAccessToken.str()`
+- Drop support for EOL Python 3.3 (by hugovk)
+- Use latest pip and enable cache on travis [[ Pull request #100 ]](https://github.com/sybrenstuvel/flickrapi/pull/100)
+  (Thijs Triemstra)
+- Properly include text files in `setup.py` [[ Pull request #101 ]](https://github.com/sybrenstuvel/flickrapi/pull/101)
+  (Thijs Triemstra)
+
 
 Version 2.3: released 2017-05-08
 --------------------------------
