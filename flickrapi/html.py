@@ -72,7 +72,7 @@ auth_okay_html = """<!DOCTYPE html>
         You can now <strong>close this browser window</strong>, and return to the application.</p>
         
         <p class='note'>Powered by
-            <a href='http://stuvel.eu/flickrapi'>Python FlickrAPI</a>, by Sybren A. Stüvel.</p>
+            <a href='https://stuvel.eu/flickrapi'>Python FlickrAPI</a>, by Sybren A. Stüvel.</p>
     </article>
 </section>
 </body>
