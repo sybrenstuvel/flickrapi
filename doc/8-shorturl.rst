@@ -3,7 +3,7 @@ Short Flickr URLs
 ======================================================================
 
 Flickr supports linking to a photo page using a short url such as
-http://flic.kr/p/6BTTT6. The ``flickrapi.shorturl`` module contains
+https://flic.kr/p/6BTTT6. The ``flickrapi.shorturl`` module contains
 functionality for working with those short URLs.
 
 ``flickrapi.shorturl.encode(photo ID)``:

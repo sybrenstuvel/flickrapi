@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-"""Helper functions for the short http://fli.kr/p/... URL notation.
+"""Helper functions for the short https://fli.kr/p/... URL notation.
 
 Photo IDs can be converted to and from Base58 short IDs, and a short
 URL can be generated from a photo ID.
 
 The implementation of the encoding and decoding functions is based on
 the posts by stevefaeembra and Kohichi on
-http://www.flickr.com/groups/api/discuss/72157616713786392/
+https://www.flickr.com/groups/api/discuss/72157616713786392/
 
 """
 
@@ -17,7 +17,7 @@ __all__ = ['encode', 'decode', 'url', 'SHORT_URL']
 
 ALPHABET = u'123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
 ALPHALEN = len(ALPHABET)
-SHORT_URL = u'http://flic.kr/p/%s'
+SHORT_URL = u'https://flic.kr/p/%s'
 
 
 def encode(photo_id):
@@ -67,9 +67,9 @@ def url(photo_id):
     """url(photo id) -> short url
 
     >>> url(u'4325695128')
-    'http://flic.kr/p/7Afjsu'
+    'https://flic.kr/p/7Afjsu'
     >>> url(u'2811466321')
-    'http://flic.kr/p/5hruZg'
+    'https://flic.kr/p/5hruZg'
     """
 
     short_id = encode(photo_id)
