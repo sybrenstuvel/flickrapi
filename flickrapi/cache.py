@@ -6,7 +6,7 @@ Designed to have the same interface as the `Django low-level cache API`_.
 Heavily inspired (read: mostly copied-and-pasted) from the Django framework -
 thanks to those guys for designing a simple and effective cache!
 
-.. _`Django low-level cache API`: http://www.djangoproject.com/documentation/cache/#the-low-level-cache-api
+.. _`Django low-level cache API`: https://docs.djangoproject.com/en/dev/topics/cache/#the-low-level-cache-api
 """
 
 import threading

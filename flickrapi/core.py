@@ -715,7 +715,7 @@ class FlickrAPI(object):
         returned eventually.
 
         .. _flickr.contacts.getList:
-            http://www.flickr.com/services/api/flickr.contacts.getList.html
+            https://www.flickr.com/services/api/flickr.contacts.getList.html
 
         Uses the ElementTree format, incompatible with other formats.
         """
@@ -739,7 +739,7 @@ class FlickrAPI(object):
         returned eventually.
 
         .. _flickr.photosets.getList:
-            http://www.flickr.com/services/api/flickr.photosets.getList.html
+            https://www.flickr.com/services/api/flickr.photosets.getList.html
 
         Uses the ElementTree format, incompatible with other formats.
         """
@@ -765,7 +765,7 @@ class FlickrAPI(object):
         returned eventually.
 
         .. _flickr.photosets.getPhotos:
-            http://www.flickr.com/services/api/flickr.photosets.getPhotos.html
+            https://www.flickr.com/services/api/flickr.photosets.getPhotos.html
 
         Uses the ElementTree format, incompatible with other formats.
         """
@@ -791,7 +791,7 @@ class FlickrAPI(object):
         returned eventually.
 
         .. _flickr.people.getPhotos:
-            http://www.flickr.com/services/api/flickr.people.getPhotos.html
+            https://www.flickr.com/services/api/flickr.people.getPhotos.html
 
         Uses the ElementTree format, incompatible with other formats.
         """
@@ -818,7 +818,7 @@ class FlickrAPI(object):
         returned eventually.
 
         .. _flickr.photos.recentlyUpdated:
-            http://www.flickr.com/services/api/flickr.photos.recentlyUpdated.html
+            https://www.flickr.com/services/api/flickr.photos.recentlyUpdated.html
 
         Uses the ElementTree format, incompatible with other formats.
         """
@@ -836,7 +836,7 @@ class FlickrAPI(object):
         eventually.
 
         .. _flickr.photos.search:
-            http://www.flickr.com/services/api/flickr.photos.search.html
+            https://www.flickr.com/services/api/flickr.photos.search.html
 
         Also see `walk_set`.
         """

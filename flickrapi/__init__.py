@@ -8,15 +8,15 @@ class.
 
 See `the FlickrAPI homepage`_ for more info.
 
-.. _`the FlickrAPI homepage`: http://stuvel.eu/projects/flickrapi
+.. _`the FlickrAPI homepage`: https://stuvel.eu/flickrapi
 """
 from __future__ import unicode_literals
 
 # Copyright (c) 2007-2018 by the respective coders, see
-# http://stuvel.eu/flickrapi
+# https://stuvel.eu/flickrapi
 #
 # This code is subject to the Python licence, as can be read on
-# http://www.python.org/download/releases/2.5.2/license/
+# https://www.python.org/download/releases/2.5.2/license/
 #
 # For those without an internet connection, here is a summary. When this
 # summary clashes with the Python licence, the latter will be applied.
