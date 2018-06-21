@@ -3,7 +3,7 @@ Authentication and Authorization
 ======================================================================
 
 For authentication and authorization Flickr uses
-`OAuth 1.0a <http://oauth.net/core/1.0a/>`_. This ensures that in one
+`OAuth 1.0a <https://oauth.net/core/1.0a/>`_. This ensures that in one
 flow, the user is authenticated via the Flickr website, and the application
 is authorized by the user to act in its name.
 
@@ -39,7 +39,7 @@ Here is a simple example that does all the above in one simple call to
     flickr.authenticate_via_browser(perms='read')
 
 The ``api_key`` and ``api_secret`` can be obtained from
-http://www.flickr.com/services/api/keys/. Every application should use
+https://www.flickr.com/services/api/keys/. Every application should use
 its own key and secret.
 
 The call to ``flickr.authenticate_via_browser(...)`` does a lot of
@@ -56,7 +56,7 @@ code. The code is passed then to the application. When this code has
 been received, the token is stored in the token cache and the
 authentication process is complete.
 
-.. _`User Authentication`: http://www.flickr.com/services/api/auth.oauth.html
+.. _`User Authentication`: https://www.flickr.com/services/api/auth.oauth.html
 
 Non-web applications
 --------------------------------------------------
@@ -258,7 +258,7 @@ Here is a simple example in `Django <https://www.djangoproject.com/>`_::
 
 Every view that calls an authenticated Flickr method should be
 decorated with ``@require_flickr_auth``. For more information on
-function decorators, see `PEP 318 <http://www.python.org/dev/peps/pep-0318/>`_.
+function decorators, see `PEP 318 <https://www.python.org/dev/peps/pep-0318/>`_.
 
 The ``callback`` view should be called when the user is sent to the
 callback URL as defined in your Flickr API key. The key and secret

@@ -22,7 +22,7 @@ The function uses the Flickr API call flickr.photosets.getPhotos_ and
 accepts the same parameters. The resulting "photo" objects are
 ElementTree objects for the ``<photo .../>`` XML elements.
 
-.. _flickr.photosets.getPhotos: http://www.flickr.com/services/api/flickr.photosets.getPhotos.html
+.. _flickr.photosets.getPhotos: https://www.flickr.com/services/api/flickr.photosets.getPhotos.html
 
 
 Walking through a search result
@@ -42,7 +42,7 @@ The function uses the Flickr API call flickr.photos.search_ and
 accepts the same parameters. The resulting "photo" objects are
 ElementTree objects for the ``<photo .../>`` XML elements.
 
-.. _flickr.photos.search: http://www.flickr.com/services/api/flickr.photos.search.html
+.. _flickr.photos.search: https://www.flickr.com/services/api/flickr.photos.search.html
 
 
 Influencing the number of calls to Flickr
