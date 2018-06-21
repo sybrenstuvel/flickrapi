@@ -24,6 +24,6 @@ class ShortUrlTest(unittest.TestCase):
         '''Test photo ID to short URL conversion.'''
 
         self.assertEqual(shorturl.url(u'4325695128'),
-                u'http://flic.kr/p/7Afjsu')
+                u'https://flic.kr/p/7Afjsu')
         self.assertEqual(shorturl.url(u'2811466321'),
-                u'http://flic.kr/p/5hruZg')
+                u'https://flic.kr/p/5hruZg')
