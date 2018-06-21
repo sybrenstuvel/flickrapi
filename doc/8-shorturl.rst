@@ -9,7 +9,7 @@ functionality for working with those short URLs.
 ``flickrapi.shorturl.encode(photo ID)``:
     Returns the short ID for this photo ID
 
-``flickrapi.shorturl.encode(short ID)``:
+``flickrapi.shorturl.decode(short ID)``:
     Returns the photo ID for this short ID
 
 ``flickrapi.shorturl.url(photo ID)``:
