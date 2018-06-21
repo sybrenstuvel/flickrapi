@@ -7,8 +7,8 @@ some way or another. The possibilities are limitless. This document
 describes how to use the Flickr API in your Python programs using the
 `Python Flickr API interface`_.
 
-.. _`Flickr`: http://www.flickr.com/
-.. _`Python Flickr API interface`: http://stuvel.eu/flickrapi
+.. _`Flickr`: https://www.flickr.com/
+.. _`Python Flickr API interface`: https://stuvel.eu/flickrapi
 
 
 Contents:

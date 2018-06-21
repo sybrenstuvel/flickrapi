@@ -9,9 +9,9 @@ than this document could be. Since the Python Flickr API uses dynamic
 methods and introspection, you can call new Flickr methods as soon as
 they become available.
 
-.. _`Flickr API documentation`: http://www.flickr.com/services/api/
-.. _`Flickr`: http://www.flickr.com/
-.. _`Python Flickr API interface`: http://stuvel.eu/flickrapi
+.. _`Flickr API documentation`: https://www.flickr.com/services/api/
+.. _`Flickr`: https://www.flickr.com/
+.. _`Python Flickr API interface`: https://stuvel.eu/flickrapi
 
 
 Concepts
@@ -63,10 +63,10 @@ Requirements and compatibility
 The Python Flickr API uses two external libraries, Requests_ and Six_,
 and is compatible with Python 2.7 and 3.4+.
 
-Rendering the documentation requires `Sphinx <http://sphinx-doc.org/>`_.
+Rendering the documentation requires `Sphinx <http://www.sphinx-doc.org/>`_.
 
 .. _Requests: http://docs.python-requests.org/
-.. _Six: http://packages.python.org/six/
+.. _Six: https://pythonhosted.org/six/
 
 
 Upgrading
@@ -80,7 +80,7 @@ From 1.x to 2.0
 For this release the main goal was to quickly transition from the obsolete
 authentication method to OAuth. As a result, some features of the 1.x version
 have been dropped. If you want any of those features back, let me know at:
-https://bitbucket.org/sybren/flickrapi/issues?status=new&status=open
+https://github.com/sybrenstuvel/flickrapi/issues
 
 
 Authentication has been re-written to use OAuth. See the documentation

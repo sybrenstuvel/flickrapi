@@ -16,7 +16,7 @@ some examples::
     photos = flickr.photos.search(user_id='73509078@N00', per_page='10')
     sets = flickr.photosets.getList(user_id='73509078@N00')
 
-.. _`Flickr Services`: http://www.flickr.com/services/api/keys/apply/
+.. _`Flickr Services`: https://www.flickr.com/services/api/keys/apply/
 
 The API key and secret MUST be Unicode strings. All parameters you pass
 to Flickr MUST be passed as keyword arguments.

@@ -7,7 +7,7 @@ From any 1.x release to 2.0:
 For this release the main goal was to quickly transition from the obsolete
 authentication method to OAuth. As a result, some features of the 1.x version
 have been dropped. If you want any of those features back, let me know at:
-https://bitbucket.org/sybren/flickrapi/issues?status=new&status=open
+https://github.com/sybrenstuvel/flickrapi/issues
 
 
 Authentication has been re-written to use OAuth. See the documentation
