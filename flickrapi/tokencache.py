@@ -310,8 +310,8 @@ class LockingTokenCache(TokenCache):
 
                 if time.time() - start_time >= timeout:
                     # Timeout has passed, bail out
-                    raise LockingError('Unable to acquire lock ' +
-                                       '%s, aborting' % lock)
+                    raise LockingError('Unable to acquire lock '
+                                        + '%s, aborting' % lock)
 
                 # Wait for a bit, then try again
                 LOG.debug('Unable to acquire lock, waiting')
@@ -337,8 +337,8 @@ class LockingTokenCache(TokenCache):
         # If the PID file isn't ours, abort.
         lockpid = self.get_lock_pid()
         if lockpid and lockpid != os.getpid():
-            raise LockingError(('Lock %s is NOT ours, but belongs ' +
-                                'to PID %i, unable to release.') % (lock, lockpid))
+            raise LockingError(('Lock %s is NOT ours, but belongs '
+                                 + 'to PID %i, unable to release.') % (lock, lockpid))
 
         LOG.debug('Releasing lock %s' % lock)
 
