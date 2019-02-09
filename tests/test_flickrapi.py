@@ -194,8 +194,8 @@ class FlickrApiTest(MockedTest):
         '''Class name and API key should be in repr output'''
 
         r = repr(self.f)
-        self.assertTrue('FlickrAPI' in r)
-        self.assertTrue(key in r)
+        self.assertIn('FlickrAPI', r)
+        self.assertIn(key, r)
 
     def test_defaults(self):
         '''Tests _supply_defaults.'''
@@ -224,7 +224,7 @@ class FlickrApiTest(MockedTest):
         # We expect to be able to find kittens
         result = self.f.photos.search(tags='kitten')
         total = int(result.find('photos').attrib['total'])
-        self.assertTrue(total > 0)
+        self.assertGreater(total, 0)
 
     def test_token_constructor(self):
         '''Test passing a token to the constructor'''
@@ -379,7 +379,7 @@ class FormatsTest(SuperTest):
 
         # Try to parse it
         rst = flickrapi.XMLNode.parse(xml, False)
-        self.assertTrue(int(rst.photos[0]['total']) > 0)
+        self.assertGreater(int(rst.photos[0]['total']), 0)
 
     def test_json_format(self):
         '''Test json format (no callback)'''
