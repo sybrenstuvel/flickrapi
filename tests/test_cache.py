@@ -26,14 +26,14 @@ class TestCache(unittest.TestCase):
         key = 'abc'
         cache.set(key, 'def')
         time.sleep(1.1)
-        self.assertFalse(key in cache)
+        self.assertNotIn(key, cache)
 
     def test_delete(self):
         cache = flickrapi.SimpleCache()
         key = 'abc'
         cache.set(key, 'def')
         cache.delete(key)
-        self.assertFalse(key in cache)
+        self.assertNotIn(key, cache)
 
     def test_max_entries(self):
         max_entries = 90
