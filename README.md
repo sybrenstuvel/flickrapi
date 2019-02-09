@@ -47,11 +47,11 @@ They can then be found in the `doc/_build/html` directory.
 Tests
 -----
 
-Run the tests on all supported Python versions with tox
-(`pip install tox`)::
+Run the tests on all supported Python versions with Tox
+(`pip install tox`):
 
-  tox
+    tox
 
-To run the tests for a specific Python version, e.g. 2.7::
+To run the tests for a specific Python version, e.g. 2.7:
 
-  tox -e py27
+    tox -e py27
