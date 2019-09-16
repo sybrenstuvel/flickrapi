@@ -333,13 +333,14 @@ class FormatsTest(SuperTest):
         '''Test that the default format is etree'''
 
         f = self.clasz(key, secret)
-        etree = f.photos.getInfo(photo_id=u'2333478006')
+        # Photo from Flickr Commons: https://flickr.com/photos/nlireland/45882156715/
+        etree = f.photos.getInfo(photo_id=u'45882156715')
         self.assertEqual(type(etree), type(ElementTree.Element(None)))
 
     def test_etree_format_happy(self):
         '''Test ETree format'''
 
-        etree = self.f_noauth.photos.getInfo(photo_id=u'2333478006',
+        etree = self.f_noauth.photos.getInfo(photo_id=u'45882156715',
                     format='etree')
         self.assertEqual(type(etree), type(ElementTree.Element(None)))
 
@@ -353,13 +354,13 @@ class FormatsTest(SuperTest):
         '''Test setting the default format to etree'''
 
         f = self.clasz(key, secret, format='etree')
-        etree = f.photos_getInfo(photo_id=u'2333478006')
+        etree = f.photos_getInfo(photo_id=u'45882156715')
         self.assertEqual(type(etree), type(ElementTree.Element(None)))
 
     def test_xmlnode_format(self):
         '''Test XMLNode format'''
 
-        node = self.f_noauth.photos_getInfo(photo_id=u'2333478006',
+        node = self.f_noauth.photos_getInfo(photo_id=u'45882156715',
                     format='xmlnode')
         self.assertNotEqual(None, node.photo[0])
 
@@ -383,7 +384,7 @@ class FormatsTest(SuperTest):
     def test_json_format(self):
         '''Test json format (no callback)'''
 
-        data = self.f_noauth.photos.getInfo(photo_id='2333478006',
+        data = self.f_noauth.photos.getInfo(photo_id='45882156715',
                                             format='json')
         photo = json.loads(data.decode('utf-8'))
         location = photo['photo']['location']
@@ -391,13 +392,13 @@ class FormatsTest(SuperTest):
             raise KeyError('locality not in %r' % location)
         locality = location['locality']
 
-        self.assertEqual(photo['photo']['id'], '2333478006')
-        self.assertEqual(locality['_content'], 'Amsterdam')
+        self.assertEqual(photo['photo']['id'], '45882156715')
+        self.assertEqual(locality['_content'], 'Criccieth Castle')
 
     def test_parsed_json_format(self):
         '''Test parsed json format'''
 
-        photo = self.f_noauth.photos.getInfo(photo_id='2333478006',
+        photo = self.f_noauth.photos.getInfo(photo_id='45882156715',
                                              format='parsed-json')
 
         location = photo['photo']['location']
@@ -405,13 +406,13 @@ class FormatsTest(SuperTest):
             raise KeyError('locality not in %r' % location)
         locality = location['locality']
 
-        self.assertEqual(photo['photo']['id'], '2333478006')
-        self.assertEqual(locality['_content'], 'Amsterdam')
+        self.assertEqual(photo['photo']['id'], '45882156715')
+        self.assertEqual(locality['_content'], 'Criccieth Castle')
 
     def test_json_callback_format(self):
         '''Test json format (with callback)'''
 
-        data = self.f_noauth.photos.getInfo(photo_id='2333478006',
+        data = self.f_noauth.photos.getInfo(photo_id='45882156715',
                                             format='json',
                                             jsoncallback='foobar')
         decoded = data.decode('utf-8')
@@ -423,13 +424,14 @@ class RealWalkerTest(SuperTest):
 
     def test_walk_set(self):
         # Check that we get a generator, and not a list of results.
-        gen = self.f.walk_set('72157611690250298', per_page=8)
+        gen = self.f.walk_set('72157691267691054', per_page=8)
         self.assertEqual(types.GeneratorType, type(gen))
 
-        # I happen to know that that set contains 24 photos, and it is
+        # I happen to know that that set contains 10 photos, and it is
         # very unlikely that this will ever change (photos of a past
         # event)
-        self.assertEqual(24, len(list(gen)))
+        # https://www.flickr.com/photos/library_of_congress/albums/72157691267691054
+        self.assertEqual(10, len(list(gen)))
 
 
 class MockedWalkerTest(MockedTest):
