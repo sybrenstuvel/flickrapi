@@ -50,8 +50,8 @@ Tests
 Run the tests on all supported Python versions with tox
 (`pip install tox`)::
 
-  tox
+    tox
 
 To run the tests for a specific Python version, e.g. 2.7::
 
-  tox -e py27
+    tox -e py27
