@@ -4,6 +4,13 @@ Python FlickrAPI Changelog
 This is the changelog of the Python FlickrAPI package. All changes were made by
 Sybren A. Stüvel, unless noted otherwise.
 
+Version 3.0: in development
+--------------------------------
+
+- Drop support for Python versions 3.4 and older, including Python 2.7.
+- Use [Poetry](https://poetry.eustace.io/) for package management, rather than `requirements.txt` + Pip.
+
+
 Version 2.4: released 2018-02-04
 --------------------------------
 
