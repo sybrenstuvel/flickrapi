@@ -7,7 +7,6 @@ documented.
 from __future__ import print_function
 
 import logging
-import six
 import functools
 
 from . import tokencache, auth
@@ -29,15 +28,15 @@ def make_bytes(dictionary):
 
     result = {}
 
-    for (key, value) in six.iteritems(dictionary):
+    for (key, value) in dictionary.items():
         # Keep binary data as-is.
-        if isinstance(value, six.binary_type):
+        if isinstance(value, bytes):
             result[key] = value
             continue
 
         # If it's not a string, convert it to one.
-        if not isinstance(value, six.text_type):
-            value = six.text_type(value)
+        if not isinstance(value, str):
+            value = str(value)
 
         result[key] = value.encode('utf-8')
 
@@ -191,9 +190,9 @@ class FlickrAPI(object):
         self.default_format = format
         self._handler_cache = {}
 
-        if isinstance(api_key, six.binary_type):
+        if isinstance(api_key, bytes):
             api_key = api_key.decode('ascii')
-        if isinstance(secret, six.binary_type):
+        if isinstance(secret, bytes):
             secret = secret.decode('ascii')
 
         if token:
@@ -246,19 +245,19 @@ class FlickrAPI(object):
             return rsp
 
         err = rsp.err[0]
-        raise FlickrError(six.u('Error: %(code)s: %(msg)s') % err, code=err['code'])
+        raise FlickrError('Error: %(code)s: %(msg)s' % err, code=err['code'])
 
     @rest_parser('parsed-json', 'json')
     def parse_json(self, json_string):
         """Parses a JSON response from Flickr."""
 
-        if isinstance(json_string, six.binary_type):
+        if isinstance(json_string, bytes):
             json_string = json_string.decode('utf-8')
 
         import json
         parsed = json.loads(json_string)
         if parsed.get('stat', '') == 'fail':
-            raise FlickrError(six.u('Error: %(code)s: %(message)s') % parsed,
+            raise FlickrError('Error: %(code)s: %(message)s' % parsed,
                               code=parsed['code'])
         return parsed
 
@@ -294,7 +293,7 @@ class FlickrAPI(object):
 
         err = rsp.find('err')
         code = err.attrib.get('code', None)
-        raise FlickrError(six.u('Error: %(code)s: %(msg)s') % err.attrib, code=code)
+        raise FlickrError('Error: %(code)s: %(msg)s' % err.attrib, code=code)
 
     def __getattr__(self, method_name):
         """Returns a CallBuilder for the given method name."""
@@ -345,12 +344,12 @@ class FlickrAPI(object):
         """
 
         result = args.copy()
-        for key, default_value in six.iteritems(defaults):
+        for key, default_value in defaults.items():
             # Set the default if the parameter wasn't passed
             if key not in args:
                 result[key] = default_value
 
-        for key, value in six.iteritems(result.copy()):
+        for key, value in result.copy().items():
             # You are able to remove a default by assigning None, and we can't
             # pass None to Flickr anyway.
             if value is None:
@@ -587,8 +586,8 @@ class FlickrAPI(object):
         the program.
         """
 
-        if isinstance(perms, six.binary_type):
-            perms = six.u(perms)
+        if isinstance(perms, bytes):
+            perms = perms.decode('utf-8')
 
         self.flickr_oauth.get_request_token()
         self.flickr_oauth.auth_via_console(perms=perms)
@@ -602,8 +601,8 @@ class FlickrAPI(object):
         Starts the browser and waits for the user to authorize the app before continuing.
         """
 
-        if isinstance(perms, six.binary_type):
-            perms = six.u(perms)
+        if isinstance(perms, bytes):
+            perms = perms.decode('utf-8')
 
         self.flickr_oauth.get_request_token()
         self.flickr_oauth.auth_via_browser(perms=perms)
@@ -615,8 +614,8 @@ class FlickrAPI(object):
         """Skips a bit of the authentication/authorization, for unit tests.
         """
 
-        if isinstance(perms, six.binary_type):
-            perms = six.u(perms)
+        if isinstance(perms, bytes):
+            perms = perms.decode('utf-8')
 
         self.flickr_oauth.get_request_token()
         self.flickr_oauth.auth_for_test(perms=perms)

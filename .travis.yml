@@ -1,34 +1,38 @@
 sudo: false
 language: python
+dist: bionic   # required for Python >= 3.7
 cache: pip
 
-# Python versions specified to make tox environment 'py35' and 'py36' work.
-# See: https://github.com/travis-ci/travis-ci/issues/4794
 # Environment changes have to be manually synced with 'tox.ini'.
 # See: https://github.com/travis-ci/travis-ci/issues/3024
 
 matrix:
   include:
-  - python: '2.7'
-    env: TOXENV=py27
-  - python: '3.4'
-    env: TOXENV=py34
   - python: '3.5'
+    dist: xenial  # Bionic has no Python 3.5
     env: TOXENV=py35
   - python: '3.6'
     env: TOXENV=py36
-  - python: 'pypy'
-    env: TOXENV=pypy
-  - python: 3.5
-    env: TOXENV=qa,doc
+  - python: '3.7'
+    env: TOXENV=py37
+  - python: '3.7'
+    env: TOXENV=qa
+  - python: '3.7'
+    env: TOXENV=docs
+
+    # Disabled, see https://github.com/sybrenstuvel/python-rsa/issues/131
+    #- python: pypy3.5
+    #  dist: xenial  # Bionic has no Python 3.5
+    #  env: TOXENV=pypy3
 
 install:
-  - pip install --upgrade setuptools pip tox-travis coveralls
+  - pip install poetry
+  - poetry install -v
 
 script:
-  - tox -v
+  - poetry run tox
 
 after_success:
   # Coveralls submission only for py36 environment, because of being the only
   # one that executes doctest-modules testing, according to tox.ini.
-  - if [ ${TOXENV} = "py36" ]; then coveralls; fi
+  - if [ ${TOXENV} = "py37" ]; then coveralls; fi

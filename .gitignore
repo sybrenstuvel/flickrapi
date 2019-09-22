@@ -11,3 +11,4 @@
 /doc/_build
 /.idea/
 /.tox
+__pycache__

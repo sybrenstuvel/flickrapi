@@ -18,7 +18,6 @@ import logging
 import random
 import os.path
 import sys
-import six
 
 from requests_toolbelt import MultipartEncoder
 import requests
@@ -38,15 +37,11 @@ class OAuthTokenHTTPHandler(http_server.BaseHTTPRequestHandler):
         oauth_token = url_vars['oauth_token'][0]
         oauth_verifier = url_vars['oauth_verifier'][0]
 
-        if six.PY2:
-            self.server.oauth_token = oauth_token.decode('utf-8')
-            self.server.oauth_verifier = oauth_verifier.decode('utf-8')
-        else:
-            self.server.oauth_token = oauth_token
-            self.server.oauth_verifier = oauth_verifier
+        self.server.oauth_token = oauth_token
+        self.server.oauth_verifier = oauth_verifier
 
-        assert (isinstance(self.server.oauth_token, six.string_types))
-        assert (isinstance(self.server.oauth_verifier, six.string_types))
+        assert isinstance(self.server.oauth_token, str)
+        assert isinstance(self.server.oauth_verifier, str)
 
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
@@ -108,13 +103,13 @@ class FlickrAccessToken(object):
 
     def __init__(self, token, token_secret, access_level,
                  fullname=u'', username=u'', user_nsid=u''):
-        assert isinstance(token, six.text_type), 'token should be unicode text'
-        assert isinstance(token_secret, six.text_type), 'token_secret should be unicode text'
-        assert isinstance(access_level, six.text_type), 'access_level should be unicode text, is %r' % type(
+        assert isinstance(token, str), 'token should be unicode text'
+        assert isinstance(token_secret, str), 'token_secret should be unicode text'
+        assert isinstance(access_level, str), 'access_level should be unicode text, is %r' % type(
             access_level)
-        assert isinstance(fullname, six.text_type), 'fullname should be unicode text'
-        assert isinstance(username, six.text_type), 'username should be unicode text'
-        assert isinstance(user_nsid, six.text_type), 'user_nsid should be unicode text'
+        assert isinstance(fullname, str), 'fullname should be unicode text'
+        assert isinstance(username, str), 'username should be unicode text'
+        assert isinstance(user_nsid, str), 'user_nsid should be unicode text'
 
         access_level = access_level.lower()
         assert access_level in self.levels, 'access_level should be one of %r' % (self.levels,)
@@ -128,7 +123,7 @@ class FlickrAccessToken(object):
 
     def __str__(self):
         fmt = 'FlickrAccessToken(token=%s, fullname=%s, username=%s, user_nsid=%s)'
-        return six.text_type(fmt % (self.token, self.fullname, self.username, self.user_nsid))
+        return str(fmt % (self.token, self.fullname, self.username, self.user_nsid))
 
     def __repr__(self):
         return str(self)
@@ -154,8 +149,8 @@ class OAuthFlickrInterface(object):
     def __init__(self, api_key, api_secret, oauth_token=None, default_timeout=None):
         self.log = logging.getLogger('%s.%s' % (self.__class__.__module__, self.__class__.__name__))
 
-        assert isinstance(api_key, six.text_type), 'api_key must be unicode string'
-        assert isinstance(api_secret, six.text_type), 'api_secret must be unicode string'
+        assert isinstance(api_key, str), 'api_key must be unicode string'
+        assert isinstance(api_secret, str), 'api_secret must be unicode string'
 
         token = None
         secret = None
@@ -203,7 +198,7 @@ class OAuthFlickrInterface(object):
     def verifier(self, new_verifier):
         """Sets the OAuth verifier"""
 
-        assert isinstance(new_verifier, six.text_type), 'verifier must be unicode text type'
+        assert isinstance(new_verifier, str), 'verifier must be unicode text type'
         self.oauth.client.verifier = new_verifier
 
     @property
@@ -315,7 +310,7 @@ class OAuthFlickrInterface(object):
         The keys and values of the dictionary will be text strings (i.e. not binary strings).
         """
 
-        if isinstance(data, six.binary_type):
+        if isinstance(data, bytes):
             data = data.decode('utf-8')
         qsl = urllib_parse.parse_qsl(data)
 

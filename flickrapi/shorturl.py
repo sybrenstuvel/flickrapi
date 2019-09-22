@@ -11,8 +11,6 @@ https://www.flickr.com/groups/api/discuss/72157616713786392/
 
 """
 
-import six
-
 __all__ = ['encode', 'decode', 'url', 'SHORT_URL']
 
 ALPHABET = u'123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
@@ -54,13 +52,13 @@ def decode(short_id):
     decoded = 0
     multi = 1
 
-    for i in six.moves.range(len(short_id) - 1, -1, -1):
+    for i in range(len(short_id) - 1, -1, -1):
         char = short_id[i]
         index = ALPHABET.index(char)
         decoded += multi * index
         multi *= len(ALPHABET)
 
-    return six.text_type(decoded)
+    return str(decoded)
 
 
 def url(photo_id):

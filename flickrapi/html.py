@@ -80,6 +80,4 @@ auth_okay_html = """<!DOCTYPE html>
 </html>
 """  # noqa: W293
 
-import six
-if six.PY3:
-    auth_okay_html = auth_okay_html.encode('utf-8')
+auth_okay_html = auth_okay_html.encode('utf-8')

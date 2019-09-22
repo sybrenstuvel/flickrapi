@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "flickrapi"
+version = "3.0-dev0"
+description = "The Python interface to the Flickr API"
+authors = ["Sybren A. Stüvel <sybren@stuvel.eu>"]
+license = "CNRI-Python"
+classifiers = [
+    'Development Status :: 6 - Mature',
+    'Intended Audience :: Developers',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Programming Language :: Python :: Implementation :: PyPy',
+    'Topic :: Multimedia :: Graphics',
+    'Topic :: Software Development :: Libraries :: Python Modules'
+]
+
+[tool.poetry.extras]
+docs = ["sphynx"]
+qa = ["flake8"]
+
+
+[tool.poetry.dependencies]
+python = "^3.5"
+requests = "~2"
+requests_oauthlib = ">=0.8"
+requests_toolbelt = ">=0.8"
+
+sphinx = { version = "~2", optional = true }
+flake8 = { version = "~3", optional = true }
+
+[tool.poetry.dev-dependencies]
+pytest = "~5.0"
+pytest-cov = "~2.7"
+responses = ">0.5.1"
+tox = "^3.14"
+
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
