@@ -11,7 +11,7 @@ class SimpleTokenCacheTest(unittest.TestCase):
         self.assertIsNone(self.tc.token)
 
         self.tc.token = 'nümbér'
-        self.assertEquals(self.tc.token, 'nümbér')
+        self.assertEqual(self.tc.token, 'nümbér')
 
         del self.tc.token
         self.assertIsNone(self.tc.token)
@@ -41,13 +41,13 @@ class TokenCacheTest(unittest.TestCase):
 
         # Check setting token, both in memory and on disk.
         self.tc.token = u'nümbér'
-        self.assertEquals(self.tc.token, u'nümbér')
+        self.assertEqual(self.tc.token, u'nümbér')
         on_disk = open(self.tc.get_cached_token_filename(), 'rb').read()
-        self.assertEquals(on_disk.decode('utf8'), u'nümbér')
+        self.assertEqual(on_disk.decode('utf8'), u'nümbér')
 
         # Erase from in-RAM cache and try again, to read from disk.
         self.tc.memory.clear()
-        self.assertEquals(self.tc.token, u'nümbér')
+        self.assertEqual(self.tc.token, u'nümbér')
 
         del self.tc.token
         self.assertIsNone(self.tc.token)
@@ -66,7 +66,7 @@ class TokenCacheTest(unittest.TestCase):
         tc_path = self.tc.get_cached_token_filename()
         user_path = user_tc.get_cached_token_filename()
 
-        self.assertNotEquals(tc_path, user_path)
+        self.assertNotEqual(tc_path, user_path)
         self.assertNotIn(u'frøbel', tc_path)
         self.assertIn(u'frøbel', user_path)
 
@@ -96,16 +96,16 @@ class OAuthTokenCache(unittest.TestCase):
 
         # Check setting token
         self.tc.token = self.token
-        self.assertEquals(self.tc.token.token, u'nümbér')
+        self.assertEqual(self.tc.token.token, u'nümbér')
 
         # Erase from in-RAM cache and try again, to read from disk.
         self.tc.RAM_CACHE.clear()
-        self.assertEquals(self.tc.token.token, u'nümbér')
-        self.assertEquals(self.tc.token.token_secret, u'səcret-tøken')
-        self.assertEquals(self.tc.token.access_level, u'read')
-        self.assertEquals(self.tc.token.fullname, u'My Full Name™')
-        self.assertEquals(self.tc.token.username, u'üsernåme')
-        self.assertEquals(self.tc.token.user_nsid, u'user—nsid')
+        self.assertEqual(self.tc.token.token, u'nümbér')
+        self.assertEqual(self.tc.token.token_secret, u'səcret-tøken')
+        self.assertEqual(self.tc.token.access_level, u'read')
+        self.assertEqual(self.tc.token.fullname, u'My Full Name™')
+        self.assertEqual(self.tc.token.username, u'üsernåme')
+        self.assertEqual(self.tc.token.user_nsid, u'user—nsid')
 
         del self.tc.token
         self.assertIsNone(self.tc.token)
