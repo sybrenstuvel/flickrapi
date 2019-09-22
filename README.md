@@ -9,13 +9,14 @@ Status](https://coveralls.io/repos/github/sybrenstuvel/flickrapi/badge.svg?branc
 Most of the info can be found in the `doc` directory, or on
 https://stuvel.eu/flickrapi
 
-To install the Python Flickr API module from source, run::
-
-    python setup.py install
-
 To install the latest version from PyPi:
 
     pip install flickrapi
+
+To install the Python Flickr API module from source into a virtualenv, run::
+
+    pip install --user poetry
+    poetry install
 
 For development, install the dependencies using:
 
