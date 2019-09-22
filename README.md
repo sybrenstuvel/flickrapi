@@ -17,8 +17,9 @@ To install the latest version from PyPi:
 
     pip install flickrapi
 
-For development, install the extra dependencies using:
+For development, install the dependencies using:
 
+    poetry install --extras 'docs qa'
     pip install tox .[docs] .[qa] .[test]
 
 then run `py.test` in the top-level directory.
@@ -26,15 +27,10 @@ then run `py.test` in the top-level directory.
 Supported Python versions
 -------------------------
 
-The minimum Python versions that are supported are 2.7 and 3.4.
+The minimum Python version that is supported is 3.5.
 
-[Python 2.7 will be discontinued in 2020](http://www.i-programmer.info/news/216-python/7179-python-27-to-be-maintained-until-2020.html),
-which also marks the end of the support for Python 2.x for this
-library. We might discontinue supporting Python 2.x earlier than that,
-but only if there is a very compelling reason to do so.
-
-As of September 2017, [Python 3.3 stopped receiving security
-updates](https://www.python.org/dev/peps/pep-0398/#lifespan),
+As of March 2019, [Python 3.4 stopped receiving security
+updates](https://www.python.org/downloads/release/python-3410/),
 at which time this library also stopped supporting it.
 
 Generating the documentation
@@ -52,6 +48,6 @@ Run the tests on all supported Python versions with Tox
 
     tox
 
-To run the tests for a specific Python version, e.g. 2.7:
+To run the tests for a specific Python version, e.g. 3.6:
 
-    tox -e py27
+    tox -e py36
