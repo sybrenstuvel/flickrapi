@@ -9,6 +9,8 @@ Version 3.0: in development
 
 - Drop support for Python versions 3.4 and older, including Python 2.7.
 - Use [Poetry](https://poetry.eustace.io/) for package management, rather than `requirements.txt` + Pip.
+- Update tests to run against an existing photo and album from Flickr Commons [[ Pull request #126 ]](https://github.com/sybrenstuvel/flickrapi/pull/126) (Hugo van Kemenade).
+- Update URLs in documentation and code from http:// to https:// [[ Pull request #114 ]](https://github.com/sybrenstuvel/flickrapi/pull/114) (Zach Adams).
 
 
 Version 2.4: released 2018-02-04
