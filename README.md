@@ -20,9 +20,8 @@ To install the latest version from PyPi:
 For development, install the dependencies using:
 
     poetry install --extras 'docs qa'
-    pip install tox .[docs] .[qa] .[test]
 
-then run `py.test` in the top-level directory.
+then run `poetry run py.test` in the top-level directory.
 
 Supported Python versions
 -------------------------
