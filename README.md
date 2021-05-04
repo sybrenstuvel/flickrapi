@@ -6,6 +6,18 @@ Status](https://travis-ci.org/sybrenstuvel/flickrapi.svg?branch=master)](https:/
 [![Coverage
 Status](https://coveralls.io/repos/github/sybrenstuvel/flickrapi/badge.svg?branch=master)](https://coveralls.io/github/sybrenstuvel/flickrapi?branch=master)
 
+
+Looking for a new maintainer
+----------------------------
+
+**I (Sybren) haven't used this library for a long time, and don't have the time &
+energy to keep maintaining it. If you have an interest in taking over the
+library, please [contact me](https://stuvel.eu/#contact).**
+
+
+Getting Started
+---------------
+
 Most of the info can be found in the `doc` directory, or on
 https://stuvel.eu/flickrapi
 
