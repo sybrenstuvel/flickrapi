@@ -686,7 +686,7 @@ class FlickrAPI(object):
                       (method.__name__, page, total, params))
             rsp = method(page=page, **params)
 
-            photoset = rsp.getchildren()[0]
+            photoset = rsp[0]
             total = int(photoset.get('pages'))
 
             photos = rsp.findall(searchstring)
