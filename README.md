@@ -7,12 +7,6 @@ Status](https://travis-ci.org/sybrenstuvel/flickrapi.svg?branch=master)](https:/
 Status](https://coveralls.io/repos/github/sybrenstuvel/flickrapi/badge.svg?branch=master)](https://coveralls.io/github/sybrenstuvel/flickrapi?branch=master)
 
 
-Looking for a new maintainer
-----------------------------
-
-**I (Sybren) haven't used this library for a long time, and don't have the time &
-energy to keep maintaining it. If you have an interest in taking over the
-library, please [contact me](https://stuvel.eu/#contact).**
 
 
 Getting Started
@@ -45,6 +39,8 @@ As of March 2019, [Python 3.4 stopped receiving security
 updates](https://www.python.org/downloads/release/python-3410/),
 at which time this library also stopped supporting it.
 
+Improvements to maintain functionality in 3.9+ are coming.
+
 Generating the documentation
 ----------------------------
 
@@ -63,3 +59,8 @@ Run the tests on all supported Python versions with Tox
 To run the tests for a specific Python version, e.g. 3.6:
 
     tox -e py36
+
+Maintenance
+----------------------------
+
+**For maintenance information or other concerns (i.e. to get your PR reviewed) contact me at <goode.cameron@yahoo.com>**
