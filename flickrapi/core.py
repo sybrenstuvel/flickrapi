@@ -245,7 +245,13 @@ class FlickrAPI(object):
             return rsp
 
         err = rsp.err[0]
-        raise FlickrError('Error: %(code)s: %(msg)s' % err, code=err['code'])
+        code = err['code']
+        if int(code) == 9:
+            dup_id = rsp.duplicate_photo_id[0].text
+            raise FlickrDuplicate('Duplicate photo',
+                                  duplicate_photo_id=dup_id)
+
+        raise FlickrError('Error: %(code)s: %(msg)s' % err, code=code)
 
     @rest_parser('parsed-json', 'json')
     def parse_json(self, json_string):
@@ -293,6 +299,11 @@ class FlickrAPI(object):
 
         err = rsp.find('err')
         code = err.attrib.get('code', None)
+        if int(code) == 9:
+            dup_id = rsp.find('duplicate_photo_id')
+            raise FlickrDuplicate('Duplicate photo',
+                                  duplicate_photo_id=dup_id.text)
+
         raise FlickrError('Error: %(code)s: %(msg)s' % err.attrib, code=code)
 
     def __getattr__(self, method_name):

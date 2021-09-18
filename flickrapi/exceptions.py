@@ -25,6 +25,22 @@ class FlickrError(Exception):
             self.code = int(code)
 
 
+class FlickrDuplicate(Exception):
+    """Raised when Flickr detects duplicate photo being uploaded.
+
+    The duplicate detection only happens if the upload request contains
+    the 'dedup_check' parameter set to either 1 or 2.
+
+    The exception contains ID of the duplicate photo as returned
+    from the API call.
+
+    """
+    def __init__(self, message, duplicate_photo_id):
+        super().__init__(self, message)
+
+        self.duplicate_photo_id = duplicate_photo_id
+
+
 class CancelUpload(Exception):
     """Raise this exception in an upload/replace callback function to
     abort the upload.
