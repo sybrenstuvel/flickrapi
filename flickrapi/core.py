@@ -469,6 +469,8 @@ class FlickrAPI(object):
         hidden
             Set to "1" to keep the photo in global search results, "2"
             to hide from public searches.
+        asynchronous
+            Set to "1" to do async upload
         format
             The response format. You can only choose between the
             parsed responses or 'rest' for plain REST.
@@ -514,6 +516,8 @@ class FlickrAPI(object):
             an optional file-like object from which the data can be read
         photo_id
             the ID of the photo to replace
+        asynchronous
+            Set to "1" to do async upload
         format
             The response format. You can only choose between the
             parsed responses or 'rest' for plain REST. Defaults to the

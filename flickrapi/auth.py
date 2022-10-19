@@ -272,6 +272,11 @@ class OAuthFlickrInterface(object):
         if 'title' not in params:
             params['title'] = os.path.basename(filename).encode('utf8')
 
+        if 'asynchronous' in params:
+            if int(params['asynchronous']) == 1:
+                params['async'] = '1'
+            params.pop('asynchronous')
+
         # work-around for Flickr expecting 'photo' to be excluded
         # from the oauth signature:
         #   1. create a dummy request without 'photo'
