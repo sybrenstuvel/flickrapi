@@ -4,8 +4,6 @@ This module contains most of the FlickrAPI code. It is well tested and
 documented.
 """
 
-from __future__ import print_function
-
 import logging
 import functools
 

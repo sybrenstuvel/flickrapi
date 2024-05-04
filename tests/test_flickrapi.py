@@ -13,9 +13,8 @@ import sys
 import types
 import unittest
 import urllib
-import six
 import responses
-from six.moves.urllib.parse import quote_plus, parse_qs
+from urllib.parse import quote_plus, parse_qs
 
 import flickrapi
 #flickrapi.set_log_level(logging.FATAL)
@@ -132,7 +131,7 @@ class MockedTest(SuperTest):
         if method == 'GET':
             # The parameters should be on the URL.
             qp = quote_plus
-            qs = '&'.join('%s=%s' % (qp(key), qp(six.text_type(value).encode('utf-8')))
+            qs = '&'.join('%s=%s' % (qp(key), qp(str(value).encode('utf-8')))
                           for key, value in sorted(params.items()))
             if qs:
                 url = '%s?%s' % (urlbase, qs)
@@ -374,8 +373,8 @@ class FormatsTest(SuperTest):
         '''Test explicitly requesting a certain unparsed format'''
 
         xml = self.f.photos_search(tags='kitten', format='rest')
-        self.assertTrue(isinstance(xml, six.binary_type),
-                        'XML is type %r, not %r' % (type(xml), six.binary_type))
+        self.assertTrue(isinstance(xml, bytes),
+                        'XML is type %r, not %r' % (type(xml), bytes))
 
         # Try to parse it
         rst = flickrapi.XMLNode.parse(xml, False)

@@ -1,18 +1,8 @@
 """OAuth support functionality
 """
 
-from __future__ import unicode_literals
-
-# Try importing the Python 3 packages first, falling back to 2.x packages when it fails.
-try:
-    from http import server as http_server
-except ImportError:
-    import BaseHTTPServer as http_server
-
-try:
-    from urllib import parse as urllib_parse
-except ImportError:
-    import urlparse as urllib_parse
+from http import server as http_server
+from urllib import parse as urllib_parse
 
 import logging
 import random

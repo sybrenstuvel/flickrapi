@@ -10,7 +10,6 @@ See `the FlickrAPI homepage`_ for more info.
 
 .. _`the FlickrAPI homepage`: https://stuvel.eu/flickrapi
 """
-from __future__ import unicode_literals
 
 # Copyright (c) 2007-2018 by the respective coders, see
 # https://stuvel.eu/flickrapi

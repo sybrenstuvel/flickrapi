@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from xml.etree import ElementTree as ET
-import six
 import logging
 import webbrowser
 logging.basicConfig(level=logging.INFO)
@@ -31,7 +30,7 @@ if not flickr.token_valid(perms='read'):
 
     # Get the verifier code from the user. Do this however you
     # want, as long as the user gives the application the code.
-    verifier = six.text_type(six.input('Verifier code: '))
+    verifier = input('Verifier code: ')
 
     # Trade the request token for an access token
     flickr.get_access_token(verifier)

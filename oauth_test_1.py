@@ -1,18 +1,12 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
 
 import requests
 from requests_oauthlib import OAuth1
-import six
 from urlparse import parse_qsl
 
-if six.PY3:
-    from http.server import BaseHTTPRequestHandler, HTTPServer
-    from urllib.parse import urlsplit, parse_qs
-else:
-    from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-    from urlparse import urlsplit, parse_qs, unquote
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlsplit, parse_qs
 
 url = "http://www.flickr.com/services/oauth/request_token"
 
