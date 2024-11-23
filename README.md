@@ -1,13 +1,8 @@
 Python FlickrAPI
 ================
 
-[![Build
-Status](https://travis-ci.org/sybrenstuvel/flickrapi.svg?branch=master)](https://travis-ci.org/sybrenstuvel/flickrapi)
-[![Coverage
-Status](https://coveralls.io/repos/github/sybrenstuvel/flickrapi/badge.svg?branch=master)](https://coveralls.io/github/sybrenstuvel/flickrapi?branch=master)
-
-
-
+> [!CAUTION]
+> This repository is no longer maintained. Bug reports will not be closed, pull requests will not be pulled. Please fork the project, or implement it from scratch.
 
 Getting Started
 ---------------
